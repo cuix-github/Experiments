@@ -19,8 +19,8 @@ void set_bnd ( int N, int b, float * x )
 	int i;
 
 	// Boundary conditions
-	// -x[IX(1, i)] closed boundary (Dirichlet)
-	//  x[IX(1, i)] open boundary (Neumann)
+	// Negativev -> closed boundary (Dirichlet)
+	// Positive -> open boundary (Neumann)
 	for ( i=1 ; i<=N ; i++ ) {
 		x[IX(0  ,i)] = b==1 ? -x[IX(1,i)] : x[IX(1,i)]; // LEFT
 		x[IX(N+1,i)] = b==1 ? -x[IX(N,i)] : x[IX(N,i)];	// RIGHT
