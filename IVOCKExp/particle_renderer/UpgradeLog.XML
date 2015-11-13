@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="particle_renderer">
+</Property><Property Name="Solution File" Value="C:\Development\Project\IVOCK_Xinxin\particle_renderer\particle_renderer.sln">
+</Property><Property Name="User Options File" Value="C:\Development\Project\IVOCK_Xinxin\particle_renderer\particle_renderer.suo">
+</Property><Property Name="Date" Value="Friday, October 23, 2015">
+</Property><Property Name="Time" Value="17:49 PM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="particle_renderer.sln" Description="File successfully backed up as C:\Development\Project\IVOCK_Xinxin\particle_renderer\particle_renderer.sln.old">
+</Event><Event ErrorLevel="0" Project="" Source="particle_renderer.suo" Description="File successfully backed up as C:\Development\Project\IVOCK_Xinxin\particle_renderer\particle_renderer.suo.old">
+</Event><Event ErrorLevel="0" Project="particle_renderer" Source="particle_renderer\particle_renderer.vcproj" Description="Converting project file 'C:\Development\Project\IVOCK_Xinxin\particle_renderer\particle_renderer\particle_renderer.vcproj'.">
+</Event><Event ErrorLevel="1" Project="particle_renderer" Source="particle_renderer\particle_renderer.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="0" Project="particle_renderer" Source="particle_renderer\particle_renderer.vcproj" Description="Done converting to new project file 'C:\Development\Project\IVOCK_Xinxin\particle_renderer\particle_renderer\particle_renderer.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="particle_renderer" Source="particle_renderer\particle_renderer.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="particle_renderer.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="particle_renderer.sln" Description="Converted">
+</Event></UpgradeLog>
