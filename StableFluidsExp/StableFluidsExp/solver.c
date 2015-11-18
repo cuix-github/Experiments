@@ -78,9 +78,9 @@ void project ( int N, float * u, float * v, float * p, float * div )
 		div[IX(i,j)] = -0.5f*(u[IX(i+1,j)]-u[IX(i-1,j)]+v[IX(i,j+1)]-v[IX(i,j-1)])/N;
 		p[IX(i,j)] = 0;
 	END_FOR	
-	set_bnd ( N, 0, div ); set_bnd ( N, 0, p );
+	set_bnd ( N, 2, div ); set_bnd ( N, 2, p );
 
-	lin_solve ( N, 0, p, div, 1, 4 );
+	lin_solve ( N, 2, p, div, 1, 4 );
 
 	FOR_EACH_CELL
 		u[IX(i,j)] -= 0.5f*N*(p[IX(i+1,j)]-p[IX(i-1,j)]);
@@ -92,8 +92,8 @@ void project ( int N, float * u, float * v, float * p, float * div )
 void dens_step ( int N, float * x, float * x0, float * u, float * v, float diff, float dt )
 {
 	add_source ( N, x, x0, dt );
-	SWAP ( x0, x ); diffuse ( N, 0, x, x0, diff, dt );
-	SWAP ( x0, x ); advect ( N, 0, x, x0, u, v, dt );
+	SWAP ( x0, x ); diffuse ( N, 2, x, x0, diff, dt );
+	SWAP ( x0, x ); advect ( N, 2, x, x0, u, v, dt );
 }
 
 void vel_step ( int N, float * u, float * v, float * u0, float * v0, float visc, float dt )
