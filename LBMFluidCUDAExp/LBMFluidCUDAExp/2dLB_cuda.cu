@@ -23,7 +23,9 @@
 #include <stdlib.h>
 #include <GL\glew.h>
 #include <glut.h>
-#include <cutil.h>
+//#include <cutil.h>
+#include <cuda.h>
+#include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <cuda_gl_interop.h>
 
@@ -164,26 +166,26 @@ int main(int argc, char **argv)
     //
     // allocate memory on device
     //
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&f0_data, &pitch, 
-                                   sizeof(float)*ni, nj));
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&f1_data, &pitch, 
-                                   sizeof(float)*ni, nj));
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&f2_data, &pitch, 
-                                   sizeof(float)*ni, nj));
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&f3_data, &pitch, 
-                                   sizeof(float)*ni, nj));
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&f4_data, &pitch, 
-                                   sizeof(float)*ni, nj));
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&f5_data, &pitch, 
-                                   sizeof(float)*ni, nj));
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&f6_data, &pitch, 
-                                   sizeof(float)*ni, nj));
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&f7_data, &pitch, 
-                                   sizeof(float)*ni, nj));
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&f8_data, &pitch, 
-                                   sizeof(float)*ni, nj));
-    CUDA_SAFE_CALL(cudaMallocPitch((void **)&plot_data, &pitch, 
-                                   sizeof(float)*ni, nj));
+    cudaMallocPitch((void **)&f0_data, &pitch, 
+                    sizeof(float)*ni, nj);
+    cudaMallocPitch((void **)&f1_data, &pitch, 
+                    sizeof(float)*ni, nj);
+    cudaMallocPitch((void **)&f2_data, &pitch, 
+                    sizeof(float)*ni, nj);
+    cudaMallocPitch((void **)&f3_data, &pitch, 
+                    sizeof(float)*ni, nj);
+    cudaMallocPitch((void **)&f4_data, &pitch, 
+                    sizeof(float)*ni, nj);
+    cudaMallocPitch((void **)&f5_data, &pitch, 
+                    sizeof(float)*ni, nj);
+    cudaMallocPitch((void **)&f6_data, &pitch, 
+                    sizeof(float)*ni, nj);
+    cudaMallocPitch((void **)&f7_data, &pitch, 
+                    sizeof(float)*ni, nj);
+    cudaMallocPitch((void **)&f8_data, &pitch, 
+                    sizeof(float)*ni, nj);
+    cudaMallocPitch((void **)&plot_data, &pitch, 
+                    sizeof(float)*ni, nj);
 
 
     CUDA_SAFE_CALL(cudaMallocPitch((void **)&solid_data, &pitch, 
