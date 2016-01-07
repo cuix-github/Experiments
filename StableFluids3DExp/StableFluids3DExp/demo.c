@@ -7,7 +7,7 @@
 //
 
 #include <stdio.h>
-#include <GL\glut.h>
+#include <glut.h>
 
 extern void get_density(int N, float *density, float *density_prev, float *velocity_u, float *velocity_v, float *velocity_w, float diff, float dt);
 
@@ -18,8 +18,8 @@ typedef enum {
     true = 1
 } wuBOOL;
 
-const int windowWidth = 600;
-const int windowHeight = 800;
+const int windowWidth = 1280;
+const int windowHeight = 720;
 
 GLfloat translationX;
 GLfloat translationY;
@@ -50,9 +50,9 @@ GLfloat *previousDensity;
 GLfloat alpha = 0.05;
 
 wuBOOL addVelocityX = false;
-wuBOOL addVelocityY = false;
+wuBOOL addVelocityY = true;
 wuBOOL addVelocityZ = false;
-wuBOOL addDensity = false;
+wuBOOL addDensity = true;
 
 wuBOOL drawVelocity = false;
 
@@ -64,19 +64,18 @@ int wuIndex(int i, int j, int k)
 
 void wuInitialize()
 {
-    rotationX = 30;
-    rotationY = -40;
+    rotationX = 20;
+    rotationY = -30;
     
     translationX = 0;
     translationY = 0;
     translationZ = -5.0;
     
-    N = 32;
-    timeStep = 0.1;
-    // diffuse = 0.0;
+    N = 40;
+    timeStep = 0.2;
     viscocity = 0.0;
-    force = 10.0;
-    source = 100.0;
+    force = 5.0;
+    source = 50.0;
     
     const int eachGridCount = N + 2;
     const int size = eachGridCount * eachGridCount * eachGridCount;
@@ -131,8 +130,8 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
         indexY = 2;
         indexZ = N/2;
         
-        v[wuIndex(indexX, indexY, indexZ)] = force * 10;
-        addVelocityY = false;
+        v[wuIndex(indexX, indexY, indexZ)] = force * 4.0f;
+        addVelocityY = true;
     }
     
     if (addVelocityZ == true)
@@ -148,11 +147,11 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
     if (addDensity == true)
     {
         indexX = N/2;
-        indexY = N/4;
+        indexY = 2;
         indexZ = N/2;
         
         density[wuIndex(indexX, indexY, indexZ)] = source;
-        addDensity = false;
+        addDensity = true;
     }
     
     for (int x = 1; x < N;x++)
@@ -175,7 +174,7 @@ void wuDrawGrid()
     glLineWidth(1.0f);
     
     glBegin(GL_LINES);
-        glColor3f(1.0f, 0.0f, 0.0f);
+        glColor3f(0.0f, 1.0f, 0.0f);
         glVertex3f(0.0f, 0.0f, 0.0f);
         glVertex3f(1.3f, 0.0f, 0.0f);
     
@@ -392,45 +391,29 @@ void wuReshape(GLint width, GLint height)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     
-    gluPerspective(45.0, (float)width/height, 0.001, 100.0);
+    gluPerspective(60.0, (float)width/height, 0.001, 100.0);
     glMatrixMode(GL_MODELVIEW);
     
     glLoadIdentity();
-    glTranslatef(0.0f, 0.0f, -3.0f);
+    glTranslatef(0.0f, 0.0f, -1.0f);
 }
 
 void wuSpecialKeys(int key, int x, int y)
 {
-    if(key == GLUT_KEY_UP)
-    {
-        rotationX -= 5.0f;
-        
-        //rotationX = (GLfloat)((const int)xRot60);
-        //rotationY=(GLfloat)((const int)yRot60);
+    if(key == GLUT_KEY_UP) {
+        rotationX -= 2.0f;
     }
     
-    if(key == GLUT_KEY_DOWN)
-    {
-        rotationX += 5.0f;
-        
-        //rotationX=(GLfloat)((const int)rotationX * 60);
-        //rotationY=(GLfloat)((const int)ro);
+    if(key == GLUT_KEY_DOWN) {
+        rotationX += 2.0f;
     }
     
-    if(key == GLUT_KEY_LEFT)
-    {
-        rotationY += 5.0f;
-        
-        //rotationX=(GLfloat)((const int)xRot60);
-        //rotationY=(GLfloat)((const int)yRot60);
+    if(key == GLUT_KEY_LEFT) {
+        rotationY += 2.0f;
     }
     
-    if(key == GLUT_KEY_RIGHT)
-    {
-        rotationY -= 5.0f;
-        
-        //rotationX=(GLfloat)((const int)xRot60);
-        //rotationY=(GLfloat)((const int)yRot60);
+    if(key == GLUT_KEY_RIGHT) {
+        rotationY -= 2.0f;
     }
     
     glutPostRedisplay();
@@ -469,12 +452,12 @@ void wuKeyBoard(unsigned char key, int x, int y)
     
     if(key == 'a' || key == 'A')
     {
-        translationX = translationX - 0.1;
+        translationX = translationX + 0.1;
     }
     
     if(key == 'd' || key == 'D')
     {
-        translationX = translationX + 0.1;
+        translationX = translationX - 0.1;
     }
     
     if(key == 'q' || key == 'Q')

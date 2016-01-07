@@ -239,10 +239,10 @@ void get_density(int N, float *density, float *density_prev, float *velocity_u, 
     add_source(N, density, density_prev, dt);
     
     SWAP(density_prev, density);
-    diffuse(N, 2, density, density_prev, diff, dt);
+    diffuse(N, 0, density, density_prev, diff, dt);
     
     SWAP(density_prev, density);
-    advect(N, 2, density, density_prev, velocity_u, velocity_v, velocity_w, dt);
+    advect(N, 0, density, density_prev, velocity_u, velocity_v, velocity_w, dt);
 }
 
 void get_velocity(int N, float *velocity_u, float *velocity_v,  float *velocity_w, float *velocity_u_prev, float *velocity_v_prev, float *velocity_w_prev, float visc, float dt)
@@ -255,8 +255,8 @@ void get_velocity(int N, float *velocity_u, float *velocity_v,  float *velocity_
     SWAP(velocity_v_prev, velocity_v);
     SWAP(velocity_w_prev, velocity_w);
     
-    diffuse(N, 3, velocity_u, velocity_u_prev, visc, dt);
-    diffuse(N, 3, velocity_v, velocity_v_prev, visc, dt);
+    diffuse(N, 1, velocity_u, velocity_u_prev, visc, dt);
+    diffuse(N, 2, velocity_v, velocity_v_prev, visc, dt);
     diffuse(N, 3, velocity_w, velocity_w_prev, visc, dt);
     
     project(N, velocity_u, velocity_v, velocity_w, velocity_u_prev, velocity_v_prev);
@@ -265,8 +265,8 @@ void get_velocity(int N, float *velocity_u, float *velocity_v,  float *velocity_
     SWAP(velocity_v_prev, velocity_v);
     SWAP(velocity_w_prev, velocity_w);
     
-    advect(N, 3, velocity_u, velocity_u_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
-    advect(N, 3, velocity_v, velocity_v_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
+    advect(N, 1, velocity_u, velocity_u_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
+    advect(N, 2, velocity_v, velocity_v_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
     advect(N, 3, velocity_w, velocity_w_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
     
     project(N, velocity_u, velocity_v, velocity_w, velocity_u_prev, velocity_v_prev);
