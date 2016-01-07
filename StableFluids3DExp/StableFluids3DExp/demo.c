@@ -7,7 +7,7 @@
 //
 
 #include <stdio.h>
-#include <glut.h>
+#include <GL\glut.h>
 
 extern void get_density(int N, float *density, float *density_prev, float *velocity_u, float *velocity_v, float *velocity_w, float diff, float dt);
 
@@ -76,7 +76,7 @@ void wuInitialize()
     // diffuse = 0.0;
     viscocity = 0.0;
     force = 10.0;
-    source = 200.0;
+    source = 100.0;
     
     const int eachGridCount = N + 2;
     const int size = eachGridCount * eachGridCount * eachGridCount;
@@ -148,7 +148,7 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
     if (addDensity == true)
     {
         indexX = N/2;
-        indexY = N/4 * 3;
+        indexY = N/4;
         indexZ = N/2;
         
         density[wuIndex(indexX, indexY, indexZ)] = source;

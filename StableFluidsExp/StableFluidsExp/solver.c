@@ -49,8 +49,39 @@ void lin_solve ( int N, int b, float * x, float * x0, float a, float c )
 
 void diffuse ( int N, int b, float * x, float * x0, float diff, float dt )
 {
+	diff = 0.0000001f;
 	float a=dt*diff*N*N;
+
+	float tmpField[49];
+	float tmpFieldPrev[49];
+
+	x0[24] = 200.0f;
+
+	for (int i = 0; i != 48; i++)
+	{
+		tmpFieldPrev[i] = x0[i];
+	}
+
+	for (int i = 0; i != 48; i++)
+	{
+		tmpField[i] = x[i];
+	}
+
 	lin_solve ( N, b, x, x0, a, 1+4*a );
+
+	for (int i = 0; i != 48; i++)
+	{
+		tmpFieldPrev[i] = x0[i];
+	}
+
+	for (int i = 0; i != 48; i++)
+	{
+		tmpField[i] = x[i];
+	}
+
+	printf("Solved");
+
+	return;
 }
 
 void advect ( int N, int b, float * d, float * d0, float * u, float * v, float dt )

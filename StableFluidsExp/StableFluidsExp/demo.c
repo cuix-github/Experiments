@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <gl\glut.h>
 
 /* macros */
 
@@ -51,6 +51,8 @@ static void clear_data ( void )
 	for ( i=0 ; i<size ; i++ ) {
 		u[i] = v[i] = u_prev[i] = v_prev[i] = dens[i] = dens_prev[i] = 0.0f;
 	}
+
+	dens_prev[24] = source;
 }
 
 static int allocate_data ( void )
@@ -238,6 +240,7 @@ static void reshape_func ( int width, int height )
 static void idle_func ( void )
 {
 	get_from_UI ( dens_prev, u_prev, v_prev );
+	dens_prev[24] = 200.0f;
 	vel_step ( N, u, v, u_prev, v_prev, visc, dt );
 	dens_step ( N, dens, dens_prev, u, v, diff, dt );
 
@@ -310,12 +313,12 @@ int main ( int argc, char ** argv )
 	}
 
 	if ( argc == 1 ) {
-		N = 128;
+		N = 5;
 		dt = 0.1f;
-		diff = 0.0f;
+		diff = 0.0005f;
 		visc = 0.0f;
 		force = 1.0f;
-		source = 100.0f;
+		source = 200.0f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source );
 	} else {
