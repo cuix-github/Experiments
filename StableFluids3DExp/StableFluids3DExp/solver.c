@@ -255,9 +255,9 @@ void get_velocity(int N, float *velocity_u, float *velocity_v,  float *velocity_
     SWAP(velocity_v_prev, velocity_v);
     SWAP(velocity_w_prev, velocity_w);
     
-    diffuse(N, 1, velocity_u, velocity_u_prev, visc, dt);
-    diffuse(N, 2, velocity_v, velocity_v_prev, visc, dt);
-    diffuse(N, 3, velocity_w, velocity_w_prev, visc, dt);
+    diffuse(N, 0, velocity_u, velocity_u_prev, visc, dt);
+    diffuse(N, 0, velocity_v, velocity_v_prev, visc, dt);
+    diffuse(N, 0, velocity_w, velocity_w_prev, visc, dt);
     
     project(N, velocity_u, velocity_v, velocity_w, velocity_u_prev, velocity_v_prev);
     
@@ -265,9 +265,9 @@ void get_velocity(int N, float *velocity_u, float *velocity_v,  float *velocity_
     SWAP(velocity_v_prev, velocity_v);
     SWAP(velocity_w_prev, velocity_w);
     
-    advect(N, 1, velocity_u, velocity_u_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
-    advect(N, 2, velocity_v, velocity_v_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
-    advect(N, 3, velocity_w, velocity_w_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
+    advect(N, 0, velocity_u, velocity_u_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
+    advect(N, 0, velocity_v, velocity_v_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
+    advect(N, 0, velocity_w, velocity_w_prev, velocity_u_prev, velocity_v_prev, velocity_w_prev, dt);
     
     project(N, velocity_u, velocity_v, velocity_w, velocity_u_prev, velocity_v_prev);
 }

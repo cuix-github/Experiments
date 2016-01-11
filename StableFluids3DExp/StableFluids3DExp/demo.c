@@ -47,7 +47,7 @@ GLfloat *previousVelocityW;
 GLfloat *density;
 GLfloat *previousDensity;
 
-GLfloat alpha = 0.05;
+GLfloat alpha = 0.03;
 
 wuBOOL addVelocityX = false;
 wuBOOL addVelocityY = true;
@@ -71,11 +71,11 @@ void wuInitialize()
     translationY = 0;
     translationZ = -5.0;
     
-    N = 40;
-    timeStep = 0.2;
-    viscocity = 0.0;
-    force = 5.0;
-    source = 50.0;
+    N = 32;
+    timeStep = 0.4;
+    viscocity = 0.0000001;
+    force = 4.0;
+    source = 100.0;
     
     const int eachGridCount = N + 2;
     const int size = eachGridCount * eachGridCount * eachGridCount;
@@ -130,7 +130,7 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
         indexY = 2;
         indexZ = N/2;
         
-        v[wuIndex(indexX, indexY, indexZ)] = force * 4.0f;
+        v[wuIndex(indexX, indexY, indexZ)] = force * 3.0f;
         addVelocityY = true;
     }
     
@@ -171,47 +171,47 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
 
 void wuDrawGrid()
 {
-    glLineWidth(1.0f);
-    
-    glBegin(GL_LINES);
-        glColor3f(0.0f, 1.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(1.3f, 0.0f, 0.0f);
-    
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 1.3f, 0.0f);
-    
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 1.3f);
-    
-        glVertex3f(1.3f, 0.0f, 0.0f);
-        glVertex3f(1.3f, 1.3f, 0.0f);
-    
-        glVertex3f(1.3f, 1.3f, 0.0f);
-        glVertex3f(0.0f, 1.3f, 0.0f);
-    
-        glVertex3f(0.0f, 1.3f, 1.3f);
-        glVertex3f(0.0f, 0.0f, 1.3f);
-    
-        glVertex3f(0.0f, 1.3f, 1.3f);
-        glVertex3f(0.0f, 1.3f, 0.0f);
-    
-        glVertex3f(1.3f, 0.0f, 0.0f);
-        glVertex3f(1.3f, 0.0f, 1.3f);
-    
-        glVertex3f(0.0f, 0.0f, 1.3f);
-        glVertex3f(1.3f, 0.0f, 1.3f);
-    
-        glVertex3f(1.3f, 1.3f, 0.0f);
-        glVertex3f(1.3f, 1.3f, 1.3f);
-    
-        glVertex3f(1.3f, 1.3f, 1.3f);
-        glVertex3f(1.3f, 0.0f, 1.3f);
-    
-        glVertex3f(0.0f, 1.3f, 1.3f);
-        glVertex3f(1.3f, 1.3f, 1.3f);
-    
-    glEnd();
+    //glLineWidth(2.0f);
+    //
+    //glBegin(GL_LINES);
+    //    glColor3f(0.0f, 1.0f, 0.0f);
+    //    glVertex3f(0.0f, 0.0f, 0.0f);
+    //    glVertex3f(1.3f, 0.0f, 0.0f);
+    //
+    //    glVertex3f(0.0f, 0.0f, 0.0f);
+    //    glVertex3f(0.0f, 1.3f, 0.0f);
+    //
+    //    glVertex3f(0.0f, 0.0f, 0.0f);
+    //    glVertex3f(0.0f, 0.0f, 1.3f);
+    //
+    //    glVertex3f(1.3f, 0.0f, 0.0f);
+    //    glVertex3f(1.3f, 1.3f, 0.0f);
+    //
+    //    glVertex3f(1.3f, 1.3f, 0.0f);
+    //    glVertex3f(0.0f, 1.3f, 0.0f);
+    //
+    //    glVertex3f(0.0f, 1.3f, 1.3f);
+    //    glVertex3f(0.0f, 0.0f, 1.3f);
+    //
+    //    glVertex3f(0.0f, 1.3f, 1.3f);
+    //    glVertex3f(0.0f, 1.3f, 0.0f);
+    //
+    //    glVertex3f(1.3f, 0.0f, 0.0f);
+    //    glVertex3f(1.3f, 0.0f, 1.3f);
+    //
+    //    glVertex3f(0.0f, 0.0f, 1.3f);
+    //    glVertex3f(1.3f, 0.0f, 1.3f);
+    //
+    //    glVertex3f(1.3f, 1.3f, 0.0f);
+    //    glVertex3f(1.3f, 1.3f, 1.3f);
+    //
+    //    glVertex3f(1.3f, 1.3f, 1.3f);
+    //    glVertex3f(1.3f, 0.0f, 1.3f);
+    //
+    //    glVertex3f(0.0f, 1.3f, 1.3f);
+    //    glVertex3f(1.3f, 1.3f, 1.3f);
+    //
+    //glEnd();
 }
 
 void wuDrawDensity()
@@ -391,7 +391,7 @@ void wuReshape(GLint width, GLint height)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     
-    gluPerspective(60.0, (float)width/height, 0.001, 100.0);
+    gluPerspective(45.0, (float)width/height, 0.001, 100.0);
     glMatrixMode(GL_MODELVIEW);
     
     glLoadIdentity();
@@ -510,7 +510,7 @@ int main(int argc, char * argv[])
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
     glutInitWindowPosition(0, 0);
     glutInitWindowSize(windowWidth, windowHeight);
-    glutCreateWindow("Wu Stable Fluids 3D");
+    glutCreateWindow("GAS Simulation test");
     
     glutDisplayFunc(wuDisplay);
     glutReshapeFunc(wuReshape);
