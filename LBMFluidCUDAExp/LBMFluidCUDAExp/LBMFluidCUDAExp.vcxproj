@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="2dLB_cuda.cu" />
-    <CudaCompile Include="kernel.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{54AE0C62-673B-4073-AD13-78F4D8BD2B0F}</ProjectGuid>
@@ -72,12 +71,17 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\R&amp;D\Tools\Glew\include;$(IncludePath)</IncludePath>
-    <ExecutablePath>C:\R&amp;D\Tools\Glew\bin\Release\x64;C:\R&amp;D\Tools\Glew\bin\Release MX\x64;$(ExecutablePath)</ExecutablePath>
-    <LibraryPath>C:\R&amp;D\Tools\Glew\lib\Release\x64;C:\R&amp;D\Tools\Glew\lib\Release MX\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include\GL;$(IncludePath)</IncludePath>
+    <ExecutablePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Debug\Win32;C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Debug MX\Win32;$(ExecutablePath)</ExecutablePath>
+    <LibraryPath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Debug\Win32;C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Debug MX\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ExecutablePath>C:\R&amp;D\Tools\Glew\bin\Release\Win32;C:\R&amp;D\Tools\Glew\bin\Release MX\Win32;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include\GL;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\R&amp;D\Tools\Glew\lib\Release\Win32;C:\R&amp;D\Tools\Glew\lib\Release MX\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

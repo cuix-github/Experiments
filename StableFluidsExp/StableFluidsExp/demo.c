@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <gl\glut.h>
+#include <glut.h>
 
 /* macros */
 
@@ -9,7 +9,7 @@
 /* external definitions (from solver.c) */
 
 extern void dens_step ( int N, float * x, float * x0, float * u, float * v, float diff, float dt );
-extern void vel_step ( int N, float * u, float * v, float * u0, float * v0, float visc, float dt );
+extern void vel_step(int N, float * u, float * v, float * u0, float * v0, float visc, float dt);
 
 /* global variables */
 
@@ -19,6 +19,7 @@ static float force, source;
 static int dvel;
 
 static float * u, * v, * u_prev, * v_prev;
+static float * g_u, *g_v, *g_u_prev, *g_v_prev;
 static float * dens, * dens_prev;
 
 static int win_id;
@@ -61,6 +62,10 @@ static int allocate_data ( void )
 
 	u			= (float *) malloc ( size*sizeof(float) );
 	v			= (float *) malloc ( size*sizeof(float) );
+	g_u			= (float *)	malloc ( size*sizeof(float) );
+	g_v			= (float *) malloc ( size*sizeof(float) );
+	g_u_prev	= (float*)  malloc ( size*sizeof(float) );
+	g_v_prev	= (float*)  malloc ( size*sizeof(float) );
 	u_prev		= (float *) malloc ( size*sizeof(float) );
 	v_prev		= (float *) malloc ( size*sizeof(float) );
 	dens		= (float *) malloc ( size*sizeof(float) );	
@@ -69,6 +74,13 @@ static int allocate_data ( void )
 	if ( !u || !v || !u_prev || !v_prev || !dens || !dens_prev ) {
 		fprintf ( stderr, "cannot allocate data\n" );
 		return ( 0 );
+	}
+
+	for (int i = 0; i != N; i++){
+		for (int j = 0; j != N; j++){
+			g_u[IX(i, j)] = 0.0f;
+			g_v[IX(i, j)] = -9.8f;
+		}
 	}
 
 	return ( 1 );
@@ -160,10 +172,6 @@ static void get_from_UI ( float * d, float * u, float * v )
 {
 	int i, j, size = (N+2)*(N+2);
 
-	for ( i=0 ; i<size ; i++ ) {
-		u[i] = v[i] = d[i] = 0.0f;
-	}
-
 	if ( !mouse_down[0] && !mouse_down[2] ) return;
 
 	i = (int)((       mx /(float)win_x)*N+1);
@@ -240,7 +248,6 @@ static void reshape_func ( int width, int height )
 static void idle_func ( void )
 {
 	get_from_UI ( dens_prev, u_prev, v_prev );
-	dens_prev[24] = 200.0f;
 	vel_step ( N, u, v, u_prev, v_prev, visc, dt );
 	dens_step ( N, dens, dens_prev, u, v, diff, dt );
 
@@ -313,9 +320,9 @@ int main ( int argc, char ** argv )
 	}
 
 	if ( argc == 1 ) {
-		N = 5;
+		N = 128;
 		dt = 0.1f;
-		diff = 0.0005f;
+		diff = 0.00000005f;
 		visc = 0.0f;
 		force = 1.0f;
 		source = 200.0f;

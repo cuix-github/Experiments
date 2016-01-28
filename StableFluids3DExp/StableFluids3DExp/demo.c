@@ -47,7 +47,7 @@ GLfloat *previousVelocityW;
 GLfloat *density;
 GLfloat *previousDensity;
 
-GLfloat alpha = 0.03;
+GLfloat alpha = 0.02;
 
 wuBOOL addVelocityX = false;
 wuBOOL addVelocityY = true;
@@ -72,10 +72,10 @@ void wuInitialize()
     translationZ = -5.0;
     
     N = 32;
-    timeStep = 0.4;
+    timeStep = 0.5;
     viscocity = 0.0000001;
     force = 4.0;
-    source = 100.0;
+    source = 50.0;
     
     const int eachGridCount = N + 2;
     const int size = eachGridCount * eachGridCount * eachGridCount;
@@ -113,6 +113,10 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
     memset(v, 0, sizeof(GLfloat) * size);
     memset(w, 0, sizeof(GLfloat) * size);
     memset(density, 0, sizeof(GLfloat) * size);
+
+	for (int i = 0; i != size; i++){
+		v[i] = -0.00098;
+	}
  
     if (addVelocityX == true)
     {
@@ -162,7 +166,7 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
             {
                 if (density[wuIndex(x, y, z)] > 0)
                 {
-                    v[wuIndex(x, y, z)] = v[wuIndex(x, y, z)] - density[wuIndex(x, y, z)] * 0.2 * (y + 1)/N;
+                    v[wuIndex(x, y, z)] += v[wuIndex(x, y, z)] - density[wuIndex(x, y, z)] * 0.2 * (y + 1)/N;
                 }
             }
         }

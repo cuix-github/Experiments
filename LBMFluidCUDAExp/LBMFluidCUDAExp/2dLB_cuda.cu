@@ -21,13 +21,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <GL\glew.h>
+#include <glew.h>
 #include <glut.h>
-//#include <cutil.h>
+#include "CUDA_Helpers\cutil.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <cuda_gl_interop.h>
+
+#pragma comment(lib, "glew32d.lib")
 
 #define TILE_I 16
 #define TILE_J 8
@@ -129,8 +131,8 @@ int main(int argc, char **argv)
 
     // The following parameters are usually read from a file, but
     // hard code them for the demo:
-    ni=320;
-    nj=112;
+    ni=640;
+    nj=360;
     vxin=0.04;
     roout=1.0;
     tau=0.51;
