@@ -1,3 +1,19 @@
+/*
+  ======================================================================
+   demo.c --- protoype to show off the simple solver
+  ----------------------------------------------------------------------
+   Author : Jos Stam (jstam@aw.sgi.com)
+   Creation Date : Jan 9 2003
+
+   Description:
+
+	This code is a simple prototype that demonstrates how to use the
+	code provided in my GDC2003 paper entitles "Real-Time Fluid Dynamics
+	for Games". This code uses OpenGL and GLUT for graphics and interface
+
+  =======================================================================
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <glut.h>
@@ -9,7 +25,7 @@
 /* external definitions (from solver.c) */
 
 extern void dens_step ( int N, float * x, float * x0, float * u, float * v, float diff, float dt );
-extern void vel_step(int N, float * u, float * v, float * u0, float * v0, float visc, float dt);
+extern void vel_step ( int N, float * u, float * v, float * u0, float * v0, float visc, float dt );
 
 /* global variables */
 
@@ -19,7 +35,6 @@ static float force, source;
 static int dvel;
 
 static float * u, * v, * u_prev, * v_prev;
-static float * g_u, *g_v, *g_u_prev, *g_v_prev;
 static float * dens, * dens_prev;
 
 static int win_id;
@@ -52,8 +67,6 @@ static void clear_data ( void )
 	for ( i=0 ; i<size ; i++ ) {
 		u[i] = v[i] = u_prev[i] = v_prev[i] = dens[i] = dens_prev[i] = 0.0f;
 	}
-
-	dens_prev[24] = source;
 }
 
 static int allocate_data ( void )
@@ -62,10 +75,6 @@ static int allocate_data ( void )
 
 	u			= (float *) malloc ( size*sizeof(float) );
 	v			= (float *) malloc ( size*sizeof(float) );
-	g_u			= (float *)	malloc ( size*sizeof(float) );
-	g_v			= (float *) malloc ( size*sizeof(float) );
-	g_u_prev	= (float*)  malloc ( size*sizeof(float) );
-	g_v_prev	= (float*)  malloc ( size*sizeof(float) );
 	u_prev		= (float *) malloc ( size*sizeof(float) );
 	v_prev		= (float *) malloc ( size*sizeof(float) );
 	dens		= (float *) malloc ( size*sizeof(float) );	
@@ -74,13 +83,6 @@ static int allocate_data ( void )
 	if ( !u || !v || !u_prev || !v_prev || !dens || !dens_prev ) {
 		fprintf ( stderr, "cannot allocate data\n" );
 		return ( 0 );
-	}
-
-	for (int i = 0; i != N; i++){
-		for (int j = 0; j != N; j++){
-			g_u[IX(i, j)] = 0.0f;
-			g_v[IX(i, j)] = -9.8f;
-		}
 	}
 
 	return ( 1 );
@@ -115,7 +117,7 @@ static void draw_velocity ( void )
 
 	h = 1.0f/N;
 
-	glColor3f ( 0.0f, 1.0f, 0.0f );
+	glColor3f ( 1.0f, 1.0f, 1.0f );
 	glLineWidth ( 1.0f );
 
 	glBegin ( GL_LINES );
@@ -171,6 +173,10 @@ static void draw_density ( void )
 static void get_from_UI ( float * d, float * u, float * v )
 {
 	int i, j, size = (N+2)*(N+2);
+
+	for ( i=0 ; i<size ; i++ ) {
+		u[i] = v[i] = d[i] = 0.0f;
+	}
 
 	if ( !mouse_down[0] && !mouse_down[2] ) return;
 
@@ -322,10 +328,10 @@ int main ( int argc, char ** argv )
 	if ( argc == 1 ) {
 		N = 128;
 		dt = 0.1f;
-		diff = 0.00000005f;
+		diff = 0.0f;
 		visc = 0.0f;
 		force = 1.0f;
-		source = 200.0f;
+		source = 50.0f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source );
 	} else {
@@ -349,8 +355,8 @@ int main ( int argc, char ** argv )
 	if ( !allocate_data () ) exit ( 1 );
 	clear_data ();
 
-	win_x = 600;
-	win_y = 600;
+	win_x = 512;
+	win_y = 512;
 	open_glut_window ();
 
 	glutMainLoop ();
