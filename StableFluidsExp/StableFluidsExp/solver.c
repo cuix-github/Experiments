@@ -63,6 +63,11 @@ void diffuse ( int N, int b, float * x, float * x0, float diff, float dt )
 	Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
 }
 
+float lerp(float t, float x0, float x1)
+{
+	return (1 - t) * x0 + t * x1;
+}
+
 void advect ( int N, int b, float * d, float * d0, float * u, float * v, float dt )
 {
 	int i, j, i0, j0, i1, j1;
@@ -90,10 +95,44 @@ void advect ( int N, int b, float * d, float * d0, float * u, float * v, float d
 		t1 = y-j0; 
 		t0 = 1-t1;
 
-		d[IX(i,j)] = s0*(t0*d0[IX(i0,j0)]+t1*d0[IX(i0,j1)])+
-					 s1*(t0*d0[IX(i1,j0)]+t1*d0[IX(i1,j1)]);
+		d[IX(i, j)] = lerp(t1, lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]), lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]));
 	END_FOR
 	set_bnd ( N, b, d );
+}
+
+void advect_beta(int N, int b, float * d, float * d0, float * k, float * k0, float * u, float * v, float dt)
+{
+	int i, j, i0, j0, i1, j1;
+	float x, y, s0, t0, s1, t1, dt0;
+
+	dt0 = dt*N;
+	FOR_EACH_CELL
+		x = i - dt0*u[IX(i, j)];
+	y = j - dt0*v[IX(i, j)];
+
+	if (x<0.5f) x = 0.5f;
+	if (x>N + 0.5f) x = N + 0.5f;
+
+	i0 = (int)x;
+	i1 = i0 + 1;
+
+	if (y<0.5f) y = 0.5f;
+	if (y>N + 0.5f) y = N + 0.5f;
+
+	j0 = (int)y;
+	j1 = j0 + 1;
+
+	s1 = x - i0;
+	s0 = 1 - s1;
+	t1 = y - j0;
+	t0 = 1 - t1;
+
+	d[IX(i, j)] = lerp(t1, lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]), lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]));
+	k[IX(i, j)] = lerp(t1, lerp(s1, k0[IX(i0, j0)], k0[IX(i1, j0)]), lerp(s1, k0[IX(i0, j1)], k0[IX(i1, j1)]));
+	END_FOR
+	
+	set_bnd(N, b, d);
+	set_bnd(N, b, k);
 }
 
 void project ( int N, float * u, float * v, float * p, float * div )
@@ -129,7 +168,8 @@ void vel_step ( int N, float * u, float * v, float * u0, float * v0, float visc,
 	SWAP ( v0, v ); diffuse ( N, 2, v, v0, visc, dt );
 	project ( N, u, v, u0, v0 );
 	SWAP ( u0, u ); SWAP ( v0, v );
-	advect ( N, 1, u, u0, u0, v0, dt ); advect ( N, 2, v, v0, u0, v0, dt );
+	advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
+	//advect ( N, 1, u, u0, u0, v0, dt ); advect ( N, 2, v, v0, u0, v0, dt );
 	project ( N, u, v, u0, v0 );
 }
 
