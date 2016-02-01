@@ -47,7 +47,7 @@ GLfloat *previousVelocityW;
 GLfloat *density;
 GLfloat *previousDensity;
 
-GLfloat alpha = 0.02;
+GLfloat alpha = 0.03;
 
 wuBOOL addVelocityX = false;
 wuBOOL addVelocityY = true;
@@ -72,10 +72,10 @@ void wuInitialize()
     translationZ = -5.0;
     
     N = 32;
-    timeStep = 0.5;
-    viscocity = 0.0000001;
-    force = 4.0;
-    source = 50.0;
+    timeStep = 0.4;
+    viscocity = 0.0000000;
+    force = 0.7;
+    source = 5.0;
     
     const int eachGridCount = N + 2;
     const int size = eachGridCount * eachGridCount * eachGridCount;
@@ -175,47 +175,47 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
 
 void wuDrawGrid()
 {
-    //glLineWidth(2.0f);
-    //
-    //glBegin(GL_LINES);
-    //    glColor3f(0.0f, 1.0f, 0.0f);
-    //    glVertex3f(0.0f, 0.0f, 0.0f);
-    //    glVertex3f(1.3f, 0.0f, 0.0f);
-    //
-    //    glVertex3f(0.0f, 0.0f, 0.0f);
-    //    glVertex3f(0.0f, 1.3f, 0.0f);
-    //
-    //    glVertex3f(0.0f, 0.0f, 0.0f);
-    //    glVertex3f(0.0f, 0.0f, 1.3f);
-    //
-    //    glVertex3f(1.3f, 0.0f, 0.0f);
-    //    glVertex3f(1.3f, 1.3f, 0.0f);
-    //
-    //    glVertex3f(1.3f, 1.3f, 0.0f);
-    //    glVertex3f(0.0f, 1.3f, 0.0f);
-    //
-    //    glVertex3f(0.0f, 1.3f, 1.3f);
-    //    glVertex3f(0.0f, 0.0f, 1.3f);
-    //
-    //    glVertex3f(0.0f, 1.3f, 1.3f);
-    //    glVertex3f(0.0f, 1.3f, 0.0f);
-    //
-    //    glVertex3f(1.3f, 0.0f, 0.0f);
-    //    glVertex3f(1.3f, 0.0f, 1.3f);
-    //
-    //    glVertex3f(0.0f, 0.0f, 1.3f);
-    //    glVertex3f(1.3f, 0.0f, 1.3f);
-    //
-    //    glVertex3f(1.3f, 1.3f, 0.0f);
-    //    glVertex3f(1.3f, 1.3f, 1.3f);
-    //
-    //    glVertex3f(1.3f, 1.3f, 1.3f);
-    //    glVertex3f(1.3f, 0.0f, 1.3f);
-    //
-    //    glVertex3f(0.0f, 1.3f, 1.3f);
-    //    glVertex3f(1.3f, 1.3f, 1.3f);
-    //
-    //glEnd();
+    glLineWidth(2.0f);
+    
+    glBegin(GL_LINES);
+        glColor3f(0.0f, 1.0f, 0.0f);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(1.3f, 0.0f, 0.0f);
+    
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 1.3f, 0.0f);
+    
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 0.0f, 1.3f);
+    
+        glVertex3f(1.3f, 0.0f, 0.0f);
+        glVertex3f(1.3f, 1.3f, 0.0f);
+    
+        glVertex3f(1.3f, 1.3f, 0.0f);
+        glVertex3f(0.0f, 1.3f, 0.0f);
+    
+        glVertex3f(0.0f, 1.3f, 1.3f);
+        glVertex3f(0.0f, 0.0f, 1.3f);
+    
+        glVertex3f(0.0f, 1.3f, 1.3f);
+        glVertex3f(0.0f, 1.3f, 0.0f);
+    
+        glVertex3f(1.3f, 0.0f, 0.0f);
+        glVertex3f(1.3f, 0.0f, 1.3f);
+    
+        glVertex3f(0.0f, 0.0f, 1.3f);
+        glVertex3f(1.3f, 0.0f, 1.3f);
+    
+        glVertex3f(1.3f, 1.3f, 0.0f);
+        glVertex3f(1.3f, 1.3f, 1.3f);
+    
+        glVertex3f(1.3f, 1.3f, 1.3f);
+        glVertex3f(1.3f, 0.0f, 1.3f);
+    
+        glVertex3f(0.0f, 1.3f, 1.3f);
+        glVertex3f(1.3f, 1.3f, 1.3f);
+    
+    glEnd();
 }
 
 void wuDrawDensity()
