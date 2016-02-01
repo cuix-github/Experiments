@@ -16,7 +16,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 /* macros */
@@ -329,7 +329,6 @@ int main ( int argc, char ** argv )
 	}
 
 	if ( argc == 1 ) {
-		// diff = 0.0001 program crashed.
 		N = 3;
 		dt = 0.1f;
 		diff = 0.0001f;

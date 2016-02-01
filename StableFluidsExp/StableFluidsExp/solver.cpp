@@ -94,7 +94,9 @@ void advect(int N, int b, float * d, float * d0, float * u, float * v, float dt)
 		s1 = x - i0;
 		t1 = y - j0;
 
-		d[IX(i, j)] = lerp(t1, lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]), lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]));
+		float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
+		float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
+		d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
 	END_FOR
 	set_bnd(N, b, d);
 }
@@ -170,8 +172,7 @@ void vel_step(int N, float * u, float * v, float * u0, float * v0, float visc, f
 	dt = 0.1f;
 	visc = 0.0f;
 
-	add_source(N, u, u0, dt);
-	add_source(N, v, v0, dt);
+	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
 	SWAP(u0, u); SWAP(v0, v);
 	advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
 
