@@ -162,29 +162,24 @@ void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, f
 
 void vel_step(int N, float * u, float * v, float * u0, float * v0, float visc, float dt)
 {
-	u0[6] = 5.0f; v0[6] = 5.0f;	u0[7] = 4.0f; v0[7] = 0.0f;	u0[8] = 9.0f; v0[8] = 0.0f;
-	u0[11] = 4.0f; v0[11] = 7.0f; u0[12] = 7.0f; v0[12] = 5.0f; u0[13] = 8.0f; v0[13] = 5.0f;
-	u0[16] = 5.0f; v0[16] = 7.0f; u0[17] = 1.0f; v0[17] = 1.0f; u0[18] = 2.0f; v0[18] = 8.0f;
-
-	cout << endl << "Velocity field (central difference)" << endl;
+	cout << endl << "Previous time step velocity field (central difference)" << endl;
 	displayVectorField(N + 2, N + 2, u0, v0);
 
 	dt = 0.1f;
 	visc = 0.0f;
 
 	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
-	SWAP(u0, u); SWAP(v0, v);
-	advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
+	cout << endl << "Current time step velocity field" << endl;
+	displayVectorField(N + 2, N + 2, u, v);
 
-	cout << endl << "Velocity field (central difference) after StableFluids scheme advection" << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
-
-	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
 	SWAP(u0, u); diffuse(N, 1, u, u0, visc, dt);
 	SWAP(v0, v); diffuse(N, 2, v, v0, visc, dt);
 	project(N, u, v, u0, v0);
 	SWAP(u0, u); SWAP(v0, v);
 	advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
 	project(N, u, v, u0, v0);
+
+	cout << endl << "Velocity field (central difference) after StableFluids scheme advection" << endl;
+	displayVectorField(N + 2, N + 2, u, v);
 }
 
