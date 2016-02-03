@@ -16,7 +16,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 /* macros */
@@ -193,8 +193,6 @@ static void get_from_UI(float * d, float * u, float * v)
 		u_prev[6] = 0.0f; v_prev[6] = 0.0f;	u_prev[7] = 0.0f; v_prev[7] = 0.0f;	u_prev[8] = -9.0f; v_prev[8] = 0.0f;
 		u_prev[11] = 0.0f; v_prev[11] = 0.0f; u_prev[12] = 0.0f; v_prev[12] = 0.0f; u_prev[13] = -9.0f; v_prev[13] = 0.0f;
 		u_prev[16] = 0.0f; v_prev[16] = 0.0f; u_prev[17] = 0.0f; v_prev[17] = 0.0f; u_prev[18] = -9.0f; v_prev[18] = 0.0f;
-
-		cout << endl;
 	}
 
 	if (mouse_down[2]) {
@@ -241,9 +239,6 @@ static void mouse_func(int button, int state, int x, int y)
 	omx = my = y;
 
 	mouse_down[button] = state == GLUT_DOWN;
-
-	cout << endl << "Velocity field" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
 }
 
 static void motion_func(int x, int y)
@@ -295,7 +290,7 @@ static void open_glut_window(void)
 
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(win_x, win_y);
-	win_id = glutCreateWindow("Alias | wavefront");
+	win_id = glutCreateWindow("Gas");
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -339,11 +334,11 @@ int main(int argc, char ** argv)
 	if (argc == 1) {
 		N = 3;
 		dt = 0.1f;
-		diff = 0.0001f;
+		diff = 0.0f;
 		visc = 0.0f;
 		force = 1.0f;
 		source = 50.0f;
-		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
+		fprintf(stderr, "Using defaults : N = %d dt = %g diff = %g visc = %g force = %g source = %g\n",
 			N, dt, diff, visc, force, source);
 	}
 	else {

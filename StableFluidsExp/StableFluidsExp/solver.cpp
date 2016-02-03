@@ -56,6 +56,8 @@ void Jacobi_solve(int N, int b, float * x, float * x0, float a, float c)
 		END_FOR
 		set_bnd(N, b, x);
 	}
+
+	free(aux);
 }
 
 void diffuse(int N, int b, float * x, float * x0, float diff, float dt)
@@ -162,38 +164,20 @@ void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, f
 
 void vel_step(int N, float * u, float * v, float * u0, float * v0, float visc, float dt)
 {
-	cout << endl << "Previous time step velocity field (central difference)" << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
-
-	dt = 0.1f;
-	visc = 0.0f;
-
 	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
-	cout << endl << "Current time step velocity field" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
 
 	SWAP(u0, u); SWAP(v0, v);
-	cout << endl << "Current time step velocity field after swap" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-
-	cout << endl << "Previous time step velocity field after swap" << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
-
 	diffuse(N, 0, u, u0, visc, dt);
 	diffuse(N, 0, v, v0, visc, dt);
-	cout << endl << "Diffused a bit for current time step velocity field" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-
 	advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
-	cout << endl << "Velocity field (central difference) after StableFluids scheme advection" << endl;
+	cout << "Velocity field after stable fluids advection scheme" << endl;
 	displayVectorField(N + 2, N + 2, u, v);
 	
-	project(N, u, v, u0, v0);
-	SWAP(u0, u); SWAP(v0, v);
-	advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
-	project(N, u, v, u0, v0);
-
-	cout << endl << "Velocity field (central difference) after StableFluids scheme advection" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
+	//project(N, u, v, u0, v0);
+	//SWAP(u0, u); SWAP(v0, v);
+	//advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
+	//cout << "Velocity field after stable fluids advection scheme" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//project(N, u, v, u0, v0);
 }
 
