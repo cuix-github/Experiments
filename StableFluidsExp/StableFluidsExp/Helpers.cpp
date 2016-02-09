@@ -15,9 +15,14 @@ void displayVectorField(int row, int col, float* u, float* v){
 	cout << std::setprecision(2) << setiosflags(ios::fixed);
 	for (int i = 0; i != row; i++){
 		for (int j = 0; j != col; j++){
-			cout << std::setw(3) << "V(" << u[i * col + j] << "," << v[i * col + j] << ") ";
+			cout << std::setw(3) << "v(" << u[i * col + j] << "," << v[i * col + j] << ") ";
 			if (j == col - 1)
 				cout << endl;
 		}
 	}
+}
+
+void computeCurls_uniform(float * w, float * u, float * v)
+{
+
 }
