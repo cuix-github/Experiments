@@ -22,7 +22,17 @@ void displayVectorField(int row, int col, float* u, float* v){
 	}
 }
 
-void computeCurls_uniform(float * w, float * u, float * v)
+void computeCurls_uniform(int N, float * w, float * u, float * v)
 {
+	for (int i = 1; i != N; i++)
+	{
+		for (int j = 1; j != N; j++)
+		{
+			float du, dv, curl;
 
+			// TODO: Calculate each direction derivative respectively.
+
+			w[IX(i, j)] = curl;
+		}
+	}
 }
