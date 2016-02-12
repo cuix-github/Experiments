@@ -166,17 +166,17 @@ void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, fl
 {
 	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
 	cout << endl << "Velocity field before stable fluids advction scheme" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
+	displayVectorFieldInv(N + 2, N + 2, u, v);
 
-	cout << "Curl field is computed from the velocity field" << endl;
-	computeCurls_uniform(N + 3, 1 / (N + 3), w0, u0, v0);
-	displayField(N + 3, N + 3, w0);
+	cout << endl << "Curl field is computed from the velocity field" << endl;
+	computeCurls_uniform(N + 3, w0, u0, v0);
+	displayFieldInv(N + 3, N + 3, w0);
 
 	SWAP(u0, u); SWAP(v0, v);
 	diffuse(N, 0, u, u0, visc, dt);
 	diffuse(N, 0, v, v0, visc, dt);
 	advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
-	cout << "Velocity field after stable fluids advection scheme" << endl;
+	cout << endl << "Velocity field after stable fluids advection scheme" << endl;
 	displayVectorField(N + 2, N + 2, u, v);
 	
 	//project(N, u, v, u0, v0);

@@ -66,10 +66,14 @@ static void free_data(void)
 static void clear_data(void)
 {
 	int i, size = (N + 2)*(N + 2);
+	int size_for_w = (N + 3) * (N + 3);
 
 	for (i = 0; i < size; i++) {
 		u[i] = v[i] = u_prev[i] = v_prev[i] = dens[i] = dens_prev[i] = 0.0f;
 	}
+
+	for (int j = 0; j != size; j++)
+		w[i] = w_prev[i] = 0.0f;
 }
 
 static int allocate_data(void)
@@ -185,6 +189,11 @@ static void get_from_UI(float * d, float * u, float * v)
 		u[i] = v[i] = d[i] = 0.0f;
 	}
 
+	int size_for_w = (N + 3) * (N + 3);
+
+	for (int i = 0; i != size_for_w; i++)
+		w[i] = w_prev[i] = 0.0f;
+
 	if (!mouse_down[0] && !mouse_down[2]) return;
 
 	i = (int)((mx / (float)win_x)*N + 1);
@@ -197,9 +206,9 @@ static void get_from_UI(float * d, float * u, float * v)
 		//v[IX(i,j)] = force * (omy-my);
 
 		cout << endl << " Velocity field set" << endl;
-		u_prev[6] = -1.0f; v_prev[6] = -1.0f; u_prev[7] = 0.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
-		u_prev[11] = 0.0f; v_prev[11] = 0.0f; u_prev[12] = 0.0f; v_prev[12] = 0.0f; u_prev[13] = 0.0f; v_prev[13] = 0.0f;
-		u_prev[16] = 0.0f; v_prev[16] = 0.0f; u_prev[17] = 0.0f; v_prev[17] = 0.0f; u_prev[18] = 0.0f; v_prev[18] = 0.0f;
+		u_prev[6] = 0.0f; v_prev[6] = 0.0f; u_prev[7] = 0.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
+		u_prev[11] = 1.0f; v_prev[11] = 0.0f; u_prev[12] = 1.0f; v_prev[12] = 0.0f; u_prev[13] = 0.0f; v_prev[13] = 0.0f;
+		u_prev[16] = 3.0f; v_prev[16] = 0.0f; u_prev[17] = 3.0f; v_prev[17] = 0.0f; u_prev[18] = 0.0f; v_prev[18] = 0.0f;
 	}
 
 	if (mouse_down[2]) {
