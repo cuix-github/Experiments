@@ -169,7 +169,7 @@ void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, fl
 	displayVectorFieldInv(N + 2, N + 2, u, v);
 
 	cout << endl << "Curl field is computed from the velocity field" << endl;
-	computeCurls_uniform(N + 3, w0, u0, v0);
+	computeCurls_uniform(N + 3, w0, u, v);
 	displayFieldInv(N + 3, N + 3, w0);
 
 	SWAP(u0, u); SWAP(v0, v);
