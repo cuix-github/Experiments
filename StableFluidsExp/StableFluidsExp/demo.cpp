@@ -25,7 +25,7 @@
 
 /* external definitions (from solver.c) */
 extern void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float dt);
-extern void vel_step(int N, float * u, float * v, float * u0, float * v0, float visc, float dt);
+extern void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, float * v0, float visc, float dt);
 
 /* global variables */
 
@@ -35,6 +35,7 @@ static float force, source;
 static int dvel;
 
 static float * u, *v, *u_prev, *v_prev;
+static float * w, * w_prev;
 static float * dens, *dens_prev;
 
 static int win_id;
@@ -54,8 +55,10 @@ static void free_data(void)
 {
 	if (u) free(u);
 	if (v) free(v);
+	if (w) free(w);
 	if (u_prev) free(u_prev);
 	if (v_prev) free(v_prev);
+	if (w_prev) free(w_prev);
 	if (dens) free(dens);
 	if (dens_prev) free(dens_prev);
 }
@@ -72,15 +75,19 @@ static void clear_data(void)
 static int allocate_data(void)
 {
 	int size = (N + 2)*(N + 2);
+	int size_for_w = (N + 3) * (N + 3);
 
 	u = (float *)malloc(size*sizeof(float));
 	v = (float *)malloc(size*sizeof(float));
+	w = (float *)malloc(size_for_w*sizeof(float));
 	u_prev = (float *)malloc(size*sizeof(float));
 	v_prev = (float *)malloc(size*sizeof(float));
+	w_prev = (float *)malloc(size_for_w*sizeof(float));
 	dens = (float *)malloc(size*sizeof(float));
 	dens_prev = (float *)malloc(size*sizeof(float));
 
-	if (!u || !v || !u_prev || !v_prev || !dens || !dens_prev) {
+	if (!u || !v || !u_prev || !v_prev || !dens || !dens_prev ||
+		!w || !w_prev) {
 		fprintf(stderr, "cannot allocate data\n");
 		return (0);
 	}
@@ -190,9 +197,9 @@ static void get_from_UI(float * d, float * u, float * v)
 		//v[IX(i,j)] = force * (omy-my);
 
 		cout << endl << " Velocity field set" << endl;
-		u_prev[6] = 0.0f; v_prev[6] = 0.0f;	u_prev[7] = 0.0f; v_prev[7] = 0.0f;	u_prev[8] = -9.0f; v_prev[8] = 0.0f;
-		u_prev[11] = 0.0f; v_prev[11] = 0.0f; u_prev[12] = 0.0f; v_prev[12] = 0.0f; u_prev[13] = -9.0f; v_prev[13] = 0.0f;
-		u_prev[16] = 0.0f; v_prev[16] = 0.0f; u_prev[17] = 0.0f; v_prev[17] = 0.0f; u_prev[18] = -9.0f; v_prev[18] = 0.0f;
+		u_prev[6] = -1.0f; v_prev[6] = -1.0f; u_prev[7] = 0.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
+		u_prev[11] = 0.0f; v_prev[11] = 0.0f; u_prev[12] = 0.0f; v_prev[12] = 0.0f; u_prev[13] = 0.0f; v_prev[13] = 0.0f;
+		u_prev[16] = 0.0f; v_prev[16] = 0.0f; u_prev[17] = 0.0f; v_prev[17] = 0.0f; u_prev[18] = 0.0f; v_prev[18] = 0.0f;
 	}
 
 	if (mouse_down[2]) {
@@ -259,7 +266,7 @@ static void reshape_func(int width, int height)
 static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
-	vel_step(N, u, v, u_prev, v_prev, visc, dt);
+	vel_step(N, w, w_prev, u, v, u_prev, v_prev, visc, dt);
 	dens_step(N, dens, dens_prev, u, v, diff, dt);
 
 	glutSetWindow(win_id);
