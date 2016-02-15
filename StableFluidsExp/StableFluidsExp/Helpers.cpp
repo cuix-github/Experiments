@@ -56,12 +56,8 @@ void computeCurls_uniform(int dim, float * w, float * u, float * v)
 		{
 			float du, dv, curl;
 			float uTop, vLeft, uBottom, vRight;
-			int idx1 = IX(i, j);
-			int idx2 = IX(i - 1, j - 1);
-			int idx3 = IX(i, j - 1);
-			int idx4 = IX(i - 1, j);
-			uTop = (u[IX(i - 1, j - 1)] + u[IX(i - 1, j)]) * 0.5f;
-			uBottom = (u[IX(i, j)] + u[IX(i, j - 1)]) * 0.5f;
+			uBottom = (u[IX(i - 1, j - 1)] + u[IX(i - 1, j)]) * 0.5f;
+			uTop = (u[IX(i, j)] + u[IX(i, j - 1)]) * 0.5f;
 			vLeft = (v[IX(i, j - 1)] + v[IX(i - 1, j - 1)]) * 0.5f;
 			vRight = (v[IX(i - 1, j)] + v[IX(i, j)]) * 0.5f;
 			du = (uBottom - uTop) / h;
