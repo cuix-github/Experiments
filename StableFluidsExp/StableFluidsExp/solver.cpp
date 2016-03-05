@@ -178,8 +178,10 @@ void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, fl
 	advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
 	cout << endl << "Velocity field after stable fluids advection scheme" << endl;
 	displayVectorField(N + 2, N + 2, u, v);
-	
-	//project(N, u, v, u0, v0);
+
+	project(N, u, v, u0, v0);
+	cout << endl << "Velocity field after pressure correction" << endl;
+	displayVectorField(N + 2, N + 2, u, v);
 	//SWAP(u0, u); SWAP(v0, v);
 	//advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
 	//cout << "Velocity field after stable fluids advection scheme" << endl;
