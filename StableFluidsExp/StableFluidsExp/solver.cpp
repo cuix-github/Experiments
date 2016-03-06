@@ -1,6 +1,6 @@
 #include "Helpers.h"
 
-#define IX(i,j) ((i)+(N+2)*(j))
+#define IX(i,j) ((i)*(N+2)+(j))
 #define SWAP(x0,x) {float * tmp=x0;x0=x;x=tmp;}
 #define FOR_EACH_CELL for ( i=1 ; i<=N ; i++ ) { for ( j=1 ; j<=N ; j++ ) {
 #define END_FOR }}
@@ -165,12 +165,13 @@ void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, f
 void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, float * v0, float visc, float dt)
 {
 	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
+	set_bnd(N, 0, u); set_bnd(N, 0, v);
 	cout << endl << "Velocity field before stable fluids advction scheme" << endl;
-	displayVectorFieldInv(N + 2, N + 2, u, v);
+	displayVectorField(N + 2, N + 2, u, v);
 
 	cout << endl << "Curl field is computed from the velocity field" << endl;
-	computeCurls_uniform(N + 3, w0, u, v);
-	displayFieldInv(N + 3, N + 3, w0);
+	computeCurls_uniform(N + 2, w0, u, v);
+	displayField(N + 2, N + 2, w0);
 
 	SWAP(u0, u); SWAP(v0, v);
 	diffuse(N, 0, u, u0, visc, dt);

@@ -21,8 +21,6 @@
 
 /* macros */
 
-#define IX(i,j) ((i)+(N+2)*(j))
-
 /* external definitions (from solver.c) */
 extern void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float dt);
 extern void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, float * v0, float visc, float dt);
@@ -66,7 +64,7 @@ static void free_data(void)
 static void clear_data(void)
 {
 	int i, size = (N + 2)*(N + 2);
-	int size_for_w = (N + 3) * (N + 3);
+	int size_for_w = (N + 2) * (N + 2);
 
 	for (i = 0; i < size; i++) {
 		u[i] = v[i] = u_prev[i] = v_prev[i] = dens[i] = dens_prev[i] = 0.0f;
@@ -79,7 +77,7 @@ static void clear_data(void)
 static int allocate_data(void)
 {
 	int size = (N + 2)*(N + 2);
-	int size_for_w = (N + 3) * (N + 3);
+	int size_for_w = (N + 2) * (N + 2);
 
 	u = (float *)malloc(size*sizeof(float));
 	v = (float *)malloc(size*sizeof(float));
@@ -206,9 +204,9 @@ static void get_from_UI(float * d, float * u, float * v)
 		//v[IX(i,j)] = force * (omy-my);
 
 		cout << endl << "Velocity field set" << endl;
-		u_prev[6] = 0.0f; v_prev[6] = 0.0f; u_prev[7] = 0.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
+		u_prev[6] = 3.0f; v_prev[6] = 0.0f; u_prev[7] = 3.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
 		u_prev[11] = 1.0f; v_prev[11] = 0.0f; u_prev[12] = 1.0f; v_prev[12] = 0.0f; u_prev[13] = 0.0f; v_prev[13] = 0.0f;
-		u_prev[16] = 3.0f; v_prev[16] = 0.0f; u_prev[17] = 3.0f; v_prev[17] = 0.0f; u_prev[18] = 0.0f; v_prev[18] = 0.0f;
+		u_prev[16] = 0.0f; v_prev[16] = 0.0f; u_prev[17] = 0.0f; v_prev[17] = 0.0f; u_prev[18] = 0.0f; v_prev[18] = 0.0f;
 	}
 
 	if (mouse_down[2]) {
