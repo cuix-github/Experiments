@@ -140,11 +140,15 @@ void project(int N, float * u, float * v, float * p, float * div)
 {
 	int i, j;
 
+	computeDivergence_unifrom(N, u, v, div);
 	FOR_EACH_CELL
-		div[IX(i, j)] = -0.5f*(u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
+		//div[IX(i, j)] = -0.5f*(u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
 		p[IX(i, j)] = 0;
 	END_FOR
 	set_bnd(N, 0, div); set_bnd(N, 0, p);
+
+	cout << endl << "Divergence computed from velocity field" << endl;
+	displayField(N + 2, N + 2, div);
 
 	Gauss_Seidel(N, 0, p, div, 1, 4);
 
@@ -152,7 +156,7 @@ void project(int N, float * u, float * v, float * p, float * div)
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
 		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	END_FOR
-		set_bnd(N, 1, u); set_bnd(N, 2, v);
+		set_bnd(N, 0, u); set_bnd(N, 0, v);
 }
 
 void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float dt)
@@ -176,7 +180,7 @@ void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, fl
 	SWAP(u0, u); SWAP(v0, v);
 	diffuse(N, 0, u, u0, visc, dt);
 	diffuse(N, 0, v, v0, visc, dt);
-	advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
+	advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
 	cout << endl << "Velocity field after stable fluids advection scheme" << endl;
 	displayVectorField(N + 2, N + 2, u, v);
 

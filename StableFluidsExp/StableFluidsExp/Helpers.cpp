@@ -68,3 +68,17 @@ void computeCurls_uniform(int dim, float * w, float * u, float * v)
 		}
 	}
 }
+
+void computeDivergence_unifrom(int N, float * u, float * v, float * div){
+
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			float du, dv;
+			float divergence;
+			du = -0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)]) / N;
+			dv = -0.5f * (v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
+			divergence = du + dv;
+			div[IX(i, j)] = divergence;
+		}
+	}
+}
