@@ -141,11 +141,9 @@ void project(int N, float * u, float * v, float * p, float * div)
 	int i, j;
 
 	computeDivergence_unifrom(N, u, v, div);
-	FOR_EACH_CELL
-		//div[IX(i, j)] = -0.5f*(u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
-		p[IX(i, j)] = 0;
-	END_FOR
-	set_bnd(N, 0, div); set_bnd(N, 0, p);
+	set_bnd(N, 0, div);
+	zeros(N, p);
+	set_bnd(N, 0, p);
 
 	cout << endl << "Divergence computed from velocity field" << endl;
 	displayField(N + 2, N + 2, div);

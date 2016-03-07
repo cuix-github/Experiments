@@ -69,6 +69,14 @@ void computeCurls_uniform(int dim, float * w, float * u, float * v)
 	}
 }
 
+void zeros(int N, float * field){
+	for (int i = 0; i != N; i++){
+		for (int j = 0; j != N; j++){
+			field[IX(i, j)] = 0.0f;
+		}
+	}
+}
+
 void computeDivergence_unifrom(int N, float * u, float * v, float * div){
 
 	for (int i = 1; i <= N; i++){
