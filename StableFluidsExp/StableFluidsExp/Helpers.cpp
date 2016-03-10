@@ -13,6 +13,7 @@ void displayField(int row, int col, float* field){
 
 void displayVectorField(int row, int col, float* u, float* v){
 	cout << std::setprecision(4) << setiosflags(ios::fixed);
+	int N = row;
 	for (int i = 0; i != row; i++){
 		for (int j = 0; j != col; j++){
 			cout << std::setw(3) << "v(" << u[i * col + j] << "," << v[i * col + j] << ") ";
