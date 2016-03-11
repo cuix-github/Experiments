@@ -171,11 +171,60 @@ void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, f
 
 void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, float * v0, float visc, float dt)
 {
+	// This is time consuming but naive
+	//if (system("CLS")) system("clear");
+	//
+	//add_source(N, u, u0, dt); add_source(N, v, v0, dt);
+	//cout << "After adding source" << endl;
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "u v field:" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//
+	//SWAP(u0, u);
+	//diffuse(N, 0, u, u0, visc, dt);
+	//SWAP(v0, v); 
+	//diffuse(N, 0, v, v0, visc, dt);
+	//cout << "After Diffusing" << endl;
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "u v field:" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//
+	//project(N, u, v, u0, v0);
+	//cout << "After 1st pressure correction" << endl;
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "u v field:" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//
+	//SWAP(u0, u); SWAP(v0, v);
+	//advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
+	//cout << "After advecting" << endl;
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "u v field:" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//
+	//project(N, u, v, u0, v0);
+	//cout << "After 2nd pressure correction" << endl;
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "u v field:" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//
+	//add_gravity(N, dt, u, v, -9.8f);
+	//cout << "After adding gravity" << endl;
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "u v field:" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+
 	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
 
 	SWAP(u0, u);
 	diffuse(N, 0, u, u0, visc, dt);
-	SWAP(v0, v); 
+	SWAP(v0, v);
 	diffuse(N, 0, v, v0, visc, dt);
 
 	project(N, u, v, u0, v0);

@@ -1,19 +1,6 @@
-/*
-======================================================================
-demo.c --- protoype to show off the simple solver
-----------------------------------------------------------------------
-Author : Jos Stam (jstam@aw.sgi.com)
-Creation Date : Jan 9 2003
-Description:
-This code is a simple prototype that demonstrates how to use the
-code provided in my GDC2003 paper entitles "Real-Time Fluid Dynamics
-for Games". This code uses OpenGL and GLUT for graphics and interface
-=======================================================================
-*/
-
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 /* macros */
@@ -123,7 +110,7 @@ static void draw_velocity(void)
 	h = 1.0f / N;
 
 	glColor3f(0.0f, 1.0f, 0.0f);
-	glLineWidth(1.0f);
+	glLineWidth(0.1f);
 
 	glBegin(GL_LINES);
 
@@ -193,8 +180,6 @@ static void get_from_UI(float * d, float * u, float * v)
 	if (mouse_down[0]) {
 		//u[IX(i, j)] = force * (mx - omx);
 		//v[IX(i, j)] = force * (omy - my);
-
-		cout << "Mouse Pos on Grid (" << i << "," << j << ")" << endl;
 
 		//u_prev[6] = 3.0f; v_prev[6] = 0.0f; u_prev[7] = 3.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
 		//u_prev[11] = 1.0f; v_prev[11] = 0.0f; u_prev[12] = 1.0f; v_prev[12] = 0.0f; u_prev[13] = 0.0f; v_prev[13] = 0.0f;
@@ -300,7 +285,7 @@ static void open_glut_window(void)
 
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(win_x, win_y);
-	win_id = glutCreateWindow("Alias | wavefront");
+	win_id = glutCreateWindow("Smoke");
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -342,7 +327,7 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 128;
+		N = 64;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.00001f;
