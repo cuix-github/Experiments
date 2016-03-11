@@ -28,6 +28,8 @@ extern void vel_step(int N, float * w, float * w0, float * u, float * v, float *
 /* global variables */
 
 static int N;
+static int nx;
+static int ny;
 static float dt, diff, visc;
 static float force, source;
 static int dvel;
@@ -120,7 +122,7 @@ static void draw_velocity(void)
 
 	h = 1.0f / N;
 
-	glColor3f(1.0f, 1.0f, 1.0f);
+	glColor3f(0.0f, 1.0f, 0.0f);
 	glLineWidth(1.0f);
 
 	glBegin(GL_LINES);
@@ -189,8 +191,10 @@ static void get_from_UI(float * d, float * u, float * v)
 	if (i<1 || i>N || j<1 || j>N) return;
 
 	if (mouse_down[0]) {
-		u[IX(i, j)] = force * (mx - omx);
-		v[IX(i, j)] = force * (omy - my);
+		//u[IX(i, j)] = force * (mx - omx);
+		//v[IX(i, j)] = force * (omy - my);
+
+		cout << "Mouse Pos on Grid (" << i << "," << j << ")" << endl;
 
 		//u_prev[6] = 3.0f; v_prev[6] = 0.0f; u_prev[7] = 3.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
 		//u_prev[11] = 1.0f; v_prev[11] = 0.0f; u_prev[12] = 1.0f; v_prev[12] = 0.0f; u_prev[13] = 0.0f; v_prev[13] = 0.0f;
@@ -261,6 +265,11 @@ static void reshape_func(int width, int height)
 static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
+	int idxX = N / 2;
+	int idxY = 1;
+	v[IX(idxX, idxY)] = force * 0.15f;
+	v[IX(idxX - 1, idxY)] = force * 0.6f;
+	v[IX(idxX + 1, idxY)] = force * 0.1f;
 	vel_step(N, w, w0, u, v, u_prev, v_prev, visc, dt);
 	dens_step(N, dens, dens_prev, u, v, diff, dt);
 
@@ -333,10 +342,10 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 64;
-		dt = 0.1f;
+		N = 128;
+		dt = 0.01f;
 		diff = 0.0f;
-		visc = 0.0f;
+		visc = 0.00001f;
 		force = 5.0f;
 		source = 100.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
@@ -363,8 +372,8 @@ int main(int argc, char ** argv)
 	if (!allocate_data()) exit(1);
 	clear_data();
 
-	win_x = 512;
-	win_y = 512;
+	win_x = 640;
+	win_y = 960;
 	open_glut_window();
 
 	glutMainLoop();

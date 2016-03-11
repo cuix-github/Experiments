@@ -31,7 +31,7 @@ void Gauss_Seidel(int N, int b, float * x, float * x0, float a, float c)
 {
 	int i, j, k;
 
-	for (k = 0; k < 50; k++) {
+	for (k = 0; k < 20; k++) {
 		FOR_EACH_CELL
 			x[IX(i, j)] = (x0[IX(i, j)] + a*(x[IX(i - 1, j)] + x[IX(i + 1, j)] + x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
@@ -63,7 +63,7 @@ void Jacobi_solve(int N, int b, float * x, float * x0, float a, float c)
 void diffuse(int N, int b, float * x, float * x0, float diff, float dt)
 {
 	float a = dt*diff*N*N;
-	Gauss_Seidel(N, b, x, x0, a, 1 + 4 * a);
+	Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
 }
 
 float lerp(float t, float x0, float x1)
@@ -128,8 +128,8 @@ void advect_beta(int N, int b, float * d, float * d0, float * k, float * k0, flo
 	s1 = x - i0;
 	t1 = y - j0;
 
-	d[IX(i, j)] = lerp(t1, lerp(s1, d0[IX(i0, j0)], d0[IX(i0, j1)]), lerp(s1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
-	k[IX(i, j)] = lerp(t1, lerp(s1, k0[IX(i0, j0)], k0[IX(i0, j1)]), lerp(s1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
+	d[IX(i, j)] = lerp(s1, lerp(t1, d0[IX(i0, j0)], d0[IX(i0, j1)]), lerp(t1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
+	k[IX(i, j)] = lerp(s1, lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]), lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
 	END_FOR
 
 	set_bnd(N, b, d);
@@ -145,13 +145,21 @@ void project(int N, float * u, float * v, float * p, float * div)
 	zeros(N, p);
 	set_bnd(N, 0, p);
 
-	Gauss_Seidel(N, 0, p, div, 1, 4);
+	Jacobi_solve(N, 0, p, div, 1, 4);
 
 	FOR_EACH_CELL
 	u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
 	v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	END_FOR
 		set_bnd(N, 0, u); set_bnd(N, 0, v);
+}
+
+void add_gravity(int N, float dt, float * u, float * v, float g)
+{
+	int i, j;
+	FOR_EACH_CELL
+		v[IX(i, j)] += dt * g * 0.0001f;
+		END_FOR
 }
 
 void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float dt)
@@ -177,4 +185,5 @@ void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, fl
 
 	project(N, u, v, u0, v0);
 
+	add_gravity(N, dt, u, v, -9.8f);
 }
