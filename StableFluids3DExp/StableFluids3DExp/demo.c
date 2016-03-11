@@ -59,7 +59,8 @@ wuBOOL drawVelocity = false;
 int wuIndex(int i, int j, int k)
 {
     const int eachGridSize = N + 2;
-    return i + eachGridSize * j + eachGridSize * eachGridSize * k;
+    //return i + eachGridSize * j + eachGridSize * eachGridSize * k;
+	return i * eachGridSize * eachGridSize + j * eachGridSize + k;
 }
 
 void wuInitialize()
@@ -74,8 +75,8 @@ void wuInitialize()
     N = 32;
     timeStep = 0.4;
     viscocity = 0.0000000;
-    force = 0.7;
-    source = 5.0;
+    force = 0.6;
+    source = 20.0;
     
     const int eachGridCount = N + 2;
     const int size = eachGridCount * eachGridCount * eachGridCount;
@@ -499,9 +500,8 @@ void wuKeyBoard(unsigned char key, int x, int y)
 void wuIdle()
 {
     wuSource(previousDensity, previousVelocityU, previousVelocityV, previousVelocityW);
-    get_density(N, density, previousDensity, velocityU, velocityV, velocityW, diffuse, timeStep);
-    get_velocity(N, velocityU, velocityV, velocityW, previousVelocityU, previousVelocityV, previousVelocityW, viscocity, timeStep);
-    
+	get_velocity(N, velocityU, velocityV, velocityW, previousVelocityU, previousVelocityV, previousVelocityW, viscocity, timeStep);
+    get_density(N, density, previousDensity, velocityU, velocityV, velocityW, diffuse, timeStep);    
     glutPostRedisplay();
 }
 

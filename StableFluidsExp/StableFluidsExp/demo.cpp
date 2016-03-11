@@ -1,18 +1,15 @@
 /*
-  ======================================================================
-  demo.c --- protoype to show off the simple solver
-  ----------------------------------------------------------------------
-  Author : Jos Stam (jstam@aw.sgi.com)
-  Creation Date : Jan 9 2003
-
-  Description:
-
-  This code is a simple prototype that demonstrates how to use the
-  code provided in my GDC2003 paper entitles "Real-Time Fluid Dynamics
-  for Games". This code uses OpenGL and GLUT for graphics and interface
-
-  =======================================================================
-  */
+======================================================================
+demo.c --- protoype to show off the simple solver
+----------------------------------------------------------------------
+Author : Jos Stam (jstam@aw.sgi.com)
+Creation Date : Jan 9 2003
+Description:
+This code is a simple prototype that demonstrates how to use the
+code provided in my GDC2003 paper entitles "Real-Time Fluid Dynamics
+for Games". This code uses OpenGL and GLUT for graphics and interface
+=======================================================================
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,7 +18,10 @@
 
 /* macros */
 
+#define IX(i,j) ((i) * (N + 2) + (j))
+
 /* external definitions (from solver.c) */
+
 extern void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float dt);
 extern void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, float * v0, float visc, float dt);
 
@@ -33,7 +33,7 @@ static float force, source;
 static int dvel;
 
 static float * u, *v, *u_prev, *v_prev;
-static float * w, * w_prev;
+static float * w, *w0;
 static float * dens, *dens_prev;
 
 static int win_id;
@@ -43,20 +43,20 @@ static int omx, omy, mx, my;
 
 
 /*
-  ----------------------------------------------------------------------
-  free/clear/allocate simulation data
-  ----------------------------------------------------------------------
-  */
+----------------------------------------------------------------------
+free/clear/allocate simulation data
+----------------------------------------------------------------------
+*/
 
 
 static void free_data(void)
 {
 	if (u) free(u);
 	if (v) free(v);
-	if (w) free(w);
 	if (u_prev) free(u_prev);
 	if (v_prev) free(v_prev);
-	if (w_prev) free(w_prev);
+	if (w) free(w);
+	if (w0) free(w0);
 	if (dens) free(dens);
 	if (dens_prev) free(dens_prev);
 }
@@ -64,32 +64,26 @@ static void free_data(void)
 static void clear_data(void)
 {
 	int i, size = (N + 2)*(N + 2);
-	int size_for_w = (N + 2) * (N + 2);
 
-	for (i = 0; i < size; i++) {
-		u[i] = v[i] = u_prev[i] = v_prev[i] = dens[i] = dens_prev[i] = 0.0f;
+	for (i = 0; i<size; i++) {
+		u[i] = v[i] = u_prev[i] = v_prev[i] = dens[i] = dens_prev[i] = w[i] = w0[i] = 0.0f;
 	}
-
-	for (int j = 0; j != size; j++)
-		w[i] = w_prev[i] = 0.0f;
 }
 
 static int allocate_data(void)
 {
 	int size = (N + 2)*(N + 2);
-	int size_for_w = (N + 2) * (N + 2);
 
 	u = (float *)malloc(size*sizeof(float));
 	v = (float *)malloc(size*sizeof(float));
-	w = (float *)malloc(size_for_w*sizeof(float));
 	u_prev = (float *)malloc(size*sizeof(float));
 	v_prev = (float *)malloc(size*sizeof(float));
-	w_prev = (float *)malloc(size_for_w*sizeof(float));
+	w = (float*)malloc(size*sizeof(float));
+	w0 = (float*)malloc(size*sizeof(float));
 	dens = (float *)malloc(size*sizeof(float));
 	dens_prev = (float *)malloc(size*sizeof(float));
 
-	if (!u || !v || !u_prev || !v_prev || !dens || !dens_prev ||
-		!w || !w_prev) {
+	if (!u || !v || !u_prev || !v_prev || !dens || !dens_prev) {
 		fprintf(stderr, "cannot allocate data\n");
 		return (0);
 	}
@@ -99,10 +93,10 @@ static int allocate_data(void)
 
 
 /*
-  ----------------------------------------------------------------------
-  OpenGL specific drawing routines
-  ----------------------------------------------------------------------
-  */
+----------------------------------------------------------------------
+OpenGL specific drawing routines
+----------------------------------------------------------------------
+*/
 
 static void pre_display(void)
 {
@@ -174,23 +168,18 @@ static void draw_density(void)
 }
 
 /*
-  ----------------------------------------------------------------------
-  relates mouse movements to forces sources
-  ----------------------------------------------------------------------
-  */
+----------------------------------------------------------------------
+relates mouse movements to forces sources
+----------------------------------------------------------------------
+*/
 
 static void get_from_UI(float * d, float * u, float * v)
 {
 	int i, j, size = (N + 2)*(N + 2);
 
-	for (i = 0; i < size; i++) {
+	for (i = 0; i<size; i++) {
 		u[i] = v[i] = d[i] = 0.0f;
 	}
-
-	int size_for_w = (N + 3) * (N + 3);
-
-	for (int i = 0; i != size_for_w; i++)
-		w[i] = w_prev[i] = 0.0f;
 
 	if (!mouse_down[0] && !mouse_down[2]) return;
 
@@ -200,13 +189,12 @@ static void get_from_UI(float * d, float * u, float * v)
 	if (i<1 || i>N || j<1 || j>N) return;
 
 	if (mouse_down[0]) {
-		//u[IX(i,j)] = force * (mx-omx);
-		//v[IX(i,j)] = force * (omy-my);
+		u[IX(i, j)] = force * (mx - omx);
+		v[IX(i, j)] = force * (omy - my);
 
-		cout << endl << "Velocity field set" << endl;
-		u_prev[6] = 3.0f; v_prev[6] = 0.0f; u_prev[7] = 3.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
-		u_prev[11] = 1.0f; v_prev[11] = 0.0f; u_prev[12] = 1.0f; v_prev[12] = 0.0f; u_prev[13] = 0.0f; v_prev[13] = 0.0f;
-		u_prev[16] = 0.0f; v_prev[16] = 0.0f; u_prev[17] = 0.0f; v_prev[17] = 0.0f; u_prev[18] = 0.0f; v_prev[18] = 0.0f;
+		//u_prev[6] = 3.0f; v_prev[6] = 0.0f; u_prev[7] = 3.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
+		//u_prev[11] = 1.0f; v_prev[11] = 0.0f; u_prev[12] = 1.0f; v_prev[12] = 0.0f; u_prev[13] = 0.0f; v_prev[13] = 0.0f;
+		//u_prev[16] = 0.0f; v_prev[16] = 0.0f; u_prev[17] = 0.0f; v_prev[17] = 0.0f; u_prev[18] = 0.0f; v_prev[18] = 0.0f;
 	}
 
 	if (mouse_down[2]) {
@@ -220,10 +208,10 @@ static void get_from_UI(float * d, float * u, float * v)
 }
 
 /*
-  ----------------------------------------------------------------------
-  GLUT callback routines
-  ----------------------------------------------------------------------
-  */
+----------------------------------------------------------------------
+GLUT callback routines
+----------------------------------------------------------------------
+*/
 
 static void key_func(unsigned char key, int x, int y)
 {
@@ -273,7 +261,7 @@ static void reshape_func(int width, int height)
 static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
-	vel_step(N, w, w_prev, u, v, u_prev, v_prev, 0.1f, dt);
+	vel_step(N, w, w0, u, v, u_prev, v_prev, visc, dt);
 	dens_step(N, dens, dens_prev, u, v, diff, dt);
 
 	glutSetWindow(win_id);
@@ -284,8 +272,7 @@ static void display_func(void)
 {
 	pre_display();
 
-	//if ( dvel ) draw_velocity ();
-	if (1) draw_velocity();
+	if (dvel) draw_velocity();
 	else		draw_density();
 
 	post_display();
@@ -293,10 +280,10 @@ static void display_func(void)
 
 
 /*
-  ----------------------------------------------------------------------
-  open_glut_window --- open a glut compatible window and set callbacks
-  ----------------------------------------------------------------------
-  */
+----------------------------------------------------------------------
+open_glut_window --- open a glut compatible window and set callbacks
+----------------------------------------------------------------------
+*/
 
 static void open_glut_window(void)
 {
@@ -304,7 +291,7 @@ static void open_glut_window(void)
 
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(win_x, win_y);
-	win_id = glutCreateWindow("Gas");
+	win_id = glutCreateWindow("Alias | wavefront");
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -324,10 +311,10 @@ static void open_glut_window(void)
 
 
 /*
-  ----------------------------------------------------------------------
-  main --- main routine
-  ----------------------------------------------------------------------
-  */
+----------------------------------------------------------------------
+main --- main routine
+----------------------------------------------------------------------
+*/
 
 int main(int argc, char ** argv)
 {
@@ -346,13 +333,13 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 3;
+		N = 64;
 		dt = 0.1f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 1.0f;
-		source = 50.0f;
-		fprintf(stderr, "Using defaults : N = %d dt = %g diff = %g visc = %g force = %g source = %g\n",
+		force = 5.0f;
+		source = 100.0f;
+		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
 	}
 	else {

@@ -31,11 +31,11 @@ void Gauss_Seidel(int N, int b, float * x, float * x0, float a, float c)
 {
 	int i, j, k;
 
-	for (k = 0; k < 20; k++) {
+	for (k = 0; k < 50; k++) {
 		FOR_EACH_CELL
 			x[IX(i, j)] = (x0[IX(i, j)] + a*(x[IX(i - 1, j)] + x[IX(i + 1, j)] + x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
-		set_bnd(N, b, x);
+			set_bnd(N, b, x);
 	}
 }
 
@@ -45,16 +45,16 @@ void Jacobi_solve(int N, int b, float * x, float * x0, float a, float c)
 	int size = (N + 2) * (N + 2);
 	float* aux = (float*)malloc(size*sizeof(float));
 
-	for (k = 0; k < 20; k++)
+	for (k = 0; k < 50; k++)
 	{
 		FOR_EACH_CELL
 			aux[IX(i, j)] = (x0[IX(i, j)] + a*(x[IX(i - 1, j)] + x[IX(i + 1, j)] + x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
 
-		FOR_EACH_CELL
+			FOR_EACH_CELL
 			x[IX(i, j)] = aux[IX(i, j)];
 		END_FOR
-		set_bnd(N, b, x);
+			set_bnd(N, b, x);
 	}
 
 	free(aux);
@@ -63,7 +63,7 @@ void Jacobi_solve(int N, int b, float * x, float * x0, float a, float c)
 void diffuse(int N, int b, float * x, float * x0, float diff, float dt)
 {
 	float a = dt*diff*N*N;
-	Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
+	Gauss_Seidel(N, b, x, x0, a, 1 + 4 * a);
 }
 
 float lerp(float t, float x0, float x1)
@@ -79,28 +79,28 @@ void advect(int N, int b, float * d, float * d0, float * u, float * v, float dt)
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
-		y = j - dt0*v[IX(i, j)];
+	y = j - dt0*v[IX(i, j)];
 
-		if (x<0.5f) x = 0.5f;
-		if (x>N + 0.5f) x = N + 0.5f;
+	if (x<0.5f) x = 0.5f;
+	if (x>N + 0.5f) x = N + 0.5f;
 
-		i0 = (int)x;
-		i1 = i0 + 1;
+	i0 = (int)x;
+	i1 = i0 + 1;
 
-		if (y<0.5f) y = 0.5f;
-		if (y>N + 0.5f) y = N + 0.5f;
+	if (y<0.5f) y = 0.5f;
+	if (y>N + 0.5f) y = N + 0.5f;
 
-		j0 = (int)y;
-		j1 = j0 + 1;
+	j0 = (int)y;
+	j1 = j0 + 1;
 
-		s1 = x - i0;
-		t1 = y - j0;
+	s1 = x - i0;
+	t1 = y - j0;
 
-		float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
-		float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
-		d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
+	float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
+	float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
+	d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
 	END_FOR
-	set_bnd(N, b, d);
+		set_bnd(N, b, d);
 }
 
 void advect_beta(int N, int b, float * d, float * d0, float * k, float * k0, float * u, float * v, float dt)
@@ -111,38 +111,29 @@ void advect_beta(int N, int b, float * d, float * d0, float * k, float * k0, flo
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
-	y = j - dt0*v[IX(i, j)];
+		y = j - dt0*v[IX(i, j)];
 
-	cout << endl << "u = " << u[IX(i, j)] << endl;
-	cout << endl << "v = " << v[IX(i, j)] << endl;
+	if (x<0.5f) x = 0.5f;
+	if (x>N + 0.5f) x = N + 0.5f;
 
-		if (x<0.5f) x = 0.5f;
-		if (x>N + 0.5f) x = N + 0.5f;
+	i0 = (int)x;
+	i1 = i0 + 1;
 
-		i0 = (int)x;
-		i1 = i0 + 1;
+	if (y<0.5f) y = 0.5f;
+	if (y>N + 0.5f) y = N + 0.5f;
 
-		if (y<0.5f) y = 0.5f;
-		if (y>N + 0.5f) y = N + 0.5f;
+	j0 = (int)y;
+	j1 = j0 + 1;
 
-		j0 = (int)y;
-		j1 = j0 + 1;
+	s1 = x - i0;
+	t1 = y - j0;
 
-		s1 = x - i0;
-		t1 = y - j0;
-
-		d[IX(i, j)] = lerp(t1, lerp(s1, d0[IX(i0, j0)], d0[IX(i0, j1)]), lerp(s1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
-		k[IX(i, j)] = lerp(t1, lerp(s1, k0[IX(i0, j0)], k0[IX(i0, j1)]), lerp(s1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
-		float d1 = d[IX(i, j)];
-		float k1 = k[IX(i, j)];
-		cout << "Stupid separate line" << endl;
-		cout << "Stupid separate line" << endl;
+	d[IX(i, j)] = lerp(t1, lerp(s1, d0[IX(i0, j0)], d0[IX(i0, j1)]), lerp(s1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
+	k[IX(i, j)] = lerp(t1, lerp(s1, k0[IX(i0, j0)], k0[IX(i0, j1)]), lerp(s1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
 	END_FOR
 
 	set_bnd(N, b, d);
 	set_bnd(N, b, k);
-
-	displayVectorField(N + 2, N + 2, d, k);
 }
 
 void project(int N, float * u, float * v, float * p, float * div)
@@ -154,15 +145,11 @@ void project(int N, float * u, float * v, float * p, float * div)
 	zeros(N, p);
 	set_bnd(N, 0, p);
 
-	cout << endl << "Divergence computed from velocity field" << endl;
-	displayField(N + 2, N + 2, div);
-
-	Jacobi_solve(N, 0, p, div, 1, 4);
+	Gauss_Seidel(N, 0, p, div, 1, 4);
 
 	FOR_EACH_CELL
-		float grad1 = p[IX(i + 1, j)] - p[IX(i - 1, j)];
-		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
-		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
+	u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
+	v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	END_FOR
 		set_bnd(N, 0, u); set_bnd(N, 0, v);
 }
@@ -177,45 +164,17 @@ void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, f
 void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, float * v0, float visc, float dt)
 {
 	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
-	set_bnd(N, 0, u); set_bnd(N, 0, v);
-	cout << endl << "Velocity field before stable fluids advction scheme" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
 
-	cout << endl << "Curl field is computed from the velocity field" << endl;
-	computeCurls_uniform(N + 2, w0, u, v);
-	displayField(N + 2, N + 2, w0);
-
-	cout << endl << "u0 v0 field" << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
-
-	cout << endl << "u v field" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-
-	SWAP(u0, u); SWAP(v0, v);
+	SWAP(u0, u);
 	diffuse(N, 0, u, u0, visc, dt);
+	SWAP(v0, v); 
 	diffuse(N, 0, v, v0, visc, dt);
 
-	cout << endl << "u0 v0 field" << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
-
-	cout << endl << "u v field" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-
-	cout << endl << "Diffuse a bit for u v field" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
+	project(N, u, v, u0, v0);
 
 	SWAP(u0, u); SWAP(v0, v);
 	advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
-	cout << endl << "Velocity field after stable fluids advection scheme" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
 
 	project(N, u, v, u0, v0);
-	cout << endl << "Velocity field after pressure correction" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	//SWAP(u0, u); SWAP(v0, v);
-	//advect_beta(N, 1, u, u0, v, v0, u0, v0, dt);
-	//cout << "Velocity field after stable fluids advection scheme" << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//project(N, u, v, u0, v0);
-}
 
+}

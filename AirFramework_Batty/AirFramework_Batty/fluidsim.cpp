@@ -152,7 +152,6 @@ void FluidSim::advect_particles(float dt) {
          particles[p] -= phi_value*normal;
       }
    }
-
 }
 
 void FluidSim::project(float dt) {
