@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <math.h>
 
 using namespace std;
 
@@ -14,10 +15,16 @@ using namespace std;
 #include <stdlib.h>
 #endif
 
-void displayField(int row, int col, float* field);
-void displayVectorField(int row, int col, float* u, float* v);
+void displayField(int row, int col, float * field);
+void displayField(int row, int col, float * field, float * fieldOrigin);
+void displayVectorField(int row, int col, float * u, float * v);
 void displayVectorFieldInv(int row, int col, float * u, float * v);
 void displayFieldInv(int row, int col, float * field);
+void displayVectorField(int row, int col, float * u, float * v, float * u0, float * v0);
 void zeros(int N, float * field);
 void computeCurls_uniform(int N, float * w, float * u, float * v);
+void curl_of_stream_func_2D(int N, float * wx, float * wy, float * w);
+void linear_combine_add(int N, float * f, float * f0);
+void linear_combine_sub(int N, float * f, float * f0);
 void computeDivergence_unifrom(int N, float * u, float * v, float * div);
+void xminusx0(int N, float * x, float * x0);

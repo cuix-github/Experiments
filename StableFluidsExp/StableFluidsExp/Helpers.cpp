@@ -11,6 +11,14 @@ void displayField(int row, int col, float* field){
 	}
 }
 
+void displayField(int row, int col, float * field, float * fieldOrigin)
+{
+	cout << endl << "Current timestep field:" << endl;
+	displayField(row, col, field);
+	cout << endl << "Previous timestep field:" << endl;
+	displayField(row, col, fieldOrigin);
+}
+
 void displayVectorField(int row, int col, float* u, float* v){
 	cout << std::setprecision(4) << setiosflags(ios::fixed);
 	int N = row;
@@ -45,27 +53,68 @@ void displayVectorFieldInv(int row, int col, float * u, float * v){
 	}
 }
 
-void computeCurls_uniform(int dim, float * w, float * u, float * v)
+void displayVectorField(int row, int col, float * u, float * v, float * u0, float * v0)
 {
-	float h = 1.0f / dim;
+	cout << endl << "Current timestep field:" << endl;
+	displayVectorField(row, col, u, v);
+	cout << endl << "Previous timepstep field:" << endl;
+	displayVectorField(row, col, u0, v0);
+}
 
-	int N = dim - 2;
-
+void computeCurls_uniform(int N, float * w, float * u, float * v)
+{
 	for (int i = 1; i <= N; i++)
 	{
 		for (int j = 1; j <= N; j++)
 		{
-			float du, dv, curl;
+			float du, dv;
 			float uiplus1, uiminus1;
 			float u0, v0;
-			u0 = u[IX(i, j)];
-			v0 = v[IX(i, j)];
-			uiplus1 = u[IX(i + 1, j)];
-			uiminus1 = u[IX(i - 1, j)];
-			du = 0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)]) / h;
-			dv = 0.5f * (v[IX(i, j + 1)] - v[IX(i, j - 1)]) / h;
-			curl = dv - du;
-			w[IX(i, j)] = curl;
+			du = 0.5f * (u[IX(i, j + 1)] - u[IX(i, j - 1)]) * N;
+			dv = 0.5f * (v[IX(i + 1, j)] - v[IX(i - 1, j)]) * N;
+			w[IX(i, j)] = dv - du;
+		}
+	}
+}
+
+void curl_of_stream_func_2D(int N, float * wx, float * wy, float * w)
+{
+	float dpsi_dy, dpsi_dx;
+	
+	// wx and wy finally will be used for updating velocity field (u = wx, v = wy)
+	// While 3D Vector field is constructed as (u = 0, v = 0, w = psi)
+	// Where psi is the stream function computed from the linear solver.
+
+	// TODO: 2 Nested loop for wx
+	for (int i = 1; i != N; i++){
+		for (int j = 1; j != N; j++){
+			dpsi_dy = (w[IX(i + 1, j)] - w[IX(i - 1, j)]) * N;
+			wx[IX(i, j)] = -dpsi_dy;
+		}
+	}
+
+	// TODO: 2 Nested loop for wy
+	for (int i = 1; i != N; i++){
+		for (int j = 1; j != N; j++){
+			dpsi_dx = (w[IX(i, j + 1)] - w[IX(i, j - 1)]) * N;
+		}
+	}
+}
+
+void linear_combine_sub(int N, float * f, float * f0)
+{
+	for (int i = 1; i != N; i++){
+		for (int j = 1; j != N; j++){
+			f[IX(i, j)] -= f0[IX(i, j)];
+		}
+	}
+}
+
+void linear_combine_add(int N, float * f, float * f0)
+{
+	for (int i = 1; i != N; i++){
+		for (int j = 1; j != N; j++){
+			f[IX(i, j)] += f0[IX(i, j)];
 		}
 	}
 }
@@ -82,5 +131,13 @@ void computeDivergence_unifrom(int N, float * u, float * v, float * div){
 	int i, j;
 	FOR_EACH_CELL
 		div[IX(i, j)] = - 0.5f*(u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
+	END_FOR
+}
+
+void xminusx0(int N, float * x, float * x0)
+{
+	int i, j;
+	FOR_EACH_CELL
+		x[IX(i, j)] = x[IX(i, j)] - x0[IX(i, j)];
 	END_FOR
 }

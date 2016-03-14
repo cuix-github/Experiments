@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <glut.h>
 #include "Helpers.h"
 
 /* macros */
@@ -29,6 +29,8 @@ static int win_id;
 static int win_x, win_y;
 static int mouse_down[3];
 static int omx, omy, mx, my;
+static bool pause = false;
+static float streamline_length = 50.0f;
 
 
 /*
@@ -110,7 +112,7 @@ static void draw_velocity(void)
 	h = 1.0f / N;
 
 	glColor3f(0.0f, 1.0f, 0.0f);
-	glLineWidth(0.1f);
+	glLineWidth(1.0f);
 
 	glBegin(GL_LINES);
 
@@ -120,7 +122,7 @@ static void draw_velocity(void)
 			y = (j - 0.5f)*h;
 
 			glVertex2f(x, y);
-			glVertex2f(x + u[IX(i, j)], y + v[IX(i, j)]);
+			glVertex2f(x + u[IX(i, j)] * streamline_length / N, y + v[IX(i, j)] * streamline_length / N);
 		}
 	}
 
@@ -221,6 +223,10 @@ static void key_func(unsigned char key, int x, int y)
 	case 'V':
 		dvel = !dvel;
 		break;
+
+	case ' ':
+		pause = !pause;
+		break;
 	}
 }
 
@@ -251,25 +257,30 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 1;
-	v[IX(idxX, idxY)] = force * 0.15f;
-	v[IX(idxX - 1, idxY)] = force * 0.6f;
-	v[IX(idxX + 1, idxY)] = force * 0.1f;
-	vel_step(N, w, w0, u, v, u_prev, v_prev, visc, dt);
-	dens_step(N, dens, dens_prev, u, v, diff, dt);
+	int idxY = 3;
+	v_prev[IX(idxX, idxY)] = force * 0.15f;
+	v_prev[IX(idxX - 1, idxY)] = force * 0.1f;
+	v_prev[IX(idxX + 1, idxY)] = force * 0.1f;
+	v_prev[IX(idxX + 2, idxY)] = force * 0.1f;
+	v_prev[IX(idxX + 3, idxY)] = force * 0.1f;
 
+	if (!pause){
+		vel_step(N, w, w0, u, v, u_prev, v_prev, visc, dt);
+		dens_step(N, dens, dens_prev, u, v, diff, dt);
+	}
 	glutSetWindow(win_id);
 	glutPostRedisplay();
 }
 
 static void display_func(void)
 {
-	pre_display();
+	if (!pause){
+		pre_display();
 
-	if (dvel) draw_velocity();
-	else		draw_density();
-
-	post_display();
+		if (dvel) draw_velocity();
+		else		draw_density();
+		post_display();
+	}
 }
 
 
@@ -283,7 +294,8 @@ static void open_glut_window(void)
 {
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 
-	glutInitWindowPosition(0, 0);
+	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - win_x) / 2,
+						   (glutGet(GLUT_SCREEN_HEIGHT) - win_y) / 2);
 	glutInitWindowSize(win_x, win_y);
 	win_id = glutCreateWindow("Smoke");
 
@@ -327,12 +339,12 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 64;
-		dt = 0.01f;
+		N = 4;
+		dt = 0.1f;
 		diff = 0.0f;
-		visc = 0.00001f;
-		force = 5.0f;
-		source = 100.0f;
+		visc = 0.0f;
+		force = 3.0f;
+		source = 50.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
 	}

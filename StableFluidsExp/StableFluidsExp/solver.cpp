@@ -171,68 +171,103 @@ void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, f
 
 void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, float * v0, float visc, float dt)
 {
-	// This is time consuming but naive
-	//if (system("CLS")) system("clear");
+	//This is time consuming but naive
+	if (system("CLS")) system("clear");
 	//
 	//add_source(N, u, u0, dt); add_source(N, v, v0, dt);
-	//cout << "After adding source" << endl;
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << "After adding source";
 	//cout << endl << "u v field:" << endl;
 	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 	//
 	//SWAP(u0, u);
 	//diffuse(N, 0, u, u0, visc, dt);
 	//SWAP(v0, v); 
 	//diffuse(N, 0, v, v0, visc, dt);
-	//cout << "After Diffusing" << endl;
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "After Diffusing";
 	//cout << endl << "u v field:" << endl;
 	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 	//
 	//project(N, u, v, u0, v0);
-	//cout << "After 1st pressure correction" << endl;
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "After 1st pressure correction";
 	//cout << endl << "u v field:" << endl;
 	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 	//
 	//SWAP(u0, u); SWAP(v0, v);
 	//advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
-	//cout << "After advecting" << endl;
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "After advecting";
 	//cout << endl << "u v field:" << endl;
 	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 	//
 	//project(N, u, v, u0, v0);
-	//cout << "After 2nd pressure correction" << endl;
+	//cout << endl << "After 2nd pressure correction";
 	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-	//cout << endl << "u v field:" << endl;
 	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u v field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+	//
 	//
 	//add_gravity(N, dt, u, v, -9.8f);
-	//cout << "After adding gravity" << endl;
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "After adding gravity";
 	//cout << endl << "u v field:" << endl;
 	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field:" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+
+	zeros(N + 2, w0);
+	zeros(N + 2, w);
 
 	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
-
-	SWAP(u0, u);
-	diffuse(N, 0, u, u0, visc, dt);
-	SWAP(v0, v);
-	diffuse(N, 0, v, v0, visc, dt);
-
-	project(N, u, v, u0, v0);
-
-	SWAP(u0, u); SWAP(v0, v);
-	advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
-
-	project(N, u, v, u0, v0);
-
 	add_gravity(N, dt, u, v, -9.8f);
+
+	cout << endl << "Current time step u v field and u0 v0 field" << endl;
+	displayVectorField(N + 2, N + 2, u, v, u0, v0);
+
+	computeCurls_uniform(N, w0, u, v);
+	set_bnd(N, 0, w0);
+	cout << endl << "Computed curl from velocity field" << endl;
+	displayField(N + 2, N + 2, w, w0);
+
+	advect(N, 0, w, w0, u0, v0, dt);
+	cout << endl << "Advected curl along the velocity field" << endl;
+	displayField(N + 2, N + 2, w, w0);
+
+	SWAP(u0, u); diffuse(N, 0, u, u0, visc, dt);
+	SWAP(v0, v); diffuse(N, 0, v, v0, visc, dt);
+	
+	project(N, u, v, u0, v0);
+	
+	SWAP(u0, u); 
+	SWAP(v0, v);
+
+	advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
+	computeCurls_uniform(N, w0, u, v);
+	set_bnd(N, 0, w0);
+	cout << endl << "Curl field of velocity field which self-advection applied" << endl;
+	displayField(N + 2, N + 2, w, w0);
+
+	SWAP(w, w0);
+	linear_combine_sub(N, w0, w);
+	cout << endl << "dw = w-bar - w-star" << endl;
+	displayField(N + 2, N + 2, w, w0);
+
+	Jacobi_solve(N, 0, w, w0, 1, 4);
+	curl_of_stream_func_2D(N, u0, v0, w);
+	cout << endl << "Deduce the du dv from stream function func(0, 0, psi)" << endl;
+	displayField(N + 2, N + 2, w, w0);
+
+	cout << endl << "Correct the original velocity field" << endl;
+	linear_combine_add(N, u, u0);
+	linear_combine_add(N, v, v0);
+
+	displayVectorField(N + 2, N + 2, u, v, u0, v0);
+
+	project(N, u, v, u0, v0);
 }
