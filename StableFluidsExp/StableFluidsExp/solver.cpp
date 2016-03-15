@@ -83,8 +83,13 @@ void Jacobi_solve_converged_by_relative_error(int N, int b, int iterations_out, 
 			set_bnd(N, b, x);
 
 		error = relative_error(N, x, x0);
+		cout << endl << "Relative error: " << error << endl;
+
 		iterations_out++;
-	} while (error > expected_accuracy);
+		error = (float)error;
+	} while (error >= expected_accuracy);
+
+	cout << endl << "Iterations cost: " << iterations_out << endl;
 
 	free(aux);
 }
@@ -175,7 +180,7 @@ void project(int N, float * u, float * v, float * p, float * div)
 	set_bnd(N, 0, p);
 
 	//Jacobi_solve(N, 0, p, div, 1, 4);
-	//Jacobi_solve_converged_by_relative_error(N, 0, iter, 0.7f, p, div, 1, 4);
+	Jacobi_solve_converged_by_relative_error(N, 0, iter, 0.6322f, p, div, 1, 4);
 
 	FOR_EACH_CELL
 	u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
@@ -276,7 +281,7 @@ void vel_step(int N,
 
 	SWAP(u0, u); diffuse(N, 0, u, u0, visc, dt);
 	SWAP(v0, v); diffuse(N, 0, v, v0, visc, dt);
-	project(N, u, v, u0, v0);
+	//project(N, u, v, u0, v0);
 	SWAP(u0, u); 
 	SWAP(v0, v);
 	advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
