@@ -169,7 +169,13 @@ void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, f
 	SWAP(x0, x); advect(N, 0, x, x0, u, v, dt);
 }
 
-void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, float * v0, float visc, float dt)
+void vel_step(int N, 
+			  float * psi,
+			  float * wn, float *dw,
+			  float * w_bar, float * w_star,
+			  float * u, float * v, 
+			  float * u0, float * v0, 
+			  float visc, float dt)
 {
 	//This is time consuming but naive
 	if (system("CLS")) system("clear");
@@ -221,53 +227,62 @@ void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, fl
 	//cout << endl << "u0 v0 field:" << endl;
 	//displayVectorField(N + 2, N + 2, u0, v0);
 
-	zeros(N + 2, w0);
-	zeros(N + 2, w);
-
-	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
+	add_source(N, u, u0, dt); 
+	add_source(N, v, v0, dt);
 	add_gravity(N, dt, u, v, -9.8f);
 
-	cout << endl << "Current time step u v field and u0 v0 field" << endl;
+	cout << endl << "Velocity field at the begining" << endl;
 	displayVectorField(N + 2, N + 2, u, v, u0, v0);
 
-	computeCurls_uniform(N, w0, u, v);
-	set_bnd(N, 0, w0);
-	cout << endl << "Computed curl from velocity field" << endl;
-	displayField(N + 2, N + 2, w, w0);
+	// IVOCK curl operation
+	computeCurls_uniform(N, wn, u, v);
+	set_bnd(N, 0, wn);
+	cout << endl << "Curl field" << endl;
+	displayField(N + 2, N + 2, wn);
 
-	advect(N, 0, w, w0, u0, v0, dt);
-	cout << endl << "Advected curl along the velocity field" << endl;
-	displayField(N + 2, N + 2, w, w0);
+	advect(N, 0, w_bar, wn, u0, v0, dt);
+	cout << endl << "Curl field advected" << endl;
+	displayField(N + 2, N + 2, w_bar);
 
 	SWAP(u0, u); diffuse(N, 0, u, u0, visc, dt);
 	SWAP(v0, v); diffuse(N, 0, v, v0, visc, dt);
-	
 	project(N, u, v, u0, v0);
-	
 	SWAP(u0, u); 
 	SWAP(v0, v);
-
 	advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
-	computeCurls_uniform(N, w0, u, v);
-	set_bnd(N, 0, w0);
-	cout << endl << "Curl field of velocity field which self-advection applied" << endl;
-	displayField(N + 2, N + 2, w, w0);
-
-	SWAP(w, w0);
-	linear_combine_sub(N, w0, w);
-	cout << endl << "dw = w-bar - w-star" << endl;
-	displayField(N + 2, N + 2, w, w0);
-
-	Jacobi_solve(N, 0, w, w0, 1, 4);
-	curl_of_stream_func_2D(N, u0, v0, w);
-	cout << endl << "Deduce the du dv from stream function func(0, 0, psi)" << endl;
-	displayField(N + 2, N + 2, w, w0);
-
-	cout << endl << "Correct the original velocity field" << endl;
-	linear_combine_add(N, u, u0);
-	linear_combine_add(N, v, v0);
-
+	cout << endl << "Velocity field advected" << endl;
 	displayVectorField(N + 2, N + 2, u, v, u0, v0);
+	computeCurls_uniform(N, w_star, u, v);
+	set_bnd(N, 0, w_star);
+	cout << endl << "Curl field from velocity field advected" << endl;
+	displayField(N + 2, N + 2, w_star);
 
+	linear_combine_sub(N, dw, w_bar, w_star);
+	scaler(N, dw, -1.0f);
+	set_bnd(N, 0, dw);
+	cout << endl << "Curl field difference" << endl;
+	displayField(N + 2, N + 2, dw);
+
+	zeros(N, psi);
+	Jacobi_solve(N, 0, psi, dw, 1, 4);
+	cout << endl << "Stream function (Psi)" << endl;
+	displayField(N + 2, N + 2, psi);
+	zeros(N, u0);
+	zeros(N, v0);
+	vector_potential_inv_2D(N, u0, v0, psi);
+	set_bnd(N, 0, psi);
+	cout << endl << "Velocity field difference from the curl of stream function" << endl;
+	displayVectorField(N + 2, N + 2, u0, v0);
+	linear_combine_add(N, u, u, u0);
+	set_bnd(N, 0, u);
+	linear_combine_add(N, v, v, v0);
+	set_bnd(N, 0, v);
+	cout << endl << "Velocity field after IVOCK correction" << endl;
+	displayVectorField(N + 2, N + 2, u, v);
+
+	cout << endl << "Velocity field before final pressure correction" << endl;
+	displayVectorField(N + 2, N + 2, u, v, u0, v0);
+	zeros(N, u0);
+	zeros(N, v0);
 	project(N, u, v, u0, v0);
 }

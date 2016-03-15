@@ -9,8 +9,18 @@
 
 /* external definitions (from solver.c) */
 
-extern void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float dt);
-extern void vel_step(int N, float * w, float * w0, float * u, float * v, float * u0, float * v0, float visc, float dt);
+extern void dens_step(int N,
+					  float * x, float * x0, 
+					  float * u, float * v, 
+					  float diff, float dt);
+
+extern void vel_step(int N,
+					 float * psi,
+					 float * wn, float * dw, 
+					 float * w_bar, float * w_star, 
+					 float * u, float * v, 
+					 float * u0, float * v0, 
+					 float visc, float dt);
 
 /* global variables */
 
@@ -22,7 +32,7 @@ static float force, source;
 static int dvel;
 
 static float * u, *v, *u_prev, *v_prev;
-static float * w, *w0;
+static float * psi, *wn, *dw, *w_bar, *w_star;
 static float * dens, *dens_prev;
 
 static int win_id;
@@ -30,7 +40,7 @@ static int win_x, win_y;
 static int mouse_down[3];
 static int omx, omy, mx, my;
 static bool pause = false;
-static float streamline_length = 50.0f;
+static float streamline_length = 25.0f;
 
 
 /*
@@ -46,8 +56,11 @@ static void free_data(void)
 	if (v) free(v);
 	if (u_prev) free(u_prev);
 	if (v_prev) free(v_prev);
-	if (w) free(w);
-	if (w0) free(w0);
+	if (psi) free(psi);
+	if (wn) free(wn);
+	if (dw) free(dw);
+	if (w_bar) free(w_bar);
+	if (w_star) free(w_star);
 	if (dens) free(dens);
 	if (dens_prev) free(dens_prev);
 }
@@ -57,7 +70,11 @@ static void clear_data(void)
 	int i, size = (N + 2)*(N + 2);
 
 	for (i = 0; i<size; i++) {
-		u[i] = v[i] = u_prev[i] = v_prev[i] = dens[i] = dens_prev[i] = w[i] = w0[i] = 0.0f;
+		u[i] = v[i] = u_prev[i] 
+			 = v_prev[i] = dens[i] 
+			 = dens_prev[i] 
+			 = psi[i] 
+			 = wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
 	}
 }
 
@@ -69,8 +86,11 @@ static int allocate_data(void)
 	v = (float *)malloc(size*sizeof(float));
 	u_prev = (float *)malloc(size*sizeof(float));
 	v_prev = (float *)malloc(size*sizeof(float));
-	w = (float*)malloc(size*sizeof(float));
-	w0 = (float*)malloc(size*sizeof(float));
+	psi = (float *)malloc(size*sizeof(float));
+	wn = (float *)malloc(size*sizeof(float));
+	dw = (float *)malloc(size*sizeof(float));
+	w_bar = (float *)malloc(size*sizeof(float));
+	w_star = (float *)malloc(size*sizeof(float));
 	dens = (float *)malloc(size*sizeof(float));
 	dens_prev = (float *)malloc(size*sizeof(float));
 
@@ -111,7 +131,7 @@ static void draw_velocity(void)
 
 	h = 1.0f / N;
 
-	glColor3f(0.0f, 1.0f, 0.0f);
+	glColor3f(0.0f, 0.5f, 1.0f);
 	glLineWidth(1.0f);
 
 	glBegin(GL_LINES);
@@ -265,7 +285,7 @@ static void idle_func(void)
 	v_prev[IX(idxX + 3, idxY)] = force * 0.1f;
 
 	if (!pause){
-		vel_step(N, w, w0, u, v, u_prev, v_prev, visc, dt);
+		vel_step(N, psi, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		dens_step(N, dens, dens_prev, u, v, diff, dt);
 	}
 	glutSetWindow(win_id);
@@ -277,7 +297,7 @@ static void display_func(void)
 	if (!pause){
 		pre_display();
 
-		if (dvel) draw_velocity();
+		if (!dvel) draw_velocity();
 		else		draw_density();
 		post_display();
 	}
@@ -339,8 +359,8 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 4;
-		dt = 0.1f;
+		N = 32;
+		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
 		force = 3.0f;

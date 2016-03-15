@@ -31,28 +31,6 @@ void displayVectorField(int row, int col, float* u, float* v){
 	}
 }
 
-void displayFieldInv(int row, int col, float * field){
-	cout << std::setprecision(4) << setiosflags(ios::fixed);
-	for (int i = row - 1; i >= 0; i--){
-		for (int j = 0; j != col; j++){
-			cout << std::setw(7) << field[i * col + j] << ", ";
-			if (j == col - 1)
-				cout << endl;
-		}
-	}
-}
-
-void displayVectorFieldInv(int row, int col, float * u, float * v){
-	cout << std::setprecision(4) << setiosflags(ios::fixed);
-	for (int i = row - 1; i >= 0; i--){
-		for (int j = 0; j != col; j++){
-			cout << std::setw(3) << "v(" << u[i * col + j] << "," << v[i * col + j] << ") ";
-			if (j == col - 1)
-				cout << endl;
-		}
-	}
-}
-
 void displayVectorField(int row, int col, float * u, float * v, float * u0, float * v0)
 {
 	cout << endl << "Current timestep field:" << endl;
@@ -77,7 +55,7 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 	}
 }
 
-void curl_of_stream_func_2D(int N, float * wx, float * wy, float * w)
+void vector_potential_inv_2D(int N, float * u, float * v, float * psi)
 {
 	float dpsi_dy, dpsi_dx;
 	
@@ -86,35 +64,36 @@ void curl_of_stream_func_2D(int N, float * wx, float * wy, float * w)
 	// Where psi is the stream function computed from the linear solver.
 
 	// TODO: 2 Nested loop for wx
-	for (int i = 1; i != N; i++){
-		for (int j = 1; j != N; j++){
-			dpsi_dy = (w[IX(i + 1, j)] - w[IX(i - 1, j)]) * N;
-			wx[IX(i, j)] = -dpsi_dy;
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			dpsi_dy = 0.5f * (psi[IX(i + 1, j)] - psi[IX(i - 1, j)]) * N;
+			u[IX(i, j)] = -dpsi_dy;
 		}
 	}
 
 	// TODO: 2 Nested loop for wy
-	for (int i = 1; i != N; i++){
-		for (int j = 1; j != N; j++){
-			dpsi_dx = (w[IX(i, j + 1)] - w[IX(i, j - 1)]) * N;
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			dpsi_dx = 0.5f * (psi[IX(i, j + 1)] - psi[IX(i, j - 1)]) * N;
+			v[IX(i, j)] = dpsi_dx;
 		}
 	}
 }
 
-void linear_combine_sub(int N, float * f, float * f0)
+void linear_combine_sub(int N, float * f_out, float * f, float * f0)
 {
-	for (int i = 1; i != N; i++){
-		for (int j = 1; j != N; j++){
-			f[IX(i, j)] -= f0[IX(i, j)];
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			f_out[IX(i, j)] = f[IX(i, j)] - f0[IX(i, j)];
 		}
 	}
 }
 
-void linear_combine_add(int N, float * f, float * f0)
+void linear_combine_add(int N, float * f_out, float * f, float * f0)
 {
-	for (int i = 1; i != N; i++){
-		for (int j = 1; j != N; j++){
-			f[IX(i, j)] += f0[IX(i, j)];
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			f_out[IX(i, j)] = f[IX(i, j)] - f0[IX(i, j)];
 		}
 	}
 }
@@ -127,17 +106,18 @@ void zeros(int N, float * field){
 	}
 }
 
+void scaler(int N, float *field, float factor)
+{
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			field[IX(i, j)] *= factor;
+		}
+	}
+}
+
 void computeDivergence_unifrom(int N, float * u, float * v, float * div){
 	int i, j;
 	FOR_EACH_CELL
 		div[IX(i, j)] = - 0.5f*(u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
-	END_FOR
-}
-
-void xminusx0(int N, float * x, float * x0)
-{
-	int i, j;
-	FOR_EACH_CELL
-		x[IX(i, j)] = x[IX(i, j)] - x0[IX(i, j)];
 	END_FOR
 }
