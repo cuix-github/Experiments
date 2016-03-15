@@ -44,6 +44,7 @@ void Jacobi_solve(int N, int b, float * x, float * x0, float a, float c)
 	int i, j, k;
 	int size = (N + 2) * (N + 2);
 	float* aux = (float*)malloc(size*sizeof(float));
+	double error = 0.0;
 
 	for (k = 0; k < 50; k++)
 	{
@@ -55,7 +56,35 @@ void Jacobi_solve(int N, int b, float * x, float * x0, float a, float c)
 			x[IX(i, j)] = aux[IX(i, j)];
 		END_FOR
 			set_bnd(N, b, x);
+
+		error = relative_error(N, x, x0);
 	}
+
+	free(aux);
+}
+
+void Jacobi_solve_converged_by_relative_error(int N, int b, int iterations_out, double expected_accuracy, float * x, float * x0, float a, float c)
+{
+	int i, j, k;
+	int size = (N + 2) * (N + 2);
+	float* aux = (float*)malloc(size*sizeof(float));
+	double error = 0.0;
+	iterations_out = 0;
+
+	do
+	{
+		FOR_EACH_CELL
+			aux[IX(i, j)] = (x0[IX(i, j)] + a*(x[IX(i - 1, j)] + x[IX(i + 1, j)] + x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
+		END_FOR
+
+			FOR_EACH_CELL
+			x[IX(i, j)] = aux[IX(i, j)];
+		END_FOR
+			set_bnd(N, b, x);
+
+		error = relative_error(N, x, x0);
+		iterations_out++;
+	} while (error > expected_accuracy);
 
 	free(aux);
 }
@@ -138,14 +167,15 @@ void advect_beta(int N, int b, float * d, float * d0, float * k, float * k0, flo
 
 void project(int N, float * u, float * v, float * p, float * div)
 {
-	int i, j;
+	int i, j, iter = 0;
 
 	computeDivergence_unifrom(N, u, v, div);
 	set_bnd(N, 0, div);
 	zeros(N, p);
 	set_bnd(N, 0, p);
 
-	Jacobi_solve(N, 0, p, div, 1, 4);
+	//Jacobi_solve(N, 0, p, div, 1, 4);
+	//Jacobi_solve_converged_by_relative_error(N, 0, iter, 0.7f, p, div, 1, 4);
 
 	FOR_EACH_CELL
 	u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
@@ -231,18 +261,18 @@ void vel_step(int N,
 	add_source(N, v, v0, dt);
 	add_gravity(N, dt, u, v, -9.8f);
 
-	cout << endl << "Velocity field at the begining" << endl;
-	displayVectorField(N + 2, N + 2, u, v, u0, v0);
+	//cout << endl << "Velocity field at the begining" << endl;
+	//displayVectorField(N + 2, N + 2, u, v, u0, v0);
 
 	// IVOCK curl operation
-	computeCurls_uniform(N, wn, u, v);
-	set_bnd(N, 0, wn);
-	cout << endl << "Curl field" << endl;
-	displayField(N + 2, N + 2, wn);
-
-	advect(N, 0, w_bar, wn, u0, v0, dt);
-	cout << endl << "Curl field advected" << endl;
-	displayField(N + 2, N + 2, w_bar);
+	//computeCurls_uniform(N, wn, u, v);
+	//set_bnd(N, 0, wn);
+	//cout << endl << "Curl field" << endl;
+	//displayField(N + 2, N + 2, wn);
+	//
+	//advect(N, 0, w_bar, wn, u0, v0, dt);
+	//cout << endl << "Curl field advected" << endl;
+	//displayField(N + 2, N + 2, w_bar);
 
 	SWAP(u0, u); diffuse(N, 0, u, u0, visc, dt);
 	SWAP(v0, v); diffuse(N, 0, v, v0, visc, dt);
@@ -250,38 +280,38 @@ void vel_step(int N,
 	SWAP(u0, u); 
 	SWAP(v0, v);
 	advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
-	cout << endl << "Velocity field advected" << endl;
-	displayVectorField(N + 2, N + 2, u, v, u0, v0);
-	computeCurls_uniform(N, w_star, u, v);
-	set_bnd(N, 0, w_star);
-	cout << endl << "Curl field from velocity field advected" << endl;
-	displayField(N + 2, N + 2, w_star);
-
-	linear_combine_sub(N, dw, w_bar, w_star);
-	scaler(N, dw, -1.0f);
-	set_bnd(N, 0, dw);
-	cout << endl << "Curl field difference" << endl;
-	displayField(N + 2, N + 2, dw);
-
-	zeros(N, psi);
-	Jacobi_solve(N, 0, psi, dw, 1, 4);
-	cout << endl << "Stream function (Psi)" << endl;
-	displayField(N + 2, N + 2, psi);
-	zeros(N, u0);
-	zeros(N, v0);
-	vector_potential_inv_2D(N, u0, v0, psi);
-	set_bnd(N, 0, psi);
-	cout << endl << "Velocity field difference from the curl of stream function" << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
-	linear_combine_add(N, u, u, u0);
-	set_bnd(N, 0, u);
-	linear_combine_add(N, v, v, v0);
-	set_bnd(N, 0, v);
-	cout << endl << "Velocity field after IVOCK correction" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-
-	cout << endl << "Velocity field before final pressure correction" << endl;
-	displayVectorField(N + 2, N + 2, u, v, u0, v0);
+	//cout << endl << "Velocity field advected" << endl;
+	//displayVectorField(N + 2, N + 2, u, v, u0, v0);
+	//computeCurls_uniform(N, w_star, u, v);
+	//set_bnd(N, 0, w_star);
+	//cout << endl << "Curl field from velocity field advected" << endl;
+	//displayField(N + 2, N + 2, w_star);
+	//
+	//linear_combine_sub(N, dw, w_bar, w_star);
+	//scaler(N, dw, -1.0f);
+	//set_bnd(N, 0, dw);
+	//cout << endl << "Curl field difference" << endl;
+	//displayField(N + 2, N + 2, dw);
+	//
+	//zeros(N, psi);
+	//Jacobi_solve(N, 0, psi, dw, 1, 4);
+	//cout << endl << "Stream function (Psi)" << endl;
+	//displayField(N + 2, N + 2, psi);
+	//zeros(N, u0);
+	//zeros(N, v0);
+	//vector_potential_inv_2D(N, u0, v0, psi);
+	//set_bnd(N, 0, psi);
+	//cout << endl << "Velocity field difference from the curl of stream function" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+	//linear_combine_add(N, u, u, u0);
+	//set_bnd(N, 0, u);
+	//linear_combine_add(N, v, v, v0);
+	//set_bnd(N, 0, v);
+	//cout << endl << "Velocity field after IVOCK correction" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//
+	//cout << endl << "Velocity field before final pressure correction" << endl;
+	//displayVectorField(N + 2, N + 2, u, v, u0, v0);
 	zeros(N, u0);
 	zeros(N, v0);
 	project(N, u, v, u0, v0);

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 /* macros */
@@ -359,12 +359,12 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 32;
-		dt = 0.01f;
+		N = 4;
+		dt = 0.1f;
 		diff = 0.0f;
 		visc = 0.0f;
 		force = 3.0f;
-		source = 50.0f;
+		source = 25.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
 	}

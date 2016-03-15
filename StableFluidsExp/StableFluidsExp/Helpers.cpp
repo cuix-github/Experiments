@@ -115,6 +115,28 @@ void scaler(int N, float *field, float factor)
 	}
 }
 
+double relative_error(int N, float * curr, float * prev)
+{
+	double error = 0.0;
+	int n = 0;
+
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			if (curr[IX(i, j)] != 0){
+				if (curr[IX(i, j)] != prev[IX(i, j)])
+				{
+					error += std::abs(1 - prev[IX(i, j)] / curr[IX(i, j)]);
+					++n;
+				}
+			}
+		}
+	}
+
+	if (n != 0)
+		error /= n;
+	return error;
+}
+
 void computeDivergence_unifrom(int N, float * u, float * v, float * div){
 	int i, j;
 	FOR_EACH_CELL

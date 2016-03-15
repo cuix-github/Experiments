@@ -1,5 +1,6 @@
 #include "../cpt/cptstd.hpp"
 #include "../cpt/matrix.hpp"
+#include "Helpers.h"
 using namespace cpt;
 
 int L = 50;                     // number of interior points in x and y
@@ -112,6 +113,15 @@ int main() {
 
 	initialize();
 
+	cout << endl << "Rho field" << endl;
+	displayField(L + 2, L + 2, rho);
+
+	cout << endl << "V field" << endl;
+	displayField(L + 2, L + 2, V);
+
+	cout << endl << "V_new field" << endl;
+	displayField(L + 2, L + 2, V_new);
+
 	cout << " Enter desired accuracy in solution: ";
 	cin >> accuracy;
 	cout << " Enter 1 for Jacobi, 2 for Gauss Seidel, 3 for SOR: ";
@@ -144,18 +154,24 @@ int main() {
 		break;
 	}
 
+
+
 	// write potential to file
-	cout << " Potential in file poisson.data" << endl;
-	ofstream date_file("poisson.data");
-	for (int i = 0; i < L + 2; i++) {
-		double x = i * h;
-		for (int j = 0; j < L + 2; j++) {
-			double y = j * h;
-			date_file << x << '\t' << y << '\t' << V[i][j] << '\n';
-		}
-		date_file << '\n';
-	}
-	date_file.close();
+	//cout << " Potential in file poisson.data" << endl;
+	//ofstream date_file("poisson.data");
+	//for (int i = 0; i < L + 2; i++) {
+	//	double x = i * h;
+	//	for (int j = 0; j < L + 2; j++) {
+	//		double y = j * h;
+	//		date_file << x << '\t' << y << '\t' << V[i][j] << '\n';
+	//	}
+	//	date_file << '\n';
+	//}
+	//date_file.close();
+
+	cout << endl << "Solution:" << endl;
+	displayField(L + 2, L + 2, V);
+
 
 	system("Pause");
 	return 0;
