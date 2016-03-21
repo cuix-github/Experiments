@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 /* macros */
@@ -40,7 +40,7 @@ static int win_x, win_y;
 static int mouse_down[3];
 static int omx, omy, mx, my;
 static bool pause = false;
-static float streamline_length = 35.0f;
+static float streamline_length = 10.0f;
 
 
 /*
@@ -365,6 +365,7 @@ int main(int argc, char ** argv)
 		visc = 0.0f;
 		force = 5.0f;
 		source = 30.0f;
+		streamline_length = 25.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
 	}

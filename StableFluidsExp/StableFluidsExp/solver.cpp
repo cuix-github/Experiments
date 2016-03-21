@@ -159,7 +159,9 @@ void add_gravity(int N, float dt, float * u, float * v, float g)
 	int i, j;
 	FOR_EACH_CELL
 		v[IX(i, j)] += dt * g * 0.0001f;
-		END_FOR
+	END_FOR
+	set_bnd(N, 0, v);
+	set_bnd(N, 0, u);
 }
 
 void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float dt)
@@ -229,64 +231,36 @@ void vel_step(int N,
 
 	add_source(N, u, u0, dt); 
 	add_source(N, v, v0, dt);
-	add_gravity(N, dt, u, v, -9.8f);
-	//cout << endl << "u0 v0 field" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-
-	//cout << endl << "Velocity field at the begining" << endl;
-	//displayVectorField(N + 2, N + 2, u, v, u0, v0);
-
-	// IVOCK curl operation
-	computeCurls_uniform(N, wn, u, v);
-	set_bnd(N, 0, wn);
-	cout << endl << "Curl field" << endl;
-	displayField(N + 2, N + 2, wn);
-	
-	advect(N, 0, w_bar, wn, u0, v0, dt);
-	cout << endl << "Curl field advected" << endl;
-	displayField(N + 2, N + 2, w_bar);
-
 	SWAP(u0, u); diffuse(N, 0, u, u0, visc, dt);
 	SWAP(v0, v); diffuse(N, 0, v, v0, visc, dt);
 	project(N, u, v, u0, v0);
 	SWAP(u0, u); 
 	SWAP(v0, v);
 	advect(N, 0, u, u0, v, v0, u0, v0, dt);
-	cout << endl << "Velocity field advected" << endl;
-	displayVectorField(N + 2, N + 2, u, v, u0, v0);
+
+	// IVOCK
+	computeCurls_uniform(N, wn, u, v);
+	set_bnd(N, 0, wn);
+	advect(N, 0, w_bar, wn, u, v, dt);
+	advect(N, 0, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
 	set_bnd(N, 0, w_star);
-	cout << endl << "Curl field from velocity field advected" << endl;
-	displayField(N + 2, N + 2, w_star);
-	//
 	linear_combine_sub(N, dw, w_bar, w_star);
-	scaler(N, dw, -1.0f);
-	set_bnd(N, 0, dw);
-	cout << endl << "Curl field difference" << endl;
-	displayField(N + 2, N + 2, dw);
-	//
-	zeros(N, psi);
+	zeros(N, u0);
+	zeros(N, v0);
 	Jacobi_solve(N, 0, psi, dw, 1, 4);
 	cout << endl << "Stream function (Psi)" << endl;
 	displayField(N + 2, N + 2, psi);
-	zeros(N, u0);
-	zeros(N, v0);
 	find_vector_potential_2D(N, u0, v0, psi);
+	zeros(N, psi);
 	set_bnd(N, 0, u0);
 	set_bnd(N, 0, v0);
-	cout << endl << "Find vector potential from stream function (psi)" << endl;
+	cout << endl << "Velocity correction" << endl;
 	displayVectorField(N + 2, N + 2, u0, v0);
-	cout << endl << "Current timestep velocity field before velocity correction" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	linear_combine_add(N, u, u, u0);
-	set_bnd(N, 0, u);
-	linear_combine_add(N, v, v, v0);
-	set_bnd(N, 0, v);	
-
-	cout << endl << "Current timestep velocity field before final pressure correction" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	
-	// What the fuck am I doing. Stuck here for a week.
-	// Discuss with Xinxin and figure it out soon.
+	//linear_combine_add(N, u, u, u0);
+	//set_bnd(N, 0, u);
+	//linear_combine_add(N, v, v, v0);
+	//set_bnd(N, 0, v);
+	add_gravity(N, dt, u, v, -9.8f);
 	project(N, u, v, u0, v0);
 }
