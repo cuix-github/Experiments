@@ -46,7 +46,6 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 		for (int j = 1; j <= N; j++)
 		{
 			float du, dv;
-			float uiplus1, uiminus1;
 			float u0, v0;
 			du = 0.5f * (u[IX(i, j + 1)] - u[IX(i, j - 1)]) * N;
 			dv = 0.5f * (v[IX(i + 1, j)] - v[IX(i - 1, j)]) * N;
@@ -55,7 +54,7 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 	}
 }
 
-void vector_potential_inv_2D(int N, float * u, float * v, float * psi)
+void find_vector_potential_2D(int N, float * u, float * v, float * psi)
 {
 	float dpsi_dy, dpsi_dx;
 	
@@ -67,7 +66,7 @@ void vector_potential_inv_2D(int N, float * u, float * v, float * psi)
 	for (int i = 1; i <= N; i++){
 		for (int j = 1; j <= N; j++){
 			dpsi_dy = 0.5f * (psi[IX(i + 1, j)] - psi[IX(i - 1, j)]) * N;
-			u[IX(i, j)] = -dpsi_dy;
+			u[IX(i, j)] = dpsi_dy;
 		}
 	}
 
@@ -75,7 +74,7 @@ void vector_potential_inv_2D(int N, float * u, float * v, float * psi)
 	for (int i = 1; i <= N; i++){
 		for (int j = 1; j <= N; j++){
 			dpsi_dx = 0.5f * (psi[IX(i, j + 1)] - psi[IX(i, j - 1)]) * N;
-			v[IX(i, j)] = dpsi_dx;
+			v[IX(i, j)] = -dpsi_dx;
 		}
 	}
 }
@@ -93,7 +92,7 @@ void linear_combine_add(int N, float * f_out, float * f, float * f0)
 {
 	for (int i = 1; i <= N; i++){
 		for (int j = 1; j <= N; j++){
-			f_out[IX(i, j)] = f[IX(i, j)] - f0[IX(i, j)];
+			f_out[IX(i, j)] = f[IX(i, j)] + f0[IX(i, j)];
 		}
 	}
 }
@@ -133,8 +132,7 @@ double relative_error(int N, float * curr, float * prev)
 	}
 
 	if (n != 0)
-		error /= n;
-	return error;
+		return error /= n;
 }
 
 void computeDivergence_unifrom(int N, float * u, float * v, float * div){

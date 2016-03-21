@@ -22,6 +22,7 @@ void initialize()
 	double q = 10;              // point charge
 	int i = N / 2;              // center of lattice
 	rho[i][i] = q / (h * h);    // charge density
+	rho[i + 1][i + 1] = q * q;
 	steps = 0;
 }
 
@@ -92,10 +93,15 @@ void iterate(void(*method)())
 	while (true) {
 		method();
 		++steps;
+		cout << endl << "Solution v_new:" << endl;
+		displayField(L + 2, L + 2, V_new);
+		cout << endl << "Solution v:" << endl;
+		displayField(L + 2, L + 2, V);
 		double error = relative_error();
 		if (error < accuracy)
 			break;
 		swap(V, V_new);         // use <algorithm> std::swap
+		cout << endl << "Error:" << error << endl;
 	}
 	cout << " Number of steps = " << steps << endl;
 
@@ -128,6 +134,7 @@ int main() {
 	int choice;
 	cin >> choice;
 
+	if (system("CLS")) system("clear");
 	switch (choice) {
 	case 1:
 		iterate(Jacobi);

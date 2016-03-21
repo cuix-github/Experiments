@@ -131,9 +131,9 @@ int main(int argc, char **argv)
 
     // The following parameters are usually read from a file, but
     // hard code them for the demo:
-    ni=640;
-    nj=360;
-    vxin=0.04;
+    ni= 128;
+    nj= 72;
+    vxin=0.08;
     roout=1.0;
     tau=0.51;
     // End of parameter list
@@ -295,9 +295,9 @@ int main(int argc, char **argv)
     //
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(ni, nj);                   // Window of ni x nj pixels
+    glutInitWindowSize(1280, 720);                   // Window of ni x nj pixels
     glutInitWindowPosition(50, 50);               // Window position
-    glutCreateWindow("CUDA 2D LB");               // Window title
+    glutCreateWindow("CUDA 2D LBM");               // Window title
 
     printf("Loading extensions: %s\n", glewGetErrorString(glewInit()));
     if(!glewIsSupported(

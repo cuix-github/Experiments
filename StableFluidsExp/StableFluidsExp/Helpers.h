@@ -23,7 +23,7 @@ void zeros(int N, float * field);
 void scaler(int N, float *field, float factor);
 double relative_error(int N, float * curr, float * prev);
 void computeCurls_uniform(int N, float * w, float * u, float * v);
-void vector_potential_inv_2D(int N, float * u, float * v, float * psi);
+void find_vector_potential_2D(int N, float * u, float * v, float * psi);
 void linear_combine_add(int N, float * f_out, float * f, float * f0);
 void linear_combine_sub(int N, float * f_out, float * f, float * f0);
 void computeDivergence_unifrom(int N, float * u, float * v, float * div);
