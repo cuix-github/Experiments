@@ -239,28 +239,40 @@ void vel_step(int N,
 	advect(N, 0, u, u0, v, v0, u0, v0, dt);
 
 	// IVOCK
+	zeros(N, psi);
+	zeros(N, w_star);
+	zeros(N, w_bar);
+	zeros(N, wn);
+	zeros(N, dw);
+
 	computeCurls_uniform(N, wn, u, v);
 	set_bnd(N, 0, wn);
 	advect(N, 0, w_bar, wn, u, v, dt);
 	advect(N, 0, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
 	set_bnd(N, 0, w_star);
+	zeros(N, dw);
 	linear_combine_sub(N, dw, w_bar, w_star);
-	zeros(N, u0);
-	zeros(N, v0);
+	scaler(N, dw, -1.f);
+	set_bnd(N, 0, dw);
 	Jacobi_solve(N, 0, psi, dw, 1, 4);
 	cout << endl << "Stream function (Psi)" << endl;
 	displayField(N + 2, N + 2, psi);
+	zeros(N, u0);
+	zeros(N, v0);
 	find_vector_potential_2D(N, u0, v0, psi);
-	zeros(N, psi);
 	set_bnd(N, 0, u0);
 	set_bnd(N, 0, v0);
-	cout << endl << "Velocity correction" << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "Velocity correction" << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "Velocity field before correction" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
 	//linear_combine_add(N, u, u, u0);
 	//set_bnd(N, 0, u);
 	//linear_combine_add(N, v, v, v0);
 	//set_bnd(N, 0, v);
-	add_gravity(N, dt, u, v, -9.8f);
+	//cout << endl << "Final velocity field" << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//add_gravity(N, dt, u, v, -9.8f);
 	project(N, u, v, u0, v0);
 }
