@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <glut.h>
 #include "Helpers.h"
 
 /* macros */
@@ -15,7 +15,9 @@ extern void dens_step(int N,
 					  float diff, float dt);
 
 extern void vel_step(int N,
+					 float * fx, float * fy,
 					 float * psi,
+					 float * du, float * dv,
 					 float * wn, float * dw, 
 					 float * w_bar, float * w_star, 
 					 float * u, float * v, 
@@ -30,9 +32,13 @@ static int ny;
 static float dt, diff, visc;
 static float force, source;
 static int dvel;
+static int ddvel;
+static int psiField;
 
 static float * u, *v, *u_prev, *v_prev;
+static float * fx, *fy;
 static float * psi, *wn, *dw, *w_bar, *w_star;
+static float * du, *dv;
 static float * dens, *dens_prev;
 
 static int win_id;
@@ -54,6 +60,8 @@ static void free_data(void)
 {
 	if (u) free(u);
 	if (v) free(v);
+	if (du) free(du);
+	if (dv) free(dv);
 	if (u_prev) free(u_prev);
 	if (v_prev) free(v_prev);
 	if (psi) free(psi);
@@ -63,6 +71,8 @@ static void free_data(void)
 	if (w_star) free(w_star);
 	if (dens) free(dens);
 	if (dens_prev) free(dens_prev);
+	if (fx) free(fx);
+	if (fy) free(fy);
 }
 
 static void clear_data(void)
@@ -70,11 +80,12 @@ static void clear_data(void)
 	int i, size = (N + 2)*(N + 2);
 
 	for (i = 0; i<size; i++) {
-		u[i] = v[i] = u_prev[i] 
-			 = v_prev[i] = dens[i] 
-			 = dens_prev[i] 
-			 = psi[i] 
-			 = wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
+		fx[i] = fy[i] =
+		u[i] = v[i] = u_prev[i] = v_prev[i] = 
+		dens[i] = dens_prev[i] = 
+		psi[i] = 
+		du[i] = dv[i] =
+		wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
 	}
 }
 
@@ -82,8 +93,12 @@ static int allocate_data(void)
 {
 	int size = (N + 2)*(N + 2);
 
+	fx = (float *)malloc(size*sizeof(float));
+	fy = (float *)malloc(size*sizeof(float));
 	u = (float *)malloc(size*sizeof(float));
 	v = (float *)malloc(size*sizeof(float));
+	du = (float *)malloc(size*sizeof(float));
+	dv = (float *)malloc(size*sizeof(float));
 	u_prev = (float *)malloc(size*sizeof(float));
 	v_prev = (float *)malloc(size*sizeof(float));
 	psi = (float *)malloc(size*sizeof(float));
@@ -94,7 +109,7 @@ static int allocate_data(void)
 	dens = (float *)malloc(size*sizeof(float));
 	dens_prev = (float *)malloc(size*sizeof(float));
 
-	if (!u || !v || !u_prev || !v_prev || !dens || !dens_prev) {
+	if (!fx || !fy || !psi || !wn || !dw || !w_bar || !w_star || !u || !v || !du || !dv || !u_prev || !v_prev || !dens || !dens_prev) {
 		fprintf(stderr, "cannot allocate data\n");
 		return (0);
 	}
@@ -131,7 +146,7 @@ static void draw_velocity(void)
 
 	h = 1.0f / N;
 
-	glColor3f(0.0f, 0.5f, 1.0f);
+	glColor3f(0.0f, 1.0f, 0.0f);
 	glLineWidth(1.0f);
 
 	glBegin(GL_LINES);
@@ -143,6 +158,59 @@ static void draw_velocity(void)
 
 			glVertex2f(x, y);
 			glVertex2f(x + u[IX(i, j)] * streamline_length / N, y + v[IX(i, j)] * streamline_length / N);
+		}
+	}
+
+	glEnd();
+}
+
+static void draw_velocity_difference(void)
+{
+	int i, j;
+	float x, y, h;
+
+	h = 1.0f / N;
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glLineWidth(1.0f);
+
+	glBegin(GL_LINES);
+
+	for (i = 1; i <= N; i++) {
+		x = (i - 0.5f)*h;
+		for (j = 1; j <= N; j++) {
+			y = (j - 0.5f)*h;
+
+			glVertex2f(x, y);
+			glVertex2f(x + du[IX(i, j)] * streamline_length / N, y + dv[IX(i, j)] * streamline_length / N);
+		}
+	}
+
+	glEnd();
+}
+
+static void draw_scalar_field(void){
+	int i, j;
+	float x, y, h, d00, d01, d10, d11;
+
+	h = 1.0f / N;
+
+	glBegin(GL_QUADS);
+
+	for (i = 0; i <= N; i++) {
+		x = (i - 0.5f)*h;
+		for (j = 0; j <= N; j++) {
+			y = (j - 0.5f)*h;
+
+			d00 = psi[IX(i, j)];
+			d01 = psi[IX(i, j + 1)];
+			d10 = psi[IX(i + 1, j)];
+			d11 = psi[IX(i + 1, j + 1)];
+
+			glColor3f(d00, 0, 0); glVertex2f(x, y);
+			glColor3f(d10, 0, 0); glVertex2f(x + h, y);
+			glColor3f(d11, 0, 0); glVertex2f(x + h, y + h);
+			glColor3f(d01, 0, 0); glVertex2f(x, y + h);
 		}
 	}
 
@@ -202,10 +270,6 @@ static void get_from_UI(float * d, float * u, float * v)
 	if (mouse_down[0]) {
 		//u[IX(i, j)] = force * (mx - omx);
 		//v[IX(i, j)] = force * (omy - my);
-
-		//u_prev[6] = 3.0f; v_prev[6] = 0.0f; u_prev[7] = 3.0f; v_prev[7] = 0.0f;	u_prev[8] = 0.0f; v_prev[8] = 0.0f;
-		//u_prev[11] = 1.0f; v_prev[11] = 0.0f; u_prev[12] = 1.0f; v_prev[12] = 0.0f; u_prev[13] = 0.0f; v_prev[13] = 0.0f;
-		//u_prev[16] = 0.0f; v_prev[16] = 0.0f; u_prev[17] = 0.0f; v_prev[17] = 0.0f; u_prev[18] = 0.0f; v_prev[18] = 0.0f;
 	}
 
 	if (mouse_down[2]) {
@@ -244,6 +308,22 @@ static void key_func(unsigned char key, int x, int y)
 		dvel = !dvel;
 		break;
 
+	case 'd':
+	case 'D':
+		ddvel = !ddvel;
+		break;
+
+	case 'b':
+	case 'B':
+		dvel = !dvel;
+		ddvel = !ddvel;
+		break;
+
+	case 's':
+	case 'S':
+		psiField = !psiField;
+		break;
+
 	case ' ':
 		pause = !pause;
 		break;
@@ -276,16 +356,13 @@ static void reshape_func(int width, int height)
 static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
-	int idxX = N / 2;
-	int idxY = 3;
-	v_prev[IX(idxX, idxY)] = force * 0.15f;
-	v_prev[IX(idxX - 1, idxY)] = force * 0.1f;
-	v_prev[IX(idxX + 1, idxY)] = force * 0.1f;
-	v_prev[IX(idxX + 2, idxY)] = force * 0.1f;
-	v_prev[IX(idxX + 3, idxY)] = force * 0.1f;
+	int idxX = N / 2 + 1;
+	int idxY = 1;
+	v_prev[IX(idxX, idxY)] = force;
+	dens_prev[IX(idxX, idxY + 2)] = 60.0f;
 
 	if (!pause){
-		vel_step(N, psi, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
+		vel_step(N, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		dens_step(N, dens, dens_prev, u, v, diff, dt);
 	}
 	glutSetWindow(win_id);
@@ -297,8 +374,20 @@ static void display_func(void)
 	if (!pause){
 		pre_display();
 
-		if (!dvel) draw_velocity();
-		else		draw_density();
+		if (dvel && !psiField && !ddvel) 
+			draw_velocity();
+		else if (ddvel && !psiField && !dvel)
+			draw_velocity_difference();
+		else if (ddvel && dvel && !psiField)
+		{
+			draw_velocity();
+			draw_velocity_difference();
+		}
+		else if (psiField && !dvel && !ddvel)
+			draw_scalar_field();
+		else		
+			draw_density();
+
 		post_display();
 	}
 }
@@ -360,12 +449,12 @@ int main(int argc, char ** argv)
 
 	if (argc == 1) {
 		N = 128;
-		dt = 0.1f;
+		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 5.0f;
-		source = 30.0f;
-		streamline_length = 25.0f;
+		force = 1.0f;
+		source = 60.0f;
+		streamline_length = 5.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
 	}
@@ -385,7 +474,9 @@ int main(int argc, char ** argv)
 	printf("\t Clear the simulation by pressing the 'c' key\n");
 	printf("\t Quit by pressing the 'q' key\n");
 
-	dvel = 0;
+	dvel = 1;
+	ddvel = -1;
+	psiField = -1;
 
 	if (!allocate_data()) exit(1);
 	clear_data();

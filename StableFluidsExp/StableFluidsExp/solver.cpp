@@ -79,26 +79,26 @@ void advect(int N, int b, float * d, float * d0, float * u, float * v, float dt)
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
-	y = j - dt0*v[IX(i, j)];
+		y = j - dt0*v[IX(i, j)];
 
-	if (x<0.5f) x = 0.5f;
-	if (x>N + 0.5f) x = N + 0.5f;
+		if (x<0.5f) x = 0.5f;
+		if (x>N + 0.5f) x = N + 0.5f;
 
-	i0 = (int)x;
-	i1 = i0 + 1;
+		i0 = (int)x;
+		i1 = i0 + 1;
 
-	if (y<0.5f) y = 0.5f;
-	if (y>N + 0.5f) y = N + 0.5f;
+		if (y<0.5f) y = 0.5f;
+		if (y>N + 0.5f) y = N + 0.5f;
 
-	j0 = (int)y;
-	j1 = j0 + 1;
+		j0 = (int)y;
+		j1 = j0 + 1;
 
-	s1 = x - i0;
-	t1 = y - j0;
+		s1 = x - i0;
+		t1 = y - j0;
 
-	float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
-	float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
-	d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
+		float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
+		float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
+		d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
 	END_FOR
 		set_bnd(N, b, d);
 }
@@ -113,23 +113,23 @@ void advect(int N, int b, float * d, float * d0, float * k, float * k0, float * 
 		x = i - dt0*u[IX(i, j)];
 		y = j - dt0*v[IX(i, j)];
 
-	if (x<0.5f) x = 0.5f;
-	if (x>N + 0.5f) x = N + 0.5f;
+		if (x<0.5f) x = 0.5f;
+		if (x>N + 0.5f) x = N + 0.5f;
 
-	i0 = (int)x;
-	i1 = i0 + 1;
+		i0 = (int)x;
+		i1 = i0 + 1;
 
-	if (y<0.5f) y = 0.5f;
-	if (y>N + 0.5f) y = N + 0.5f;
+		if (y<0.5f) y = 0.5f;
+		if (y>N + 0.5f) y = N + 0.5f;
 
-	j0 = (int)y;
-	j1 = j0 + 1;
+		j0 = (int)y;
+		j1 = j0 + 1;
 
-	s1 = x - i0;
-	t1 = y - j0;
+		s1 = x - i0;
+		t1 = y - j0;
 
-	d[IX(i, j)] = lerp(s1, lerp(t1, d0[IX(i0, j0)], d0[IX(i0, j1)]), lerp(t1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
-	k[IX(i, j)] = lerp(s1, lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]), lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
+		d[IX(i, j)] = lerp(s1, lerp(t1, d0[IX(i0, j0)], d0[IX(i0, j1)]), lerp(t1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
+		k[IX(i, j)] = lerp(s1, lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]), lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
 	END_FOR
 
 	set_bnd(N, b, d);
@@ -148,20 +148,19 @@ void project(int N, float * u, float * v, float * p, float * div)
 	Jacobi_solve(N, 0, p, div, 1, 4);
 
 	FOR_EACH_CELL
-	u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
-	v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
+		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
+		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	END_FOR
-		set_bnd(N, 0, u); set_bnd(N, 0, v);
+	set_bnd(N, 0, u); set_bnd(N, 0, v);
 }
 
-void add_gravity(int N, float dt, float * u, float * v, float g)
+void add_force(int N, float dt, float * u, float * v, float * fx, float * fy)
 {
 	int i, j;
 	FOR_EACH_CELL
-		v[IX(i, j)] += dt * g * 0.0001f;
+		v[IX(i, j)] += dt * fy[IX(i, j)];
+		u[IX(i, j)] += dt * fx[IX(i, j)];
 	END_FOR
-	set_bnd(N, 0, v);
-	set_bnd(N, 0, u);
 }
 
 void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float dt)
@@ -171,8 +170,10 @@ void dens_step(int N, float * x, float * x0, float * u, float * v, float diff, f
 	SWAP(x0, x); advect(N, 0, x, x0, u, v, dt);
 }
 
-void vel_step(int N, 
+void vel_step(int N,
+			  float * fx, float * fy,
 			  float * psi,
+			  float * du, float * dv,
 			  float * wn, float *dw,
 			  float * w_bar, float * w_star,
 			  float * u, float * v, 
@@ -181,98 +182,52 @@ void vel_step(int N,
 {
 	//This is time consuming but naive
 	if (system("CLS")) system("clear");
-	//
-	//add_source(N, u, u0, dt); add_source(N, v, v0, dt);
-	//cout << "After adding source";
-	//cout << endl << "u v field:" << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-	//
-	//SWAP(u0, u);
-	//diffuse(N, 0, u, u0, visc, dt);
-	//SWAP(v0, v); 
-	//diffuse(N, 0, v, v0, visc, dt);
-	//cout << endl << "After Diffusing";
-	//cout << endl << "u v field:" << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-	//
-	//project(N, u, v, u0, v0);
-	//cout << endl << "After 1st pressure correction";
-	//cout << endl << "u v field:" << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-	//
-	//SWAP(u0, u); SWAP(v0, v);
-	//advect_beta(N, 0, u, u0, v, v0, u0, v0, dt);
-	//cout << endl << "After advecting";
-	//cout << endl << "u v field:" << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-	//
-	//project(N, u, v, u0, v0);
-	//cout << endl << "After 2nd pressure correction";
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u v field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-	//
-	//
-	//add_gravity(N, dt, u, v, -9.8f);
-	//cout << endl << "After adding gravity";
-	//cout << endl << "u v field:" << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field:" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
+
+	// IVOCK scheme
+	zeros(N, wn);
+	zeros(N, w_bar);
+	zeros(N, w_star);
+	zeros(N, dw);
+	zeros(N, psi);
+	zeros(N, du);
+	zeros(N, dv);
 
 	add_source(N, u, u0, dt); 
 	add_source(N, v, v0, dt);
-	SWAP(u0, u); diffuse(N, 0, u, u0, visc, dt);
-	SWAP(v0, v); diffuse(N, 0, v, v0, visc, dt);
+	
+	SWAP(u0, u);
+	SWAP(v0, v);
+	diffuse(N, 0, u, u0, visc, dt);
+	diffuse(N, 0, v, v0, visc, dt);
 	project(N, u, v, u0, v0);
 	SWAP(u0, u); 
 	SWAP(v0, v);
-	advect(N, 0, u, u0, v, v0, u0, v0, dt);
-
-	// IVOCK
-	zeros(N, psi);
-	zeros(N, w_star);
-	zeros(N, w_bar);
-	zeros(N, wn);
-	zeros(N, dw);
-
-	computeCurls_uniform(N, wn, u, v);
-	set_bnd(N, 0, wn);
-	advect(N, 0, w_bar, wn, u, v, dt);
+	computeCurls_uniform(N, wn, u0, v0);
+	//set_bnd(N, 0, wn);
+	//cout << endl << "Curl field from previous time step velocity field" << endl;
+	//displayField(N + 2, N + 2, wn);
+	advect(N, 0, w_bar, wn, u0, v0, dt);
+	//cout << endl << "Curl field advected" << endl;
+	//displayField(N + 2, N + 2, w_bar);
 	advect(N, 0, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
-	set_bnd(N, 0, w_star);
-	zeros(N, dw);
+	//set_bnd(N, 0, w_star);
+	//cout << endl << "Curl field from the advected velocity field" << endl;
+	//displayField(N + 2, N + 2, w_star);
 	linear_combine_sub(N, dw, w_bar, w_star);
-	scaler(N, dw, -1.f);
-	set_bnd(N, 0, dw);
+	scaler(N, dw, -1.0f);
+	//set_bnd(N, 0, dw);
+	//cout << endl << "Curl difference" << endl;
+	//displayField(N + 2, N + 2, dw);
 	Jacobi_solve(N, 0, psi, dw, 1, 4);
-	cout << endl << "Stream function (Psi)" << endl;
-	displayField(N + 2, N + 2, psi);
-	zeros(N, u0);
-	zeros(N, v0);
-	find_vector_potential_2D(N, u0, v0, psi);
-	set_bnd(N, 0, u0);
-	set_bnd(N, 0, v0);
-	//cout << endl << "Velocity correction" << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-	//cout << endl << "Velocity field before correction" << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//linear_combine_add(N, u, u, u0);
+	//cout << endl << "Stream function (Psi)" << endl;
+	//displayField(N + 2, N + 2, psi);
+	find_vector_potential_2D(N, du, dv, psi);
+	set_bnd(N, 0, du);
+	set_bnd(N, 0, dv);
+	//linear_combine_add(N, u, u, du);
+	//linear_combine_add(N, v, v, dv);
 	//set_bnd(N, 0, u);
-	//linear_combine_add(N, v, v, v0);
 	//set_bnd(N, 0, v);
-	//cout << endl << "Final velocity field" << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//add_gravity(N, dt, u, v, -9.8f);
 	project(N, u, v, u0, v0);
 }

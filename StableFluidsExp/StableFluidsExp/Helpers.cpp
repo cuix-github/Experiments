@@ -46,9 +46,8 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 		for (int j = 1; j <= N; j++)
 		{
 			float du, dv;
-			float u0, v0;
-			du = 0.5f * (u[IX(i, j + 1)] - u[IX(i, j - 1)]) * N;
-			dv = 0.5f * (v[IX(i + 1, j)] - v[IX(i - 1, j)]) * N;
+			du = 0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)]) * N;
+			dv = 0.5f * (v[IX(i, j + 1)] - v[IX(i, j - 1)]) * N;
 			w[IX(i, j)] = dv - du;
 		}
 	}
