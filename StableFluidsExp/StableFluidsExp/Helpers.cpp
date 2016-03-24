@@ -56,6 +56,8 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 void find_vector_potential_2D(int N, float * u, float * v, float * psi)
 {
 	float dpsi_dy, dpsi_dx;
+	zeros(N, u);
+	zeros(N, v);
 	
 	// wx and wy finally will be used for updating velocity field (u = wx, v = wy)
 	// While 3D Vector field is constructed as (u = 0, v = 0, w = psi)
@@ -64,15 +66,9 @@ void find_vector_potential_2D(int N, float * u, float * v, float * psi)
 	// TODO: 2 Nested loop for wx
 	for (int i = 1; i <= N; i++){
 		for (int j = 1; j <= N; j++){
-			dpsi_dy = 0.5f * (psi[IX(i + 1, j)] - psi[IX(i - 1, j)]) * N;
+			dpsi_dy = 0.5f * (psi[IX(i + 1, j)] - psi[IX(i - 1, j)]);
+			dpsi_dx = 0.5f * (psi[IX(i, j + 1)] - psi[IX(i, j - 1)]);
 			u[IX(i, j)] = dpsi_dy;
-		}
-	}
-
-	// TODO: 2 Nested loop for wy
-	for (int i = 1; i <= N; i++){
-		for (int j = 1; j <= N; j++){
-			dpsi_dx = 0.5f * (psi[IX(i, j + 1)] - psi[IX(i, j - 1)]) * N;
 			v[IX(i, j)] = -dpsi_dx;
 		}
 	}

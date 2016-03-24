@@ -257,7 +257,12 @@ static void get_from_UI(float * d, float * u, float * v)
 	int i, j, size = (N + 2)*(N + 2);
 
 	for (i = 0; i<size; i++) {
-		u[i] = v[i] = d[i] = 0.0f;
+		fx[i] = fy[i] =
+			u[i] = v[i] = u_prev[i] = v_prev[i] =
+			dens[i] = dens_prev[i] =
+			psi[i] =
+			du[i] = dv[i] =
+			wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
 	}
 
 	if (!mouse_down[0] && !mouse_down[2]) return;
@@ -270,6 +275,11 @@ static void get_from_UI(float * d, float * u, float * v)
 	if (mouse_down[0]) {
 		//u[IX(i, j)] = force * (mx - omx);
 		//v[IX(i, j)] = force * (omy - my);
+		int idxX = N / 2 + 1;
+		int idxY = 1;
+		v_prev[IX(idxX, idxY)] = force * 2.0f;
+		dens_prev[IX(idxX, idxY + 2)] = 60.0f;
+
 	}
 
 	if (mouse_down[2]) {
@@ -356,10 +366,6 @@ static void reshape_func(int width, int height)
 static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
-	int idxX = N / 2 + 1;
-	int idxY = 1;
-	v_prev[IX(idxX, idxY)] = force;
-	dens_prev[IX(idxX, idxY + 2)] = 60.0f;
 
 	if (!pause){
 		vel_step(N, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
@@ -373,21 +379,9 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-
-		if (dvel && !psiField && !ddvel) 
-			draw_velocity();
-		else if (ddvel && !psiField && !dvel)
-			draw_velocity_difference();
-		else if (ddvel && dvel && !psiField)
-		{
-			draw_velocity();
-			draw_velocity_difference();
-		}
-		else if (psiField && !dvel && !ddvel)
-			draw_scalar_field();
-		else		
-			draw_density();
-
+		draw_scalar_field();
+		draw_velocity();
+		//draw_velocity_difference();
 		post_display();
 	}
 }

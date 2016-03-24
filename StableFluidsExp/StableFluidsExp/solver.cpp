@@ -203,7 +203,7 @@ void vel_step(int N,
 	SWAP(u0, u); 
 	SWAP(v0, v);
 	computeCurls_uniform(N, wn, u0, v0);
-	//set_bnd(N, 0, wn);
+	set_bnd(N, 0, wn);
 	//cout << endl << "Curl field from previous time step velocity field" << endl;
 	//displayField(N + 2, N + 2, wn);
 	advect(N, 0, w_bar, wn, u0, v0, dt);
@@ -211,12 +211,12 @@ void vel_step(int N,
 	//displayField(N + 2, N + 2, w_bar);
 	advect(N, 0, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
-	//set_bnd(N, 0, w_star);
+	set_bnd(N, 0, w_star);
 	//cout << endl << "Curl field from the advected velocity field" << endl;
 	//displayField(N + 2, N + 2, w_star);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	//set_bnd(N, 0, dw);
+	set_bnd(N, 0, dw);
 	//cout << endl << "Curl difference" << endl;
 	//displayField(N + 2, N + 2, dw);
 	Jacobi_solve(N, 0, psi, dw, 1, 4);
