@@ -66,8 +66,8 @@ void find_vector_potential_2D(int N, float * u, float * v, float * psi)
 	// TODO: 2 Nested loop for wx
 	for (int i = 1; i <= N; i++){
 		for (int j = 1; j <= N; j++){
-			dpsi_dy = 0.5f * (psi[IX(i + 1, j)] - psi[IX(i - 1, j)]);
-			dpsi_dx = 0.5f * (psi[IX(i, j + 1)] - psi[IX(i, j - 1)]);
+			dpsi_dy = 0.5f * (psi[IX(i + 1, j)] - psi[IX(i - 1, j)]) * N;
+			dpsi_dx = 0.5f * (psi[IX(i, j + 1)] - psi[IX(i, j - 1)]) * N;
 			u[IX(i, j)] = dpsi_dy;
 			v[IX(i, j)] = -dpsi_dx;
 		}

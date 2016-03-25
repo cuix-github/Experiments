@@ -1,13 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
-/* macros */
-
 #define IX(i,j) ((i) * (N + 2) + (j))
-
-/* external definitions (from solver.c) */
 
 extern void dens_step(int N,
 					  float * x, float * x0, 
@@ -24,16 +20,12 @@ extern void vel_step(int N,
 					 float * u0, float * v0, 
 					 float visc, float dt);
 
-/* global variables */
-
 static int N;
 static int nx;
 static int ny;
 static float dt, diff, visc;
 static float force, source;
 static int dvel;
-static int ddvel;
-static int psiField;
 
 static float * u, *v, *u_prev, *v_prev;
 static float * fx, *fy;
@@ -47,14 +39,6 @@ static int mouse_down[3];
 static int omx, omy, mx, my;
 static bool pause = false;
 static float streamline_length = 10.0f;
-
-
-/*
-----------------------------------------------------------------------
-free/clear/allocate simulation data
-----------------------------------------------------------------------
-*/
-
 
 static void free_data(void)
 {
@@ -109,20 +93,17 @@ static int allocate_data(void)
 	dens = (float *)malloc(size*sizeof(float));
 	dens_prev = (float *)malloc(size*sizeof(float));
 
-	if (!fx || !fy || !psi || !wn || !dw || !w_bar || !w_star || !u || !v || !du || !dv || !u_prev || !v_prev || !dens || !dens_prev) {
+	if (!fx || !fy || 
+		!psi || 
+		!wn || !dw || !w_bar || !w_star ||
+		!u || !v || !du || !dv || !u_prev || !v_prev || 
+		!dens || !dens_prev) {
 		fprintf(stderr, "cannot allocate data\n");
 		return (0);
 	}
 
 	return (1);
 }
-
-
-/*
-----------------------------------------------------------------------
-OpenGL specific drawing routines
-----------------------------------------------------------------------
-*/
 
 static void pre_display(void)
 {
@@ -139,15 +120,15 @@ static void post_display(void)
 	glutSwapBuffers();
 }
 
-static void draw_velocity(void)
+static void draw_vector_field(float * u, float * v, float lineWidth, float r, float g, float b)
 {
 	int i, j;
 	float x, y, h;
 
 	h = 1.0f / N;
 
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glLineWidth(1.0f);
+	glColor3f(r, g, b);
+	glLineWidth(lineWidth);
 
 	glBegin(GL_LINES);
 
@@ -157,39 +138,21 @@ static void draw_velocity(void)
 			y = (j - 0.5f)*h;
 
 			glVertex2f(x, y);
-			glVertex2f(x + u[IX(i, j)] * streamline_length / N, y + v[IX(i, j)] * streamline_length / N);
+			glVertex2f(x + u[IX(i, j)] * streamline_length / N,
+					   y + v[IX(i, j)] * streamline_length / N);
 		}
 	}
 
 	glEnd();
 }
 
-static void draw_velocity_difference(void)
+static void draw_particles(float * field, float pointSize, float r, float g, float b)
 {
-	int i, j;
-	float x, y, h;
-
-	h = 1.0f / N;
-
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glLineWidth(1.0f);
-
-	glBegin(GL_LINES);
-
-	for (i = 1; i <= N; i++) {
-		x = (i - 0.5f)*h;
-		for (j = 1; j <= N; j++) {
-			y = (j - 0.5f)*h;
-
-			glVertex2f(x, y);
-			glVertex2f(x + du[IX(i, j)] * streamline_length / N, y + dv[IX(i, j)] * streamline_length / N);
-		}
-	}
-
-	glEnd();
+	// TODO: Draw particles
 }
 
-static void draw_scalar_field(void){
+static void draw_scalar_field(float * field, int r, int g, int b)
+{
 	int i, j;
 	float x, y, h, d00, d01, d10, d11;
 
@@ -202,10 +165,10 @@ static void draw_scalar_field(void){
 		for (j = 0; j <= N; j++) {
 			y = (j - 0.5f)*h;
 
-			d00 = psi[IX(i, j)];
-			d01 = psi[IX(i, j + 1)];
-			d10 = psi[IX(i + 1, j)];
-			d11 = psi[IX(i + 1, j + 1)];
+			d00 = field[IX(i, j)];
+			d01 = field[IX(i, j + 1)];
+			d10 = field[IX(i + 1, j)];
+			d11 = field[IX(i + 1, j + 1)];
 
 			glColor3f(d00, 0, 0); glVertex2f(x, y);
 			glColor3f(d10, 0, 0); glVertex2f(x + h, y);
@@ -216,41 +179,6 @@ static void draw_scalar_field(void){
 
 	glEnd();
 }
-
-static void draw_density(void)
-{
-	int i, j;
-	float x, y, h, d00, d01, d10, d11;
-
-	h = 1.0f / N;
-
-	glBegin(GL_QUADS);
-
-	for (i = 0; i <= N; i++) {
-		x = (i - 0.5f)*h;
-		for (j = 0; j <= N; j++) {
-			y = (j - 0.5f)*h;
-
-			d00 = dens[IX(i, j)];
-			d01 = dens[IX(i, j + 1)];
-			d10 = dens[IX(i + 1, j)];
-			d11 = dens[IX(i + 1, j + 1)];
-
-			glColor3f(d00, d00, d00); glVertex2f(x, y);
-			glColor3f(d10, d10, d10); glVertex2f(x + h, y);
-			glColor3f(d11, d11, d11); glVertex2f(x + h, y + h);
-			glColor3f(d01, d01, d01); glVertex2f(x, y + h);
-		}
-	}
-
-	glEnd();
-}
-
-/*
-----------------------------------------------------------------------
-relates mouse movements to forces sources
-----------------------------------------------------------------------
-*/
 
 static void get_from_UI(float * d, float * u, float * v)
 {
@@ -273,11 +201,12 @@ static void get_from_UI(float * d, float * u, float * v)
 	if (i<1 || i>N || j<1 || j>N) return;
 
 	if (mouse_down[0]) {
-		//u[IX(i, j)] = force * (mx - omx);
-		//v[IX(i, j)] = force * (omy - my);
+		// Location wise:
+		// u[IX(i, j)] = force * (mx - omx);
+		// v[IX(i, j)] = force * (omy - my);
 		int idxX = N / 2 + 1;
 		int idxY = 1;
-		v_prev[IX(idxX, idxY)] = force * 2.0f;
+		v_prev[IX(idxX, idxY)] = force;
 		dens_prev[IX(idxX, idxY + 2)] = 60.0f;
 
 	}
@@ -291,12 +220,6 @@ static void get_from_UI(float * d, float * u, float * v)
 
 	return;
 }
-
-/*
-----------------------------------------------------------------------
-GLUT callback routines
-----------------------------------------------------------------------
-*/
 
 static void key_func(unsigned char key, int x, int y)
 {
@@ -316,22 +239,6 @@ static void key_func(unsigned char key, int x, int y)
 	case 'v':
 	case 'V':
 		dvel = !dvel;
-		break;
-
-	case 'd':
-	case 'D':
-		ddvel = !ddvel;
-		break;
-
-	case 'b':
-	case 'B':
-		dvel = !dvel;
-		ddvel = !ddvel;
-		break;
-
-	case 's':
-	case 'S':
-		psiField = !psiField;
 		break;
 
 	case ' ':
@@ -379,19 +286,10 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		draw_scalar_field();
-		draw_velocity();
-		//draw_velocity_difference();
+		draw_vector_field(du, dv, 1.0f, 0.0f, 1.0f, 0.0f);
 		post_display();
 	}
 }
-
-
-/*
-----------------------------------------------------------------------
-open_glut_window --- open a glut compatible window and set callbacks
-----------------------------------------------------------------------
-*/
 
 static void open_glut_window(void)
 {
@@ -418,13 +316,6 @@ static void open_glut_window(void)
 	glutDisplayFunc(display_func);
 }
 
-
-/*
-----------------------------------------------------------------------
-main --- main routine
-----------------------------------------------------------------------
-*/
-
 int main(int argc, char ** argv)
 {
 	glutInit(&argc, argv);
@@ -448,7 +339,7 @@ int main(int argc, char ** argv)
 		visc = 0.0f;
 		force = 1.0f;
 		source = 60.0f;
-		streamline_length = 5.0f;
+		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
 	}
@@ -469,8 +360,6 @@ int main(int argc, char ** argv)
 	printf("\t Quit by pressing the 'q' key\n");
 
 	dvel = 1;
-	ddvel = -1;
-	psiField = -1;
 
 	if (!allocate_data()) exit(1);
 	clear_data();
