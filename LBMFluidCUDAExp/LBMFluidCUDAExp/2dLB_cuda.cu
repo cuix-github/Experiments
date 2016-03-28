@@ -29,7 +29,8 @@
 #include <cuda_runtime_api.h>
 #include <cuda_gl_interop.h>
 
-#pragma comment(lib, "glew32d.lib")
+#pragma comment(lib, "glew32.lib")
+#pragma comment(lib, "glew32s.lib")
 
 #define TILE_I 16
 #define TILE_J 8
@@ -131,9 +132,9 @@ int main(int argc, char **argv)
 
     // The following parameters are usually read from a file, but
     // hard code them for the demo:
-    ni= 128;
-    nj= 72;
-    vxin=0.08;
+    ni= 256;
+    nj= 144;
+    vxin=0.04;
     roout=1.0;
     tau=0.51;
     // End of parameter list
@@ -295,7 +296,7 @@ int main(int argc, char **argv)
     //
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(1280, 720);                   // Window of ni x nj pixels
+    glutInitWindowSize(ni, nj);                   // Window of ni x nj pixels
     glutInitWindowPosition(50, 50);               // Window position
     glutCreateWindow("CUDA 2D LBM");               // Window title
 

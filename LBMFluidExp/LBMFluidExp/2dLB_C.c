@@ -21,6 +21,9 @@
 #include <glew.h>
 #include <glut.h>
 
+#pragma comment(lib, "glew32.lib")
+#pragma comment(lib, "glew32s.lib")
+
 #define I2D(ni,i,j) (((ni)*(j)) + i)
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -80,8 +83,8 @@ int main(int argc, char **argv)
 
     // The following parameters are usually read from a file, but
     // hard code them for the demo:
-    ni=320;
-    nj=112;
+    ni=256;
+    nj=144;
     vxin=0.04;
     roout=1.0;
     tau=0.51;
@@ -181,7 +184,7 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(ni, nj);      // Window of ni x nj pixels
     glutInitWindowPosition(50, 50);  // position
-    glutCreateWindow("2D LB");       // title
+    glutCreateWindow("2D LBM");       // title
 
     // Check for OpenGL extension support 
     printf("Loading extensions: %s\n", glewGetErrorString(glewInit()));

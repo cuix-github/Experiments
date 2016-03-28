@@ -79,9 +79,13 @@
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ExecutablePath>C:\R&amp;D\Tools\Glew\bin\Release\Win32;C:\R&amp;D\Tools\Glew\bin\Release MX\Win32;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include\GL;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\R&amp;D\Tools\Glew\lib\Release\Win32;C:\R&amp;D\Tools\Glew\lib\Release MX\Win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Release\Win32;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include\GL;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Release\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -132,6 +136,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Console</SubSystem>
       <AdditionalDependencies>cudart.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
       <Command>echo copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
