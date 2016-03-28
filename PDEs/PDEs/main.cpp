@@ -90,20 +90,37 @@ void iterate(void(*method)())
 {
 	clock_t t0 = clock();
 
-	while (true) {
+	cout << endl << "Before iteratively solving the problem" << endl;
+	cout << endl << "Solution v_new:" << endl;
+	displayField(L + 2, L + 2, V_new);
+	cout << endl << "Solution v:" << endl;
+	displayField(L + 2, L + 2, V);
+
+	for (int i = 0; i != 20; i++){
 		method();
-		++steps;
 		cout << endl << "Solution v_new:" << endl;
 		displayField(L + 2, L + 2, V_new);
 		cout << endl << "Solution v:" << endl;
 		displayField(L + 2, L + 2, V);
 		double error = relative_error();
-		if (error < accuracy)
-			break;
-		swap(V, V_new);         // use <algorithm> std::swap
+		swap(V, V_new);
 		cout << endl << "Error:" << error << endl;
 	}
-	cout << " Number of steps = " << steps << endl;
+
+	//while (true) {
+	//	method();
+	//	++steps;
+	//	cout << endl << "Solution v_new:" << endl;
+	//	displayField(L + 2, L + 2, V_new);
+	//	cout << endl << "Solution v:" << endl;
+	//	displayField(L + 2, L + 2, V);
+	//	double error = relative_error();
+	//	if (error < accuracy)
+	//		break;
+	//	swap(V, V_new);         // use <algorithm> std::swap
+	//	cout << endl << "Error:" << error << endl;
+	//}
+	//cout << " Number of steps = " << steps << endl;
 
 	clock_t t1 = clock();
 	cout << " CPU time = " << double(t1 - t0) / CLOCKS_PER_SEC

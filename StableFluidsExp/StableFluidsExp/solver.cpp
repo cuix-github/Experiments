@@ -19,12 +19,10 @@ set_bnd(int N,
 		int b, 
 		float * x)
 {
-	int i;
-
-	for (i = 1; i <= N; i++) {
-		x[IX(0, i)] = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
+	for (int i = 1; i <= N; i++) {
+		x[IX(0, i)]		= b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
 		x[IX(N + 1, i)] = b == 1 ? -x[IX(N, i)] : x[IX(N, i)];
-		x[IX(i, 0)] = b == 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
+		x[IX(i, 0)]		= b == 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
 		x[IX(i, N + 1)] = b == 2 ? -x[IX(i, N)] : x[IX(i, N)];
 	}
 	x[IX(0, 0)] = 0.5f*(x[IX(1, 0)] + x[IX(0, 1)]);
@@ -77,6 +75,9 @@ Jacobi_solve(int N,
 			x[IX(i, j)] = aux[IX(i, j)];
 		END_FOR
 			set_bnd(N, b, x);
+
+		cout << endl << "Step: " << k << endl;
+		displayField(N + 2, N + 2, x);
 	}
 
 	free(aux);
@@ -248,8 +249,7 @@ void vel_step(int N,
 			  float visc, float dt)
 {
 	//This is time consuming but naive
-	if (system("CLS")) system("clear");
-
+	//
 	// IVOCK scheme
 	zeros(N, wn);
 	zeros(N, w_bar);
@@ -284,11 +284,14 @@ void vel_step(int N,
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
 	set_bnd(N, 0, dw);
-	//cout << endl << "Curl difference" << endl;
-	//displayField(N + 2, N + 2, dw);
-	Jacobi_solve(N, 0, psi, dw, 1, 4);
-	//cout << endl << "Stream function (Psi)" << endl;
-	//displayField(N + 2, N + 2, psi);
+	zeros(N, dw);
+	dw[IX(5, 5)] = 810;
+	dw[IX(6, 6)] = 100;
+	cout << endl << "Curl difference" << endl;
+	displayField(N + 2, N + 2, dw);
+	Jacobi_solve(N, 0, psi, dw, 1 * (1/N) * (1/N), 4);
+	cout << endl << "Stream function (Psi)" << endl;
+	displayField(N + 2, N + 2, psi);
 	find_vector_potential_2D(N, du, dv, psi);
 	set_bnd(N, 0, du);
 	set_bnd(N, 0, dv);

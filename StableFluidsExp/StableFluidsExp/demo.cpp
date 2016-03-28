@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -204,11 +204,6 @@ static void get_from_UI(float * d, float * u, float * v)
 		// Location wise:
 		// u[IX(i, j)] = force * (mx - omx);
 		// v[IX(i, j)] = force * (omy - my);
-		int idxX = N / 2 + 1;
-		int idxY = 1;
-		v_prev[IX(idxX, idxY)] = force;
-		dens_prev[IX(idxX, idxY + 2)] = 60.0f;
-
 	}
 
 	if (mouse_down[2]) {
@@ -274,6 +269,11 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 
+	int idxX = N / 2 + 1;
+	int idxY = 1;
+	v_prev[IX(idxX, idxY)] = force;
+	dens_prev[IX(idxX, idxY + 2)] = 60.0f;
+
 	if (!pause){
 		vel_step(N, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		dens_step(N, dens, dens_prev, u, v, diff, dt);
@@ -286,7 +286,8 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		draw_vector_field(du, dv, 1.0f, 0.0f, 1.0f, 0.0f);
+		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
+		draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
 		post_display();
 	}
 }
@@ -333,7 +334,7 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 128;
+		N = 8;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
