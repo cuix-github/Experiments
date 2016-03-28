@@ -53,6 +53,21 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 	}
 }
 
+void computeCurls_uniform_smoother(int N, float * w, float * u, float * v)
+{
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			float average_x_top = 0.5 * (u[IX(i, j)] + u[IX(i, j + 1)]);
+			float average_x_bottom = 0.5 * (u[IX(i + 1, j)] + u[IX(i, j + 1)]);
+			float average_y_left = 0.5 * (v[IX(i, j)] + v[IX(i + 1, j)]);
+			float average_y_right = 0.5 * (v[IX(i, j + 1)] + v[IX(i + 1, j + 1)]);
+			float du = average_x_bottom - average_x_top;
+			float dv = average_y_right - average_y_left;
+			w[IX(i, j)] = dv - du;
+		}
+	}
+}
+
 void find_vector_potential_2D(int N, float * u, float * v, float * psi)
 {
 	float dpsi_dy, dpsi_dx;
