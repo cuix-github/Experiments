@@ -165,15 +165,15 @@ static void draw_scalar_field(float * field, int r, int g, int b)
 		for (j = 0; j <= N; j++) {
 			y = (j - 0.5f)*h;
 
-			d00 = field[IX(i, j)];
-			d01 = field[IX(i, j + 1)];
-			d10 = field[IX(i + 1, j)];
-			d11 = field[IX(i + 1, j + 1)];
+			d00 = dens[IX(i, j)];
+			d01 = dens[IX(i, j + 1)];
+			d10 = dens[IX(i + 1, j)];
+			d11 = dens[IX(i + 1, j + 1)];
 
-			glColor3f(d00, 0, 0); glVertex2f(x, y);
-			glColor3f(d10, 0, 0); glVertex2f(x + h, y);
-			glColor3f(d11, 0, 0); glVertex2f(x + h, y + h);
-			glColor3f(d01, 0, 0); glVertex2f(x, y + h);
+			glColor3f(d00, d00, d00); glVertex2f(x, y);
+			glColor3f(d10, d10, d10); glVertex2f(x + h, y);
+			glColor3f(d11, d11, d11); glVertex2f(x + h, y + h);
+			glColor3f(d01, d01, d01); glVertex2f(x, y + h);
 		}
 	}
 
@@ -185,12 +185,7 @@ static void get_from_UI(float * d, float * u, float * v)
 	int i, j, size = (N + 2)*(N + 2);
 
 	for (i = 0; i<size; i++) {
-		fx[i] = fy[i] =
-			u[i] = v[i] = u_prev[i] = v_prev[i] =
-			dens[i] = dens_prev[i] =
-			psi[i] =
-			du[i] = dv[i] =
-			wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
+		u[i] = v[i] = d[i] = 0.0f;
 	}
 
 	if (!mouse_down[0] && !mouse_down[2]) return;
@@ -201,9 +196,13 @@ static void get_from_UI(float * d, float * u, float * v)
 	if (i<1 || i>N || j<1 || j>N) return;
 
 	if (mouse_down[0]) {
-		// Location wise:
-		// u[IX(i, j)] = force * (mx - omx);
-		// v[IX(i, j)] = force * (omy - my);
+		//u[IX(i, j)] = force * (mx - omx);
+		//v[IX(i, j)] = force * (omy - my);
+		
+		int idxX = N / 2 + 1;
+		int idxY = 1;
+		v_prev[IX(idxX, idxY)] = force;
+		dens_prev[IX(idxX, idxY + 1)] = 60.0f;
 	}
 
 	if (mouse_down[2]) {
@@ -269,11 +268,6 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 
-	int idxX = N / 2 + 1;
-	int idxY = 1;
-	v_prev[IX(idxX, idxY)] = force;
-	dens_prev[IX(idxX, idxY + 2)] = 60.0f;
-
 	if (!pause){
 		vel_step(N, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		dens_step(N, dens, dens_prev, u, v, diff, dt);
@@ -286,7 +280,8 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
+		draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
+		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
 		post_display();
 	}
@@ -334,13 +329,13 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 3;
+		N = 128;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 1.0f;
-		source = 60.0f;
-		streamline_length = 10.0f;
+		force = 3.0f;
+		source = 70.0f;
+		streamline_length = 5.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
 	}

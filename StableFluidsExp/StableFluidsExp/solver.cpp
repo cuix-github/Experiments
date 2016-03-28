@@ -49,9 +49,33 @@ Gauss_Seidel(int N,
 						  ( x[IX(i - 1, j)] + x[IX(i + 1, j)] + 
 						    x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
-		//set_bnd(N, b, x);
-		cout << endl << "Step: " << k << endl;
-		displayField(N + 2, N + 2, x);
+		set_bnd(N, b, x);
+		//cout << endl << "Step: " << k << endl;
+		//displayField(N + 2, N + 2, x);
+	}
+}
+
+void
+Gauss_Seidel_Streamfunction(int N,
+							int b,
+							float * x,
+							float * x0,
+							float a,
+							float c)
+{
+	int i, j, k;
+
+	double h = 1 / double(N + 1);
+
+	for (k = 0; k < 20; k++) {
+		FOR_EACH_CELL
+			x[IX(i, j)] = (x0[IX(i, j)] * h * h + a *
+			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
+			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
+		END_FOR
+			set_bnd(N, b, x);
+		//cout << endl << "Step: " << k << endl;
+		//displayField(N + 2, N + 2, x);
 	}
 }
 
@@ -68,7 +92,7 @@ Jacobi_solve(int N,
 	float* aux = (float*)malloc(size*sizeof(float));
 	double h = 1 / (double)(N + 1);
 
-	for (k = 0; k < 50; k++)
+	for (k = 0; k < 30; k++)
 	{
 		FOR_EACH_CELL
 			aux[IX(i, j)] = (x0[IX(i, j)] + a * 
@@ -79,10 +103,10 @@ Jacobi_solve(int N,
 		FOR_EACH_CELL
 			x[IX(i, j)] = aux[IX(i, j)];
 		END_FOR
-			//set_bnd(N, b, x);
+			set_bnd(N, b, x);
 
-		cout << endl << "Step: " << k << endl;
-		displayField(N + 2, N + 2, x);
+		//cout << endl << "Step: " << k << endl;
+		//displayField(N + 2, N + 2, x);
 	}
 
 	free(aux);
@@ -275,7 +299,7 @@ void vel_step(int N,
 	SWAP(u0, u); 
 	SWAP(v0, v);
 	computeCurls_uniform(N, wn, u0, v0);
-	set_bnd(N, 0, wn);
+	//set_bnd(N, 0, wn);
 	//cout << endl << "Curl field from previous time step velocity field" << endl;
 	//displayField(N + 2, N + 2, wn);
 	advect(N, 0, w_bar, wn, u0, v0, dt);
@@ -283,26 +307,23 @@ void vel_step(int N,
 	//displayField(N + 2, N + 2, w_bar);
 	advect(N, 0, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
-	set_bnd(N, 0, w_star);
+	//set_bnd(N, 0, w_star);
 	//cout << endl << "Curl field from the advected velocity field" << endl;
 	//displayField(N + 2, N + 2, w_star);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	set_bnd(N, 0, dw);
-	zeros(N, dw);
-	dw[IX(1, 1)] = 5;
-	dw[IX(2, 2)] = 6;
-	cout << endl << "Curl difference" << endl;
-	displayField(N + 2, N + 2, dw);
-	if (system("CLS")) system("clear");
-	Jacobi_solve(N, 0, psi, dw, 1, 4);
-	cout << endl << "Stream function (Psi)" << endl;
-	displayField(N + 2, N + 2, psi);
+	//set_bnd(N, 0, dw);
+	//cout << endl << "Curl difference" << endl;
+	//displayField(N + 2, N + 2, dw);
+	//if (system("CLS")) system("clear");
+	Gauss_Seidel_Streamfunction(N, 0, psi, dw, -1, -4);
+	//cout << endl << "Stream function (Psi)" << endl;
+	//displayField(N + 2, N + 2, psi);
 	find_vector_potential_2D(N, du, dv, psi);
-	set_bnd(N, 0, du);
-	set_bnd(N, 0, dv);
-	//linear_combine_add(N, u, u, du);
-	//linear_combine_add(N, v, v, dv);
+	//set_bnd(N, 0, du);
+	//set_bnd(N, 0, dv);
+	linear_combine_add(N, u, u, du);
+	linear_combine_add(N, v, v, dv);
 	//set_bnd(N, 0, u);
 	//set_bnd(N, 0, v);
 	project(N, u, v, u0, v0);
