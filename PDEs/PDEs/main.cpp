@@ -21,8 +21,8 @@ void initialize()
 	h = 1 / double(L + 1);      // assume physical size in x and y = 1
 	double q = 10;              // point charge
 	int i = N / 2;              // center of lattice
-	rho[i][i] = q / (h * h);    // charge density
-	rho[i + 1][i + 1] = q * q;
+	rho[i][i] = 5;    // charge density
+	rho[i + 1][i + 1] = 6;
 	steps = 0;
 }
 
@@ -95,8 +95,12 @@ void iterate(void(*method)())
 	displayField(L + 2, L + 2, V_new);
 	cout << endl << "Solution v:" << endl;
 	displayField(L + 2, L + 2, V);
+	cout << endl << "Rho field:" << endl;
+	displayField(L + 2, L + 2, rho);
 
-	for (int i = 0; i != 20; i++){
+	if (system("CLS")) system("clear");
+	for (int i = 0; i != 10; i++){
+		cout << endl << "Step:" << steps << endl;
 		method();
 		cout << endl << "Solution v_new:" << endl;
 		displayField(L + 2, L + 2, V_new);
@@ -105,6 +109,7 @@ void iterate(void(*method)())
 		double error = relative_error();
 		swap(V, V_new);
 		cout << endl << "Error:" << error << endl;
+		++steps;
 	}
 
 	//while (true) {
@@ -120,7 +125,7 @@ void iterate(void(*method)())
 	//	swap(V, V_new);         // use <algorithm> std::swap
 	//	cout << endl << "Error:" << error << endl;
 	//}
-	//cout << " Number of steps = " << steps << endl;
+	cout << " Number of steps = " << steps << endl;
 
 	clock_t t1 = clock();
 	cout << " CPU time = " << double(t1 - t0) / CLOCKS_PER_SEC
@@ -192,10 +197,6 @@ int main() {
 	//	date_file << '\n';
 	//}
 	//date_file.close();
-
-	cout << endl << "Solution:" << endl;
-	displayField(L + 2, L + 2, V);
-
 
 	system("Pause");
 	return 0;
