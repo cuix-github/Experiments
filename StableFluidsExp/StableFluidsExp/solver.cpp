@@ -69,7 +69,7 @@ Gauss_Seidel_Streamfunction(int N,
 
 	for (k = 0; k < 20; k++) {
 		FOR_EACH_CELL
-			x[IX(i, j)] = (x0[IX(i, j)] * h * h * 2.5 + a *
+			x[IX(i, j)] = (x0[IX(i, j)] * h * h * 3.0f + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
