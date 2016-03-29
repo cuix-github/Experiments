@@ -39,6 +39,7 @@ static int mouse_down[3];
 static int omx, omy, mx, my;
 static bool pause = false;
 static float streamline_length = 10.0f;
+static int stop_frame = 0;
 
 static void free_data(void)
 {
@@ -263,13 +264,24 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2 + 1;
-	int idxY = 5;
+	int idxY = 7;
+
+	for (int i = 0; i != 10; i++)
+	{
+		v_prev[IX(idxX, idxY + i)] = force - i * 15.0f;
+	}
+
+	for (int i = 0; i != 10; i++)
+	{
+		if (i % 2 == 0) v_prev[IX(idxX + i, idxY)] = force - 15.0f * i;
+		else v_prev[IX(idxX - i, idxY)] = force - 15.0f * i;
+	}
+
 	v_prev[IX(idxX + 1, idxY)] = force;
 	v_prev[IX(idxX - 1, idxY)] = force;
 	v_prev[IX(idxX, idxY)] = force;
-	dens_prev[IX(idxX, idxY)] = 50.0f;
-	dens_prev[IX(idxX + 1, idxY)] = 50.0f;
-	dens_prev[IX(idxX - 1, idxY)] = 50.0f;
+	dens_prev[IX(idxX + 1, idxY)] = source;
+	dens_prev[IX(idxX - 1, idxY)] = source;
 	if (!pause){
 		vel_step(N, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		dens_step(N, dens, dens_prev, u, v, diff, dt);
@@ -284,8 +296,10 @@ static void display_func(void)
 		pre_display();
 		draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
-		draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
+		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
 		post_display();
+		stop_frame++;
+		if (stop_frame == 100) pause = true;
 	}
 }
 
@@ -331,13 +345,13 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 144;
+		N = 192;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 150.0f;
+		force = 300.0f;
 		source = 100.0f;
-		streamline_length = 20.0f;
+		streamline_length = 5.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
 	}
