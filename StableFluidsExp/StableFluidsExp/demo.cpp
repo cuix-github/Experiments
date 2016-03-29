@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -202,7 +202,6 @@ static void get_from_UI(float * d, float * u, float * v)
 		int idxX = N / 2 + 1;
 		int idxY = 1;
 		v_prev[IX(idxX, idxY)] = force;
-		dens_prev[IX(idxX, idxY + 1)] = 60.0f;
 	}
 
 	if (mouse_down[2]) {
@@ -266,8 +265,15 @@ static void reshape_func(int width, int height)
 
 static void idle_func(void)
 {
+	int idxX = N / 2 + 1;
+	int idxY = 1;
 	get_from_UI(dens_prev, u_prev, v_prev);
-
+	dens_prev[IX(idxX, idxY + 1)] = 100.0f;
+	dens_prev[IX(idxX, idxY - 1)] = 100.0f;
+	dens_prev[IX(idxX, idxY + 2)] = 100.0f;
+	dens_prev[IX(idxX, idxY - 1)] = 100.0f;
+	dens_prev[IX(idxX, idxY + 3)] = 100.0f;
+	dens_prev[IX(idxX, idxY - 3)] = 100.0f;
 	if (!pause){
 		vel_step(N, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		dens_step(N, dens, dens_prev, u, v, diff, dt);
@@ -282,7 +288,7 @@ static void display_func(void)
 		pre_display();
 		draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
-		draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
+		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
 		post_display();
 	}
 }
@@ -329,12 +335,12 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 128;
+		N = 166;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 3.0f;
-		source = 70.0f;
+		force = 50.0f;
+		source = 500.0f;
 		streamline_length = 5.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
