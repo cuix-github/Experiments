@@ -69,7 +69,7 @@ Gauss_Seidel_Streamfunction(int N,
 
 	for (k = 0; k < 50; k++) {
 		FOR_EACH_CELL
-			x[IX(i, j)] = (x0[IX(i, j)] * h * h * 2.0f + a *
+			x[IX(i, j)] = (x0[IX(i, j)] * h * h * 2.3f + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
@@ -122,14 +122,6 @@ diffuse(int N,
 {
 	float a = dt*diff*N*N;
 	Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
-}
-
-float 
-lerp(float t, 
-	 float x0, 
-	 float x1)
-{
-	return (1 - t) * x0 + t * x1;
 }
 
 void 

@@ -11,6 +11,14 @@ void displayField(int row, int col, float* field){
 	}
 }
 
+float
+lerp(float t,
+float x0,
+float x1)
+{
+	return (1 - t) * x0 + t * x1;
+}
+
 void displayField(int row, int col, float * field, float * fieldOrigin)
 {
 	cout << endl << "Current timestep field:" << endl;

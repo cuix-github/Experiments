@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -167,14 +167,14 @@ static void draw_scalar_field(float * field, int r, int g, int b)
 			y = (j - 0.5f)*h;
 
 			d00 = dens[IX(i, j)];
-			d01 = dens[IX(i, j + 1)];
+			d01 = lerp(0.5f, dens[IX(i, j)], dens[IX(i, j + 1)]);
 			d10 = dens[IX(i + 1, j)];
-			d11 = dens[IX(i + 1, j + 1)];
+			d11 = lerp(0.5f, dens[IX(i + 1, j)], dens[IX(i + 1, j + 1)]);
 
-			glColor3f(d00, d00, d00); glVertex2f(x, y);
-			glColor3f(d10, d10, d10); glVertex2f(x + h, y);
-			glColor3f(d11, d11, d11); glVertex2f(x + h, y + h);
-			glColor3f(d01, d01, d01); glVertex2f(x, y + h);
+			glColor3f(d00, d00 * 0.7f, d00 * 0.3f); glVertex2f(x, y);
+			glColor3f(d10, d10 * 0.7f, d10 * 0.3f); glVertex2f(x + h, y);
+			glColor3f(d11, d11 * 0.7f, d11 * 0.3f); glVertex2f(x + h, y + h);
+			glColor3f(d01, d01 * 0.7f, d01 * 0.3f); glVertex2f(x, y + h);
 		}
 	}
 
@@ -197,8 +197,8 @@ static void get_from_UI(float * d, float * u, float * v)
 	if (i<1 || i>N || j<1 || j>N) return;
 
 	if (mouse_down[0]) {
-		//u[IX(i, j)] = force * (mx - omx);
-		//v[IX(i, j)] = force * (omy - my);
+		u[IX(i, j)] = force * 0.06f * (mx - omx);
+		v[IX(i, j)] = force * 0.06f * (omy - my);
 	}
 
 	if (mouse_down[2]) {
@@ -264,12 +264,7 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2 + 1;
-	int idxY = 7;
-
-	for (int i = 0; i != 10; i++)
-	{
-		v_prev[IX(idxX, idxY + i)] = force - i * 15.0f;
-	}
+	int idxY = 5;
 
 	for (int i = 0; i != 10; i++)
 	{
@@ -277,11 +272,12 @@ static void idle_func(void)
 		else v_prev[IX(idxX - i, idxY)] = force - 15.0f * i;
 	}
 
-	v_prev[IX(idxX + 1, idxY)] = force;
-	v_prev[IX(idxX - 1, idxY)] = force;
-	v_prev[IX(idxX, idxY)] = force;
-	dens_prev[IX(idxX + 1, idxY)] = source;
-	dens_prev[IX(idxX - 1, idxY)] = source;
+	for (int i = 0; i != 10; i++)
+	{
+		if (i % 2 == 0) dens_prev[IX(idxX + i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
+		else dens_prev[IX(idxX - i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
+	}
+	
 	if (!pause){
 		vel_step(N, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		dens_step(N, dens, dens_prev, u, v, diff, dt);
@@ -346,11 +342,11 @@ int main(int argc, char ** argv)
 
 	if (argc == 1) {
 		N = 192;
-		dt = 0.01f;
+		dt = 0.0075f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 300.0f;
-		source = 100.0f;
+		force = 500.0f;
+		source = 60.0f;
 		streamline_length = 5.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
@@ -370,8 +366,6 @@ int main(int argc, char ** argv)
 	printf("\t Toggle density/velocity display with the 'v' key\n");
 	printf("\t Clear the simulation by pressing the 'c' key\n");
 	printf("\t Quit by pressing the 'q' key\n");
-
-	dvel = 1;
 
 	if (!allocate_data()) exit(1);
 	clear_data();
