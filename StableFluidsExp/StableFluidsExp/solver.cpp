@@ -331,7 +331,7 @@ void vel_step(int N,
 
 // Poisson Equation Laplace(Psi) = f(x);
 // Ex.1
-// 5x5 with interior field 3x3 and boundaries
+// 5x5 with interior field 3x3 and outter boundaries
 /*
 A = 
 -4	1	0	1	0	0	0	0	0

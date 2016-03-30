@@ -294,8 +294,8 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
-		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
+		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
+		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
 		post_display();
 		stop_frame++;
