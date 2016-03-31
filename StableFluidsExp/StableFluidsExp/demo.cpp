@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -264,7 +264,7 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2 + 1;
-	int idxY = 5;
+	int idxY = 7;
 
 	for (int i = 0; i != 10; i++)
 	{
@@ -342,12 +342,12 @@ int main(int argc, char ** argv)
 
 	if (argc == 1) {
 		N = 192;
-		dt = 0.0075f;
+		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 500.0f;
-		source = 60.0f;
-		streamline_length = 5.0f;
+		force = 300.0f;
+		source = 70.0f;
+		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
 	}
