@@ -26,5 +26,7 @@ void computeCurls_uniform(int N, float * w, float * u, float * v);
 void find_vector_potential_2D(int N, float * u, float * v, float * psi);
 void linear_combine_add(int N, float * f_out, float * f, float * f0);
 void linear_combine_sub(int N, float * f_out, float * f, float * f0);
-void computeDivergence_unifrom(int N, float * u, float * v, float * div);
+void computeDivergence_uniform_inverse(int N, float * u, float * v, float * div);
+void computeDivergence_uniform(int N, float * u, float * v, float * div);
 float lerp(float t, float x0, float x1);
+float Bilerp(float t, float s, float x0, float x1, float y0, float y1);

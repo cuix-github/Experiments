@@ -164,9 +164,24 @@ double relative_error(int N, float * curr, float * prev)
 		return error /= n;
 }
 
-void computeDivergence_unifrom(int N, float * u, float * v, float * div){
+void computeDivergence_uniform_inverse(int N, float * u, float * v, float * div){
 	int i, j;
 	FOR_EACH_CELL
 		div[IX(i, j)] = - 0.5f*(u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
 	END_FOR
+}
+
+void
+computeDivergence_uniform(int N, float * u, float * v, float * div)
+{
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			float du, dv;
+			float divergence;
+			du = (u[IX(i + 1, j)] - u[IX(i - 1, j)]) * 0.5f * N;
+			dv = (v[IX(i, j + 1)] - v[IX(i, j - 1)]) * 0.5f * N;
+			divergence = du + dv;
+			div[IX(i, j)] = divergence;
+		}
+	}
 }

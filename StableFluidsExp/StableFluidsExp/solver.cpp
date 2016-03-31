@@ -43,7 +43,7 @@ Gauss_Seidel(int N,
 
 	double h = 1 / double(N + 1);
 
-	for (k = 0; k < 20; k++) {
+	for (k = 0; k < 50; k++) {
 		FOR_EACH_CELL
 			x[IX(i, j)] = (x0[IX(i, j)] + a * 
 						  ( x[IX(i - 1, j)] + x[IX(i + 1, j)] + 
@@ -65,7 +65,7 @@ Gauss_Seidel_Streamfunction(int N,
 
 	double h = 1 / double(N + 1);
 
-	for (k = 0; k < 100; k++) {
+	for (k = 0; k < 50; k++) {
 		FOR_EACH_CELL
 			x[IX(i, j)] = (x0[IX(i, j)] * h * h * 2.3f + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
@@ -88,7 +88,7 @@ Jacobi_solve(int N,
 	float* aux = (float*)malloc(size*sizeof(float));
 	double h = 1 / (double)(N + 1);
 
-	for (k = 0; k < 30; k++)
+	for (k = 0; k < 50; k++)
 	{
 		FOR_EACH_CELL
 			aux[IX(i, j)] = (x0[IX(i, j)] + a * 
@@ -212,7 +212,7 @@ project(int N,
 {
 	int i, j, iter = 0;
 
-	computeDivergence_unifrom(N, u, v, div);
+	computeDivergence_uniform_inverse(N, u, v, div);
 	zeros(N, p);
 	Jacobi_solve(N, 0, p, div, 1, 4);
 	FOR_EACH_CELL

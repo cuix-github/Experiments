@@ -290,9 +290,9 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
+		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
-		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
+		draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -341,12 +341,12 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 166;
+		N = 128;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 300.0f;
-		source = 70.0f;
+		force = 500.0f;
+		source = 500.0f;
 		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
