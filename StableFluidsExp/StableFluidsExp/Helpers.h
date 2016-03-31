@@ -28,5 +28,6 @@ void linear_combine_add(int N, float * f_out, float * f, float * f0);
 void linear_combine_sub(int N, float * f_out, float * f, float * f0);
 void computeDivergence_uniform_inverse(int N, float * u, float * v, float * div);
 void computeDivergence_uniform(int N, float * u, float * v, float * div);
+void computeCurls_uniform_smoother(int N, float * w, float * u, float * v);
 float lerp(float t, float x0, float x1);
 float Bilerp(float t, float s, float x0, float x1, float y0, float y1);

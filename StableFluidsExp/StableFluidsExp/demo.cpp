@@ -77,6 +77,7 @@ static void clear_data(void)
 static int allocate_data(void)
 {
 	int size = (N + 2)*(N + 2);
+	int size_for_curl = (N + 3) * (N + 3);
 
 	fx = (float *)malloc(size*sizeof(float));
 	fy = (float *)malloc(size*sizeof(float));
@@ -290,7 +291,7 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
+		draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
 		draw_particles(u, v, 1.0f, 0.0f, 1.0f, 0.0f);
@@ -342,12 +343,12 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 128;
+		N = 192;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 500.0f;
-		source = 500.0f;
+		force = 300.0f;
+		source = 50.0f;
 		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
