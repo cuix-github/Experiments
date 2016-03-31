@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -341,7 +341,7 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 192;
+		N = 166;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;

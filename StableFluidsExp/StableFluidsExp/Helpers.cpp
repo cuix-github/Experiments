@@ -13,10 +13,21 @@ void displayField(int row, int col, float* field){
 
 float
 lerp(float t,
-float x0,
-float x1)
+	 float x0,
+	 float x1)
 {
 	return (1 - t) * x0 + t * x1;
+}
+
+float
+Bilerp(float t, 
+	   float s, 
+	   float x0, 
+	   float x1, 
+	   float y0, 
+	   float y1)
+{
+	return lerp(t, lerp(s, x0, x1), lerp(s, y0, y1));
 }
 
 void displayField(int row, int col, float * field, float * fieldOrigin)

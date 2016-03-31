@@ -50,8 +50,6 @@ Gauss_Seidel(int N,
 						    x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
 		set_bnd(N, b, x);
-		//cout << endl << "Step: " << k << endl;
-		//displayField(N + 2, N + 2, x);
 	}
 }
 
@@ -74,8 +72,6 @@ Gauss_Seidel_Streamfunction(int N,
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
 			set_bnd(N, b, x);
-		//cout << endl << "Step: " << k << endl;
-		//displayField(N + 2, N + 2, x);
 	}
 }
 
@@ -104,9 +100,6 @@ Jacobi_solve(int N,
 			x[IX(i, j)] = aux[IX(i, j)];
 		END_FOR
 			set_bnd(N, b, x);
-
-		//cout << endl << "Step: " << k << endl;
-		//displayField(N + 2, N + 2, x);
 	}
 
 	free(aux);
