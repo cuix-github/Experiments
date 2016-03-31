@@ -18,7 +18,7 @@
 #include <malloc.h>
 
 
-#include <glut.h> 
+#include <GL/glut.h> 
 extern GLint bits_for_RGB;
 #define kNumberOfRadSamples	3
 

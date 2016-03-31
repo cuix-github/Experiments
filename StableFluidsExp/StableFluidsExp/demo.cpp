@@ -147,9 +147,9 @@ static void draw_vector_field(float * u, float * v, float lineWidth, float r, fl
 	glEnd();
 }
 
-static void draw_particles(float * field, float pointSize, float r, float g, float b)
+static void draw_particles(float * u, float * v, float pointSize, float r, float g, float b)
 {
-	// TODO: Draw particles
+	// TODO: Move particles around
 }
 
 static void draw_scalar_field(float * field, int r, int g, int b)
@@ -292,7 +292,8 @@ static void display_func(void)
 		pre_display();
 		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
-		draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
+		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
+		draw_particles(u, v, 1.0f, 0.0f, 1.0f, 0.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
