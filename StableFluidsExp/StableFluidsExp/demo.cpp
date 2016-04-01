@@ -172,10 +172,10 @@ static void draw_scalar_field(float * field, int r, int g, int b)
 			d10 = dens[IX(i + 1, j)];
 			d11 = lerp(0.5f, dens[IX(i + 1, j)], dens[IX(i + 1, j + 1)]);
 
-			glColor3f(d00, d00 * 0.7f, d00 * 0.3f); glVertex2f(x, y);
-			glColor3f(d10, d10 * 0.7f, d10 * 0.3f); glVertex2f(x + h, y);
-			glColor3f(d11, d11 * 0.7f, d11 * 0.3f); glVertex2f(x + h, y + h);
-			glColor3f(d01, d01 * 0.7f, d01 * 0.3f); glVertex2f(x, y + h);
+			glColor3f(d00 * 1.0f, d00 * 0.41f, d00 * 0.705f); glVertex2f(x, y);
+			glColor3f(d10 * 1.0f, d10 * 0.41f, d10 * 0.705f); glVertex2f(x + h, y);
+			glColor3f(d11 * 1.0f, d11 * 0.41f, d11 * 0.705f); glVertex2f(x + h, y + h);
+			glColor3f(d01 * 1.0f, d01 * 0.41f, d01 * 0.705f); glVertex2f(x, y + h);
 		}
 	}
 
@@ -348,7 +348,7 @@ int main(int argc, char ** argv)
 		diff = 0.0f;
 		visc = 0.0f;
 		force = 300.0f;
-		source = 50.0f;
+		source = 400.0f;
 		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);
