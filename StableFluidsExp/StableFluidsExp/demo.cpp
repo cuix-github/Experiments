@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -11,6 +11,8 @@ extern void dens_step(int N,
 					  float diff, float dt);
 
 extern void vel_step(int N,
+					 Particle* particles,
+					 int num_particles,
 					 float * fx, float * fy,
 					 float * psi,
 					 float * du, float * dv,
@@ -309,7 +311,7 @@ static void idle_func(void)
 	}
 	
 	if (!pause){
-		vel_step(N, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
+		vel_step(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		dens_step(N, dens, dens_prev, u, v, diff, dt);
 	}
 	glutSetWindow(win_id);
@@ -323,7 +325,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(u, v, 1.0f, 0.0f, 1.0f, 0.0f);
+		draw_particles(u, v, 2.0f, 0.0f, 1.0f, 0.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -404,7 +406,7 @@ int main(int argc, char ** argv)
 	clear_data();
 
 	win_x = 640;
-	win_y = 960;
+	win_y = 720;
 	open_glut_window();
 
 	glutMainLoop();
