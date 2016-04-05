@@ -72,8 +72,8 @@ int main(int argc, char** argv) {
 		}
 
 		//int nx=128,ny=256,nz=128;
-		//int nx = 96, ny = 192, nz = 96;
-		int nx = 64, ny = 128, nz = 64;
+		int nx = 96, ny = 192, nz = 96;
+		//int nx = 64, ny = 128, nz = 64;
 		float L = 20.0;
 		float g_h = L/(float)nx;
 		SmokeSolver3D g_smokeSolver;
@@ -128,9 +128,12 @@ int main(int argc, char** argv) {
 
 
 
+		if (system("CLS")) system("clear");
+		cout << "Simulation Started" << endl;
 		clock_t start = clock();
 		for (int frame = 0; frame<240;frame++)
 		{
+			cout << frame << "th is now processing" << endl;
 			//for(int subs=0; subs<2;subs++)
 			float T = 0.1*(float)frame;
 

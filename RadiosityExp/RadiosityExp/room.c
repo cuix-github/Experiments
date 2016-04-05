@@ -19,13 +19,13 @@
 
 /* a quadrilateral */
 typedef struct {
-	short verts[4];	/* vertices of the quadrilateral */
-	short patchLevel; /* patch subdivision level (how fine to subdivide the quadrilateral?) */
-	short elementLevel; /* element subdivision level (how fine to subdivide a patch?) */
-	float area; /* area of the quadrilateral */
-	TVector3f normal; /* normal of the quadrilateral */
-	TSpectra* reflectance; /* diffuse reflectance of the quadrilateral */
-	TSpectra* emission; /* emission of the quadrilateral */
+	short verts[4];			/* vertices of the quadrilateral */
+	short patchLevel;		/* patch subdivision level (how fine to subdivide the quadrilateral?) */
+	short elementLevel;		/* element subdivision level (how fine to subdivide a patch?) */
+	float area;				/* area of the quadrilateral */
+	TVector3f normal;		/* normal of the quadrilateral */
+	TSpectra* reflectance;	/* diffuse reflectance of the quadrilateral */
+	TSpectra* emission;		/* emission of the quadrilateral */
 } TQuad;
 
 /* input parameters */
@@ -41,7 +41,7 @@ TRadParams	params = {
 	0 },			/* buffer */
 	100,			/* hemi-cube resolution */
 	250,			/* approximate diameter of the room */
-	50,				/* intensity scale */
+	25,				/* intensity scale */
 	1				/* add the ambient term */
 };
 

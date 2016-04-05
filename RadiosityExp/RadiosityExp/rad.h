@@ -18,7 +18,7 @@
 #include <malloc.h>
 
 
-#include <GL/glut.h> 
+#include <glut.h> 
 extern GLint bits_for_RGB;
 #define kNumberOfRadSamples	3
 
@@ -33,21 +33,21 @@ typedef struct {
 } TSpectra;
 
 typedef struct {
-	TSpectra* reflectance; /* diffuse reflectance of the patch */
-	TSpectra* emission;	/* emission of the patch */
-	TPoint3f center;	/* center of the patch where hemi-cubes will be placed */
-	TVector3f normal;	/* normal of the patch; for orienting the hemi-cube */
-	TSpectra unshotRad;	/* unshot radiosity of the patch */
-	double area;	/* area of the patch */
+	TSpectra* reflectance;		/* diffuse reflectance of the patch */
+	TSpectra* emission;			/* emission of the patch */
+	TPoint3f center;			/* center of the patch where hemi-cubes will be placed */
+	TVector3f normal;			/* normal of the patch; for orienting the hemi-cube */
+	TSpectra unshotRad;			/* unshot radiosity of the patch */
+	double area;				/* area of the patch */
 } TPatch;
 
 typedef struct {
-	unsigned short nVerts;	/* number of vertices of the element */
-	unsigned long* verts;	/* vertices */
-	TVector3f normal;	/* normal of the element; for backface removal */
-	TSpectra rad;	/* total radiosity of the element */
-	double area;	/* area of the patch */
-	TPatch* patch;	/* pointer to the parent patch */
+	unsigned short nVerts;		/* number of vertices of the element */
+	unsigned long* verts;		/* vertices */
+	TVector3f normal;			/* normal of the element; for backface removal */
+	TSpectra rad;				/* total radiosity of the element */
+	double area;				/* area of the patch */
+	TPatch* patch;				/* pointer to the parent patch */
 } TElement;
 
 typedef struct {

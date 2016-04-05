@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -32,6 +32,7 @@ static float * fx, *fy;
 static float * psi, *wn, *dw, *w_bar, *w_star;
 static float * du, *dv;
 static float * dens, *dens_prev;
+static Particle* particles;
 
 static int win_id;
 static int win_x, win_y;
@@ -40,9 +41,12 @@ static int omx, omy, mx, my;
 static bool pause = false;
 static float streamline_length = 10.0f;
 static int stop_frame = 0;
+static int numParticles = 0;
+float world_scale = 0;
 
 static void free_data(void)
 {
+	if (particles) free(particles);
 	if (u) free(u);
 	if (v) free(v);
 	if (du) free(du);
@@ -77,7 +81,6 @@ static void clear_data(void)
 static int allocate_data(void)
 {
 	int size = (N + 2)*(N + 2);
-	int size_for_curl = (N + 3) * (N + 3);
 
 	fx = (float *)malloc(size*sizeof(float));
 	fy = (float *)malloc(size*sizeof(float));
@@ -94,6 +97,8 @@ static int allocate_data(void)
 	w_star = (float *)malloc(size*sizeof(float));
 	dens = (float *)malloc(size*sizeof(float));
 	dens_prev = (float *)malloc(size*sizeof(float));
+	particles = (Particle*)malloc(numParticles*sizeof(Particle));
+	
 
 	if (!fx || !fy || 
 		!psi || 
@@ -102,6 +107,22 @@ static int allocate_data(void)
 		!dens || !dens_prev) {
 		fprintf(stderr, "cannot allocate data\n");
 		return (0);
+	}
+
+	// Initialize particle start position
+	for (int i = 0; i != numParticles / 2; i++){
+		particles[i].x = (N / 2) * world_scale;
+		particles[i].y = 1 * world_scale;
+	}
+
+	for (int i = numParticles / 2; i != (numParticles / 2) + (numParticles / 4); i++){
+		particles[i].x = (N / 2 + 2) * world_scale;
+		particles[i].y = 1 * world_scale;
+	}
+
+	for (int i = (numParticles / 2) + (numParticles / 4); i != numParticles; i++){
+		particles[i].x = (N / 2 - 2) * world_scale;
+		particles[i].y = 1 * world_scale;
 	}
 
 	return (1);
@@ -115,6 +136,7 @@ static void pre_display(void)
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -150,7 +172,14 @@ static void draw_vector_field(float * u, float * v, float lineWidth, float r, fl
 
 static void draw_particles(float * u, float * v, float pointSize, float r, float g, float b)
 {
-	// TODO: Move particles around
+	glPointSize(pointSize);
+	glColor3f(r, g, b);
+
+	glBegin(GL_POINTS);
+	for (int i = 0; i != numParticles; i++){
+		glVertex2f(particles[i].x, particles[i].y);
+	}
+	glEnd();
 }
 
 static void draw_scalar_field(float * field, int r, int g, int b)
@@ -172,10 +201,10 @@ static void draw_scalar_field(float * field, int r, int g, int b)
 			d10 = dens[IX(i + 1, j)];
 			d11 = lerp(0.5f, dens[IX(i + 1, j)], dens[IX(i + 1, j + 1)]);
 
-			glColor3f(d00 * 1.0f, d00 * 0.41f, d00 * 0.705f); glVertex2f(x, y);
-			glColor3f(d10 * 1.0f, d10 * 0.41f, d10 * 0.705f); glVertex2f(x + h, y);
-			glColor3f(d11 * 1.0f, d11 * 0.41f, d11 * 0.705f); glVertex2f(x + h, y + h);
-			glColor3f(d01 * 1.0f, d01 * 0.41f, d01 * 0.705f); glVertex2f(x, y + h);
+			glColor3f(d00, d00 * 0.7f, d00 * 0.3f); glVertex2f(x, y);
+			glColor3f(d10, d10 * 0.7f, d10 * 0.3f); glVertex2f(x + h, y);
+			glColor3f(d11, d11 * 0.7f, d11 * 0.3f); glVertex2f(x + h, y + h);
+			glColor3f(d01, d01 * 0.7f, d01 * 0.3f); glVertex2f(x, y + h);
 		}
 	}
 
@@ -291,7 +320,7 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
+		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
 		draw_particles(u, v, 1.0f, 0.0f, 1.0f, 0.0f);
@@ -348,7 +377,9 @@ int main(int argc, char ** argv)
 		diff = 0.0f;
 		visc = 0.0f;
 		force = 300.0f;
-		source = 400.0f;
+		source = 70.0f;
+		numParticles = 500;
+		world_scale = 1.0 / N;
 		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
 			N, dt, diff, visc, force, source);

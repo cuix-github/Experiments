@@ -43,13 +43,15 @@ Gauss_Seidel(int N,
 
 	double h = 1 / double(N + 1);
 
-	for (k = 0; k < 50; k++) {
+	for (k = 0; k < 20; k++) {
 		FOR_EACH_CELL
 			x[IX(i, j)] = (x0[IX(i, j)] + a * 
 						  ( x[IX(i - 1, j)] + x[IX(i + 1, j)] + 
 						    x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
 		set_bnd(N, b, x);
+		//cout << endl << "Step: " << k << endl;
+		//displayField(N + 2, N + 2, x);
 	}
 }
 
@@ -65,13 +67,15 @@ Gauss_Seidel_Streamfunction(int N,
 
 	double h = 1 / double(N + 1);
 
-	for (k = 0; k < 50; k++) {
+	for (k = 0; k < 100; k++) {
 		FOR_EACH_CELL
 			x[IX(i, j)] = (x0[IX(i, j)] * h * h * 2.3f + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
 			set_bnd(N, b, x);
+		//cout << endl << "Step: " << k << endl;
+		//displayField(N + 2, N + 2, x);
 	}
 }
 
@@ -88,7 +92,7 @@ Jacobi_solve(int N,
 	float* aux = (float*)malloc(size*sizeof(float));
 	double h = 1 / (double)(N + 1);
 
-	for (k = 0; k < 50; k++)
+	for (k = 0; k < 30; k++)
 	{
 		FOR_EACH_CELL
 			aux[IX(i, j)] = (x0[IX(i, j)] + a * 
@@ -100,6 +104,9 @@ Jacobi_solve(int N,
 			x[IX(i, j)] = aux[IX(i, j)];
 		END_FOR
 			set_bnd(N, b, x);
+
+		//cout << endl << "Step: " << k << endl;
+		//displayField(N + 2, N + 2, x);
 	}
 
 	free(aux);
@@ -115,6 +122,114 @@ diffuse(int N,
 {
 	float a = dt*diff*N*N;
 	Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
+}
+
+
+void
+get_barycentric(float x,
+				int& i,
+				float& f,
+				int i_low,
+				int i_high)
+{
+	float s = std::floor(x);
+	i = (int)s;
+	if (i<i_low){
+		i = i_low;
+		f = 0;
+	}
+	else if (i>i_high - 2){
+		i = i_high - 2;
+		f = 1;
+	}
+	else
+		f = (float)(x - s);
+}
+
+float
+interpolate(int N,
+			float x,
+			float y,
+			float *field){
+	int i, j;
+	float fx, fy;
+	get_barycentric(x, i, fx, 0, N);
+	get_barycentric(y, j, fy, 0, N);
+	return bilerp(fx, fy, field[IX(i, j)], field[IX(i, j + 1)], field[IX(i + 1, j)], field[IX(i + 1, j + 1)]);
+}
+
+void
+getVel(int N,
+	   float u_out,
+	   float v_out,
+	   float x,
+	   float y,
+	   float* u,
+	   float* v){
+	u_out = interpolate(N, x * N, y * N - 0.5f, u);
+	v_out = interpolate(N, x * N - 0.5f, y * N, v);
+}
+
+void
+trace_rk2(
+		  int N,
+		  float x_out, 
+		  float y_out, 
+		  float x, 
+		  float y,
+		  float * u,
+		  float * v,
+		  float dt){
+	float _u, _v;
+	getVel(N, _u, _v, x, y, u, v);
+	getVel(N, _u, _v, x + 0.5f * dt * _u, y + 0.5f * dt * _v, u, v);
+	x_out = x + 0.5f * dt * _u;
+	y_out = y + 0.5f * dt * _v;
+}
+
+void
+advect_particle(Particle* particles,
+				int N,
+				int numParticles,
+				float * u, 
+				float * v,
+				float dt)
+{
+	for (int i = 0; i != numParticles; i++){
+		trace_rk2(N, particles[i].x, particles[i].y, particles[i].x, particles[i].y, u, v, dt);
+	}
+}
+
+void
+advect_rk2(int N,
+		   float dt,
+		   float * u,
+		   float * v,
+		   float * u_temp,
+		   float * v_temp
+		   )
+{
+	float h = 1.0 / N;
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			float x = i * h;
+			float y = (j + 0.5) * h;
+			trace_rk2(N, x, y, x, y, u, v, -dt);
+			getVel(N, u_temp[IX(i, j)], 0, x, y, u, v);
+		}
+	}
+
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			float x = (i + 0.5f) * h;
+			float y = j * h;
+			trace_rk2(N, x, y, x, y, u, v, -dt);
+			getVel(N, 0, v_temp[IX(i, j)], x, y, u, v);
+		}
+	}
+
+	u = u_temp;
+	v = v_temp;
 }
 
 void 
@@ -212,7 +327,7 @@ project(int N,
 {
 	int i, j, iter = 0;
 
-	computeDivergence_uniform_inverse(N, u, v, div);
+	computeDivergence_unifrom(N, u, v, div);
 	zeros(N, p);
 	Jacobi_solve(N, 0, p, div, 1, 4);
 	FOR_EACH_CELL

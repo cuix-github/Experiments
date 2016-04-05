@@ -3,7 +3,7 @@
 #ifdef __APPLE__
 #include <GLUT/glut.h> // why does Apple have to put glut.h here...
 #else
-#include <GL/glut.h> // ...when everyone else puts it here?
+#include <glut.h> // ...when everyone else puts it here?
 #endif
 
 #include "vec.h"
@@ -99,7 +99,7 @@ void draw_segment2d(const Vec2f& start, const Vec2f& end) {
 void draw_arrow2d(const Vec2f& start, const Vec2f& end, float arrow_head_len)
 {
    Vec2f direction = end - start;
-  
+
    Vec2f dir_norm = direction;
    
    //TODO Possibly automatically scale arrowhead length based on vector magnitude

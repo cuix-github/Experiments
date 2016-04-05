@@ -73,10 +73,10 @@ void wuInitialize()
     translationZ = -5.0;
     
     N = 32;
-    timeStep = 0.4;
-    viscocity = 0.0000000;
-    force = 0.6;
-    source = 20.0;
+    timeStep = 0.01;
+    viscocity = 0.0f;
+    force = 700;
+    source = 700.0;
     
     const int eachGridCount = N + 2;
     const int size = eachGridCount * eachGridCount * eachGridCount;
@@ -135,7 +135,7 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
         indexY = 2;
         indexZ = N/2;
         
-        v[wuIndex(indexX, indexY, indexZ)] = force * 3.0f;
+        v[wuIndex(indexX, indexY, indexZ)] = force * 10.0f;
         addVelocityY = true;
     }
     
@@ -176,7 +176,7 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
 
 void wuDrawGrid()
 {
-    glLineWidth(2.0f);
+    glLineWidth(1.0f);
     
     glBegin(GL_LINES);
         glColor3f(0.0f, 1.0f, 0.0f);
@@ -343,7 +343,7 @@ void wuDrawVelocity()
     GLfloat positionZ;
     
     GLfloat h = 1.3f/N;
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3f(0.0, 1.0, 0.0);
     
     for (int x = 0; x < N; x++)
     {
@@ -356,9 +356,9 @@ void wuDrawVelocity()
                 positionZ = (z - 0.5f) * h;
                 glBegin(GL_LINES);
                     glVertex3f(positionX, positionY, positionZ);
-                    glVertex3f(positionX + velocityU[wuIndex(x, y, z)]/2,
-                               positionY + velocityV[wuIndex(x, y, z)]/2,
-                               positionZ + velocityW[wuIndex(x, y, z)]/2);
+                    glVertex3f(positionX + velocityU[wuIndex(x, y, z)]/20,
+                               positionY + velocityV[wuIndex(x, y, z)]/20,
+                               positionZ + velocityW[wuIndex(x, y, z)]/20);
                 glEnd();
             }
         }
