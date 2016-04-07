@@ -19,7 +19,7 @@ float timestep = 0.005;
 //Display properties
 bool draw_grid = true;
 bool draw_particles = true;
-bool draw_velocities = true;
+bool draw_velocities = false;
 bool draw_boundaries = true;
 
 float grid_width = 1;
@@ -89,18 +89,23 @@ int main(int argc, char **argv)
 
 
 void display(void)
-{
-  
+{  
    if(draw_grid) {
       glColor3f(1,1,1);
       glLineWidth(1);
       draw_grid2d(Vec2f(0,0), sim.dx, sim.ni, sim.nj);  
    }
 
+   if (draw_particles) {
+	   glColor3f(0, 1, 0);
+	   glPointSize(2);
+	   draw_points2d(sim.particles);
+   }
+
    if(draw_boundaries) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	  glColor3f(0.0, 1.0, 0.0);
-		  glLineWidth(2);
+	  glColor3f(0.7, 0.7, 0.7);
+	  glLineWidth(3);
       draw_circle2d(c0, rad0, 50); 
       draw_circle2d(c1, rad1, 50); 
       draw_circle2d(c2, rad2, 50); 
@@ -110,18 +115,12 @@ void display(void)
       draw_circle2d(c3, 0, 10);
    }
 
-   if(draw_particles) {
-      glColor3f(0,1,0);
-      glPointSize(2);
-      draw_points2d(sim.particles);
+   if(draw_velocities) {
+      for(int j = 0;j < sim.nj; ++j) for(int i = 0; i < sim.ni; ++i) {
+         Vec2f pos((i+0.5)*sim.dx,(j+0.5)*sim.dx);
+         draw_arrow2d(pos, pos + 0.01f*sim.get_velocity(pos), 0.1*sim.dx);
+      }
    }
-
-   //if(draw_velocities) {
-   //   for(int j = 0;j < sim.nj; ++j) for(int i = 0; i < sim.ni; ++i) {
-   //      Vec2f pos((i+0.5)*sim.dx,(j+0.5)*sim.dx);
-   //      draw_arrow2d(pos, pos + 0.01f*sim.get_velocity(pos), 0.1*sim.dx);
-   //   }
-   //}
 
 }
 
