@@ -77,11 +77,15 @@ int main(int argc, char** argv) {
 		float L = 20.0;
 		float g_h = L/(float)nx;
 		SmokeSolver3D g_smokeSolver;
+
+		cout << "Initlizing smoke solver" << endl;
 		g_smokeSolver.init(nx,ny,nz,L);
+		cout << "Set parameters for smoke solver" << endl;
 		g_smokeSolver.setSmoke(4.0,0.5,0.35,500,10.0);
 
 
 		buffer3Dc bc_des;
+		cout << "Initilizing boundary conditions" << endl;
 		bc_des.init(nx,ny,nz);
 		bc_des.setZero();
 		for (int k=0;k<nz;k++)for(int j=0;j<ny;j++)for(int i=0;i<nx;i++)
@@ -110,6 +114,7 @@ int main(int argc, char** argv) {
 		}
 		g_smokeSolver.set_boundary(bc_des);
 
+		cout << "Set source at the bottom" << endl;
 		bc_des.setZero();
 		for (int k=0;k<nz;k++)for(int j=0;j<ny;j++)for(int i=0;i<nx;i++)
 		{
@@ -124,8 +129,6 @@ int main(int argc, char** argv) {
 		}
 		g_smokeSolver.set_heat(bc_des);
 		g_smokeSolver.setEmitter(Vec3f(0.5*L,0.12*L,0.5*L),0.015*L,12288);
-		
-
 
 
 		if (system("CLS")) system("clear");

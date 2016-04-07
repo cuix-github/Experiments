@@ -36,9 +36,7 @@ Gauss_Seidel(int N, int b, float * x, float * x0, float a, float c){
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
-			set_bnd(N, b, x);
-		//cout << endl << "Step: " << k << endl;
-		//displayField(N + 2, N + 2, x);
+		set_bnd(N, b, x);
 	}
 }
 
@@ -54,9 +52,7 @@ Gauss_Seidel_Streamfunction(int N, int b, float * x, float * x0, float a, float 
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
-			set_bnd(N, b, x);
-		//cout << endl << "Step: " << k << endl;
-		//displayField(N + 2, N + 2, x);
+		set_bnd(N, b, x);
 	}
 }
 
@@ -78,10 +74,7 @@ Jacobi_solve(int N, int b, float * x, float * x0, float a, float c){
 			FOR_EACH_CELL
 			x[IX(i, j)] = aux[IX(i, j)];
 		END_FOR
-			set_bnd(N, b, x);
-
-		//cout << endl << "Step: " << k << endl;
-		//displayField(N + 2, N + 2, x);
+		set_bnd(N, b, x);
 	}
 
 	free(aux);
@@ -93,85 +86,9 @@ diffuse(int N, int b, float * x, float * x0, float diff, float dt){
 	Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
 }
 
-
-void
-get_barycentric(float x, int& i, float& f, int i_low, int i_high)
-{
-	float s = std::floor(x);
-	i = (int)s;
-	if (i < i_low){
-		i = i_low;
-		f = 0;
-	}
-	else if (i > i_high - 2){
-		i = i_high - 2;
-		f = 1;
-	}
-	else
-		f = (float)(x - s);
-}
-
-float
-interpolate(int N, float x, float y, float *field){
-	int i, j;
-	float fx, fy;
-	get_barycentric(x, i, fx, 0, N);
-	get_barycentric(y, j, fy, 0, N);
-	return bilerp(fx, fy, field[IX(i, j)], field[IX(i, j + 1)], field[IX(i + 1, j)], field[IX(i + 1, j + 1)]);
-}
-
-void
-get_velocity(int N, float u_out, float v_out, float x, float y, float* u, float* v){
-	u_out = interpolate(N, x * N, y * N - 0.5f, u);
-	v_out = interpolate(N, x * N - 0.5f, y * N, v);
-}
-
-void
-trace_rk2(int N, float x_out, float y_out, float x, float y, float * u, float * v, float dt){
-	float _u = 0.0f;
-	float _v = 0.0f;
-	get_velocity(N, _u, _v, x, y, u, v);
-	get_velocity(N, _u, _v, x + 0.5f * dt * _u, y + 0.5f * dt * _v, u, v);
-	x_out = x + 0.5f * dt * _u;
-	y_out = y + 0.5f * dt * _v;
-}
-
-// TODO: Function doesn't work. Fix bugs
-void
-advect_particle_rk2(Particle* particles, int N, int numParticles, float * u, float * v, float dt){
-	for (int i = 0; i != numParticles; i++){
-		trace_rk2(N, particles[i].x, particles[i].y, particles[i].x, particles[i].y, u, v, dt);
-	}
-}
-
 void
 advec_particle(int N, Particle* particles, int numParticles, float * u, float * v, float dt){
 	// TODO: Advect particles
-}
-
-void
-advect_rk2(int N, float dt, float * u, float * v, float * u_temp, float * v_temp){
-	float h = 1.0 / N;
-	for (int i = 1; i <= N; i++){
-		for (int j = 1; j <= N; j++){
-			float x = i * h;
-			float y = (j + 0.5) * h;
-			trace_rk2(N, x, y, x, y, u, v, -dt);
-			get_velocity(N, u_temp[IX(i, j)], 0, x, y, u, v);
-		}
-	}
-
-	for (int i = 1; i <= N; i++){
-		for (int j = 1; j <= N; j++){
-			float x = (i + 0.5f) * h;
-			float y = j * h;
-			trace_rk2(N, x, y, x, y, u, v, -dt);
-			get_velocity(N, 0, v_temp[IX(i, j)], x, y, u, v);
-		}
-	}
-
-	u = u_temp;
-	v = v_temp;
 }
 
 void
@@ -182,28 +99,28 @@ advect(int N, int b, float * d, float * d0, float * u, float * v, float dt){
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
-	y = j - dt0*v[IX(i, j)];
+		y = j - dt0*v[IX(i, j)];
 
-	if (x < 0.5f) x = 0.5f;
-	if (x > N + 0.5f) x = N + 0.5f;
+		if (x < 0.5f) x = 0.5f;
+		if (x > N + 0.5f) x = N + 0.5f;
 
-	i0 = (int)x;
-	i1 = i0 + 1;
+		i0 = (int)x;
+		i1 = i0 + 1;
 
-	if (y < 0.5f) y = 0.5f;
-	if (y > N + 0.5f) y = N + 0.5f;
+		if (y < 0.5f) y = 0.5f;
+		if (y > N + 0.5f) y = N + 0.5f;
 
-	j0 = (int)y;
-	j1 = j0 + 1;
+		j0 = (int)y;
+		j1 = j0 + 1;
 
-	s1 = x - i0;
-	t1 = y - j0;
+		s1 = x - i0;
+		t1 = y - j0;
 
-	float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
-	float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
-	d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
+		float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
+		float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
+		d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
 	END_FOR
-		set_bnd(N, b, d);
+	set_bnd(N, b, d);
 }
 
 void
@@ -214,48 +131,48 @@ advect(int N, int b, float * d, float * d0, float * k, float * k0, float * u, fl
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
-	y = j - dt0*v[IX(i, j)];
+		y = j - dt0*v[IX(i, j)];
 
-	if (x < 0.5f) x = 0.5f;
-	if (x > N + 0.5f) x = N + 0.5f;
+		if (x < 0.5f) x = 0.5f;
+		if (x > N + 0.5f) x = N + 0.5f;
 
-	i0 = (int)x;
-	i1 = i0 + 1;
+		i0 = (int)x;
+		i1 = i0 + 1;
 
-	if (y < 0.5f) y = 0.5f;
-	if (y > N + 0.5f) y = N + 0.5f;
+		if (y < 0.5f) y = 0.5f;
+		if (y > N + 0.5f) y = N + 0.5f;
 
-	j0 = (int)y;
-	j1 = j0 + 1;
+		j0 = (int)y;
+		j1 = j0 + 1;
 
-	s1 = x - i0;
-	t1 = y - j0;
+		s1 = x - i0;
+		t1 = y - j0;
 
-	d[IX(i, j)] = lerp(s1,
-		lerp(t1, d0[IX(i0, j0)], d0[IX(i0, j1)]),
-		lerp(t1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
+		d[IX(i, j)] = lerp(s1,
+			lerp(t1, d0[IX(i0, j0)], d0[IX(i0, j1)]),
+			lerp(t1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
 
-	k[IX(i, j)] = lerp(s1,
-		lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]),
-		lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
+		k[IX(i, j)] = lerp(s1,
+			lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]),
+			lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
 	END_FOR
 
-		set_bnd(N, b, d);
+	set_bnd(N, b, d);
 	set_bnd(N, b, k);
 }
 
 void
 project(int N, float * u, float * v, float * p, float * div){
 	int i, j, iter = 0;
+	zeros(N, p);
 
 	computeDivergence_unifrom(N, u, v, div);
-	zeros(N, p);
 	Jacobi_solve(N, 0, p, div, 1, 4);
 	FOR_EACH_CELL
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
-	v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
+		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	END_FOR
-		set_bnd(N, 0, u);
+	set_bnd(N, 0, u);
 	set_bnd(N, 0, v);
 }
 
@@ -264,7 +181,7 @@ add_force(int N, float dt, float * u, float * v, float * fx, float * fy){
 	int i, j;
 	FOR_EACH_CELL
 		v[IX(i, j)] += dt * fy[IX(i, j)];
-	u[IX(i, j)] += dt * fx[IX(i, j)];
+		u[IX(i, j)] += dt * fx[IX(i, j)];
 	END_FOR
 }
 
@@ -282,7 +199,8 @@ void vel_step(int N,
 			  float * u, float * v, float * u0, float * v0, 
 			  float visc, 
 			  float dt){
-	// IVOCK scheme
+
+	// IVOCK advection
 	zeros(N, wn);
 	zeros(N, w_bar);
 	zeros(N, w_star);
@@ -302,33 +220,15 @@ void vel_step(int N,
 	SWAP(u0, u);
 	SWAP(v0, v);
 	computeCurls_uniform(N, wn, u0, v0);
-	//set_bnd(N, 0, wn);
-	//cout << endl << "Curl field from previous time step velocity field" << endl;
-	//displayField(N + 2, N + 2, wn);
 	advect(N, 0, w_bar, wn, u0, v0, dt);
-	//cout << endl << "Curl field advected" << endl;
-	//displayField(N + 2, N + 2, w_bar);
 	advect(N, 0, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
-	//set_bnd(N, 0, w_star);
-	//cout << endl << "Curl field from the advected velocity field" << endl;
-	//displayField(N + 2, N + 2, w_star);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	//set_bnd(N, 0, dw);
-	//cout << endl << "Curl difference" << endl;
-	//displayField(N + 2, N + 2, dw);
-	//if (system("CLS")) system("clear");
 	Gauss_Seidel_Streamfunction(N, 0, psi, dw, -1, -4);
-	//cout << endl << "Stream function (Psi)" << endl;
-	//displayField(N + 2, N + 2, psi);
 	find_vector_potential_2D(N, du, dv, psi);
-	//set_bnd(N, 0, du);
-	//set_bnd(N, 0, dv);
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
-	//set_bnd(N, 0, u);
-	//set_bnd(N, 0, v);
 	project(N, u, v, u0, v0);
 }
 

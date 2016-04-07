@@ -13,7 +13,7 @@
 using namespace std;
 
 //Try changing the grid resolution
-int grid_resolution = 32;
+int grid_resolution = 16;
 float timestep = 0.005;
 
 //Display properties
@@ -65,10 +65,11 @@ int main(int argc, char **argv)
    Gluvi::userDisplayFunc=display;
    Gluvi::userMouseFunc=mouse;
    Gluvi::userDragFunc=drag;
-   glClearColor(1,1,1,1);
+   glClearColor(0,0,0,1);
    
    glutTimerFunc(1000, timer, 0);
    
+   glEnable(GL_POINT_SMOOTH);
    //Set up the simulation
    sim.initialize(grid_width, grid_resolution, grid_resolution);
    sim.set_boundary(boundary_phi);
@@ -91,13 +92,15 @@ void display(void)
 {
   
    if(draw_grid) {
-      glColor3f(0,0,0);
+      glColor3f(1,1,1);
       glLineWidth(1);
       draw_grid2d(Vec2f(0,0), sim.dx, sim.ni, sim.nj);  
    }
 
    if(draw_boundaries) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	  glColor3f(0.0, 1.0, 0.0);
+		  glLineWidth(2);
       draw_circle2d(c0, rad0, 50); 
       draw_circle2d(c1, rad1, 50); 
       draw_circle2d(c2, rad2, 50); 
@@ -108,17 +111,17 @@ void display(void)
    }
 
    if(draw_particles) {
-      glColor3f(0,0,0);
-      glPointSize(3);
+      glColor3f(0,1,0);
+      glPointSize(2);
       draw_points2d(sim.particles);
    }
 
-   if(draw_velocities) {
-      for(int j = 0;j < sim.nj; ++j) for(int i = 0; i < sim.ni; ++i) {
-         Vec2f pos((i+0.5)*sim.dx,(j+0.5)*sim.dx);
-         draw_arrow2d(pos, pos + 0.01f*sim.get_velocity(pos), 0.1*sim.dx);
-      }
-   }
+   //if(draw_velocities) {
+   //   for(int j = 0;j < sim.nj; ++j) for(int i = 0; i < sim.ni; ++i) {
+   //      Vec2f pos((i+0.5)*sim.dx,(j+0.5)*sim.dx);
+   //      draw_arrow2d(pos, pos + 0.01f*sim.get_velocity(pos), 0.1*sim.dx);
+   //   }
+   //}
 
 }
 
