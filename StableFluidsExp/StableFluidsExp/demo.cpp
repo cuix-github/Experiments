@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
