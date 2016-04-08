@@ -160,3 +160,13 @@ void computeDivergence_unifrom(int N, float * u, float * v, float * div){
 		div[IX(i, j)] = - 0.5f*(u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
 	END_FOR
 }
+
+float interpolate(int N, float x, float y, float * field){
+	int i, j;
+	float fx, fy;
+
+	get_barycentric(x, i, fx, 0, N);
+	get_barycentric(y, j, fy, 0, N);
+
+	return _bilerp(field[IX(i, j)], field[IX(i + 1, j)], field[IX(i, j + 1)], field[IX(i + 1, j + 1)], fx, fy);
+}

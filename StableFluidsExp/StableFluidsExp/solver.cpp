@@ -46,6 +46,7 @@ Gauss_Seidel_Streamfunction(int N, int b, float * x, float * x0, float a, float 
 
 	double h = 1 / double(N + 1);
 
+	// Too many hard code inside
 	for (k = 0; k < 100; k++) {
 		FOR_EACH_CELL
 			x[IX(i, j)] = (x0[IX(i, j)] * h * h * 2.3f + a *
@@ -86,9 +87,44 @@ diffuse(int N, int b, float * x, float * x0, float diff, float dt){
 	Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
 }
 
+
+
+vec2
+get_velocity(int N, const vec2& position, float * u, float * v){
+	float u_out, v_out;
+	float u1, v1, u2, v2;
+	u1 = u2 = v1 = v2 = u_out = v_out = 0.0f;
+	u1 *= N; v1 *= N; v1 -= 0.5f;
+	u2 *= N; u2 -= 0.5f; v2 *= N;
+	u_out = interpolate(N, u1, v1, u);
+	v_out = interpolate(N, u2, v2, v);
+
+	return vec2(u_out, v_out);
+}
+
+// Mark:
+// TODO: Problems make the particles move to wrong direction
+// Desc:
+// Runge-Kutta 2nd order integration for ODEs
+vec2 rk2(int N, float * u, float * v, const vec2& position, float dt){
+	vec2 vel = get_velocity(N, position, u, v);
+	vel = get_velocity(N, vec2(position.x + 0.5 * dt * N * vel.x, position.y + 0.5 * dt * N * vel.y), u, v);
+	return vec2(position.x + dt * N * vel.x, position.y + dt * N * vel.y);
+}
+
 void
-advec_particle(int N, Particle* particles, int numParticles, float * u, float * v, float dt){
-	// TODO: Advect particles
+advect_particles(int N, float * u, float * v, Particle* particles, int num_particles, float dt){
+	vec2 vel(0.0f, 0.0f);
+	for (int i = 0; i != num_particles; i++){
+		vel.x = vel.y = 0.0f;
+		vel = rk2(N, u, v, vec2(particles[i].x, particles[i].y), dt);
+		particles[i].x = vel.x; particles[i].y = vel.y;
+	}
+}
+
+void
+advect_rk2(int N, float * d, float d0, float * k, float * k0, float * u, float * v, float dt){
+	// TODO: Runge-Kutta 2nd order integration scheme for advection
 }
 
 void
@@ -208,6 +244,8 @@ void vel_step(int N,
 	zeros(N, psi);
 	zeros(N, du);
 	zeros(N, dv);
+
+	advect_particles(N, u, v, particles, num_particles, dt);
 
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);

@@ -13,11 +13,11 @@
 using namespace std;
 
 //Try changing the grid resolution
-int grid_resolution = 16;
+int grid_resolution = 24;
 float timestep = 0.005;
 
 //Display properties
-bool draw_grid = true;
+bool draw_grid = false;
 bool draw_particles = true;
 bool draw_velocities = false;
 bool draw_boundaries = true;
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
    sim.initialize(grid_width, grid_resolution, grid_resolution);
    sim.set_boundary(boundary_phi);
    
-   for(int i = 0; i < sqr(grid_resolution); ++i) {
+   for(int i = 0; i < 100 * 10; ++i) {
       float x = randhashf(i*2, 0,1);
       float y = randhashf(i*2+1, 0,1);
       Vec2f pt(x,y);
@@ -98,14 +98,14 @@ void display(void)
 
    if (draw_particles) {
 	   glColor3f(0, 1, 0);
-	   glPointSize(2);
+	   glPointSize(1);
 	   draw_points2d(sim.particles);
    }
 
    if(draw_boundaries) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	  glColor3f(0.7, 0.7, 0.7);
-	  glLineWidth(3);
+	  glLineWidth(2);
       draw_circle2d(c0, rad0, 50); 
       draw_circle2d(c1, rad1, 50); 
       draw_circle2d(c2, rad2, 50); 
@@ -116,6 +116,7 @@ void display(void)
    }
 
    if(draw_velocities) {
+	   glLineWidth(1);
       for(int j = 0;j < sim.nj; ++j) for(int i = 0; i < sim.ni; ++i) {
          Vec2f pos((i+0.5)*sim.dx,(j+0.5)*sim.dx);
          draw_arrow2d(pos, pos + 0.01f*sim.get_velocity(pos), 0.1*sim.dx);

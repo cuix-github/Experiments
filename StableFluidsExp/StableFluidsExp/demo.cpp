@@ -114,17 +114,17 @@ static int allocate_data(void)
 	// Initialize particle start position
 	for (int i = 0; i != numParticles / 2; i++){
 		particles[i].x = (N / 2) * world_scale;
-		particles[i].y = 1 * world_scale;
+		particles[i].y = 7 * world_scale;
 	}
 
 	for (int i = numParticles / 2; i != (numParticles / 2) + (numParticles / 4); i++){
 		particles[i].x = (N / 2 + 2) * world_scale;
-		particles[i].y = 1 * world_scale;
+		particles[i].y = 7 * world_scale;
 	}
 
 	for (int i = (numParticles / 2) + (numParticles / 4); i != numParticles; i++){
 		particles[i].x = (N / 2 - 2) * world_scale;
-		particles[i].y = 1 * world_scale;
+		particles[i].y = 7 * world_scale;
 	}
 
 	return (1);
@@ -374,7 +374,7 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 192;
+		N = 128;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;

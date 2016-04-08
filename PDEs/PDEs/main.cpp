@@ -3,37 +3,114 @@
 #include "Helpers.h"
 using namespace cpt;
 
-int L = 50;                     // number of interior points in x and y
-Matrix<double, 2> V(L + 2, L + 2),   // potential to be found
-rho(L + 2, L + 2),              // given charge density
-V_new(L + 2, L + 2);            // new potential after each step
+double accuracy = 0.001;        // desired relative accuracy in solution
+int L = 64;                     // number of interior points in each dimension
+int n_smooth = 5;               // number of pre and post smoothing iterations
 
-double h;                       // lattice spacing
+Matrix<double, 2> psi(L + 2, L + 2), // solution to be found
+psi_new(L + 2, L + 2),          // approximate solution after 1 iteration
+rho(L + 2, L + 2);              // given source function
+
+double h = 1.0 / (L + 1);         // step size
 int steps;                      // number of iteration steps
-double accuracy;                // desired accuracy in solution
-double omega;                   // overrelaxation parameter
 
 void initialize()
 {
-	int N = L + 2;
-	V = rho = V_new = Matrix<double, 2>(N, N);
+	// check that L is a power of 2 as required by multigrid
+	int power_of_2 = 1;
+	while (power_of_2 < L)
+		power_of_2 *= 2;
+	if (power_of_2 != L) {
+		L = power_of_2;
+		cout << " Setting L = " << L << " (must be a power of 2)" << endl;
+	}
+
+	// create (L+2)x(L+2) matrices and zero them
+	psi = psi_new = rho = Matrix<double, 2>(L + 2, L + 2);
 
 	h = 1 / double(L + 1);      // assume physical size in x and y = 1
 	double q = 10;              // point charge
-	int i = N / 2;              // center of lattice
-	rho[i][i] = 5;    // charge density
-	rho[i + 1][i + 1] = 6;
+	int i = L / 2;              // center of lattice
+	rho[i][i] = q / (h * h);    // charge density
+
 	steps = 0;
 }
 
-void Jacobi() {
-	// Jacobi algorithm for a single iterative step
+void Gauss_Seidel(double h, Matrix<double, 2>& u, const Matrix<double, 2>& f)
+{
+	int L = u.dim1() - 2;
+
+	// use checkerboard updating
+	for (int color = 0; color < 2; color++)
 	for (int i = 1; i <= L; i++)
 	for (int j = 1; j <= L; j++)
-		V_new[i][j] = 0.25 * (V[i - 1][j] + V[i + 1][j] +
-		V[i][j - 1] + V[i][j + 1] +
-		h * h * rho[i][j]);
+	if ((i + j) % 2 == color)
+		u[i][j] = 0.25 * (u[i - 1][j] + u[i + 1][j] +
+		u[i][j - 1] + u[i][j + 1] +
+		h * h * f[i][j]);
 }
+
+void two_grid(double h, Matrix<double, 2>& u, Matrix<double, 2>& f)
+{
+	// solve exactly if there is only one interior point
+	int L = u.dim1() - 2;
+	if (L == 1) {
+		u[1][1] = 0.25 * (u[0][1] + u[2][1] + u[1][0] + u[1][2] +
+			h * h * f[1][1]);
+		return;
+	}
+
+	// do a few pre-smoothing Gauss-Seidel steps
+	for (int i = 0; i < n_smooth; i++)
+		Gauss_Seidel(h, u, f);
+
+	// find the residual
+	Matrix<double, 2> r(L + 2, L + 2);
+	for (int i = 1; i <= L; i++)
+	for (int j = 1; j <= L; j++)
+		r[i][j] = f[i][j] +
+		(u[i + 1][j] + u[i - 1][j] +
+		u[i][j + 1] + u[i][j - 1] - 4 * u[i][j]) / (h * h);
+
+	// restrict residual to coarser grid
+	int L2 = L / 2;
+	Matrix<double, 2> R(L2 + 2, L2 + 2);
+	for (int I = 1; I <= L2; I++) {
+		int i = 2 * I - 1;
+		for (int J = 1; J <= L2; J++) {
+			int j = 2 * J - 1;
+			R[I][J] = 0.25 * (r[i][j] + r[i + 1][j] + r[i][j + 1] +
+				r[i + 1][j + 1]);
+		}
+	}
+
+	// initialize correction V on coarse grid to zero
+	Matrix<double, 2> V(L2 + 2, L2 + 2);
+
+	// call twoGrid recursively
+	double H = 2 * h;
+	two_grid(H, V, R);
+
+	// prolongate V to fine grid using simple injection
+	Matrix<double, 2> v(L + 2, L + 2);
+	for (int I = 1; I <= L2; I++) {
+		int i = 2 * I - 1;
+		for (int J = 1; J <= L2; J++) {
+			int j = 2 * J - 1;
+			v[i][j] = v[i + 1][j] = v[i][j + 1] = v[i + 1][j + 1] = V[I][J];
+		}
+	}
+
+	// correct u
+	for (int i = 1; i <= L; i++)
+	for (int j = 1; j <= L; j++)
+		u[i][j] += v[i][j];
+
+	// do a few post-smoothing Gauss-Seidel steps
+	for (int i = 0; i < n_smooth; i++)
+		Gauss_Seidel(h, u, f);
+}
+
 double relative_error()
 {
 	double error = 0;           // average relative error per lattice point
@@ -41,162 +118,58 @@ double relative_error()
 
 	for (int i = 1; i <= L; i++)
 	for (int j = 1; j <= L; j++) {
-		if (V_new[i][j] != 0)
-		if (V_new[i][j] != V[i][j]) {
-			error += abs(1 - V[i][j] / V_new[i][j]);
+		if (psi_new[i][j] != 0.0)
+		if (psi_new[i][j] != psi[i][j]) {
+			error += abs(1 - psi[i][j] / psi_new[i][j]);
 			++n;
 		}
 	}
 	if (n != 0)
 		error /= n;
+
 	return error;
 }
 
-void Gauss_Seidel()
+int main()
 {
-	// copy V to V_new
-	V_new = V;
-
-	// Gauss-Seidel update in place
-	for (int i = 1; i <= L; i++)
-	for (int j = 1; j <= L; j++)
-		V_new[i][j] = 0.25 * (V_new[i - 1][j] + V_new[i + 1][j] +
-		V_new[i][j - 1] + V_new[i][j + 1] +
-		h * h * rho[i][j]);
-}
-
-void successive_over_relaxation()   // using red-black checkerboard updating
-{
-	// update even sites first
-	for (int i = 1; i <= L; i++)
-	for (int j = 1; j <= L; j++)
-	if ((i + j) % 2 == 0)
-		V_new[i][j] = (1 - omega) * V[i][j] + omega / 4 *
-		(V[i - 1][j] + V[i + 1][j] +
-		V[i][j - 1] + V[i][j + 1] +
-		h * h * rho[i][j]);
-
-	// update odd sites using updated even sites
-	for (int i = 1; i <= L; i++)
-	for (int j = 1; j <= L; j++)
-	if ((i + j) % 2 != 0)
-		V_new[i][j] = (1 - omega) * V[i][j] + omega / 4 *
-		(V_new[i - 1][j] + V_new[i + 1][j] +
-		V_new[i][j - 1] + V_new[i][j + 1] +
-		h * h * rho[i][j]);
-}
-
-void iterate(void(*method)())
-{
-	clock_t t0 = clock();
-
-	cout << endl << "Before iteratively solving the problem" << endl;
-	cout << endl << "Solution v_new:" << endl;
-	displayField(L + 2, L + 2, V_new);
-	cout << endl << "Solution v:" << endl;
-	displayField(L + 2, L + 2, V);
-	cout << endl << "Rho field:" << endl;
-	displayField(L + 2, L + 2, rho);
-
-	if (system("CLS")) system("clear");
-	for (int i = 0; i != 10; i++){
-		cout << endl << "Step:" << steps << endl;
-		method();
-		cout << endl << "Solution v_new:" << endl;
-		displayField(L + 2, L + 2, V_new);
-		cout << endl << "Solution v:" << endl;
-		displayField(L + 2, L + 2, V);
-		double error = relative_error();
-		swap(V, V_new);
-		cout << endl << "Error:" << error << endl;
-		++steps;
-	}
-
-	//while (true) {
-	//	method();
-	//	++steps;
-	//	cout << endl << "Solution v_new:" << endl;
-	//	displayField(L + 2, L + 2, V_new);
-	//	cout << endl << "Solution v:" << endl;
-	//	displayField(L + 2, L + 2, V);
-	//	double error = relative_error();
-	//	if (error < accuracy)
-	//		break;
-	//	swap(V, V_new);         // use <algorithm> std::swap
-	//	cout << endl << "Error:" << error << endl;
-	//}
-	cout << " Number of steps = " << steps << endl;
-
-	clock_t t1 = clock();
-	cout << " CPU time = " << double(t1 - t0) / CLOCKS_PER_SEC
-		<< " sec" << endl;
-}
-
-int main() {
-
-	cout << " Iterative solution of Poisson's equation\n"
+	cout << " Multigrid solution of Poisson's equation\n"
 		<< " ----------------------------------------\n";
 	cout << " Enter number of interior points in x or y: ";
 	cin >> L;
+	cout << " Enter desired accuracy in the solution: ";
+	cin >> accuracy;
+	cout << " Enter number of smoothing iterations: ";
+	cin >> n_smooth;
 
 	initialize();
-
-	cout << endl << "Rho field" << endl;
-	displayField(L + 2, L + 2, rho);
-
-	cout << endl << "V field" << endl;
-	displayField(L + 2, L + 2, V);
-
-	cout << endl << "V_new field" << endl;
-	displayField(L + 2, L + 2, V_new);
-
-	cout << " Enter desired accuracy in solution: ";
-	cin >> accuracy;
-	cout << " Enter 1 for Jacobi, 2 for Gauss Seidel, 3 for SOR: ";
-	int choice;
-	cin >> choice;
-
-	if (system("CLS")) system("clear");
-	switch (choice) {
-	case 1:
-		iterate(Jacobi);
-		break;
-	case 2:
-		iterate(Gauss_Seidel);
-		break;
-	case 3:
-		cout << " Enter overrelaxation parameter omega: ";
-		cin >> omega;
-		iterate(successive_over_relaxation);
-		break;
-	default:
-		cout << " Jacobi: " << endl;
-		iterate(Jacobi);
-		cout << " Gauss-Seidel: " << endl;
-		initialize();
-		iterate(Gauss_Seidel);
-		omega = 2 / (1 + 4 * atan(1.0) / double(L));
-		cout << " Successive Over Relaxation with theoretical optimum omega = "
-			<< omega << endl;
-		initialize();
-		iterate(successive_over_relaxation);
-		break;
+	clock_t t0 = clock();
+	while (true) {
+		for (int i = 0; i < L + 2; i++)
+		for (int j = 0; j < L + 2; j++)
+			psi_new[i][j] = psi[i][j];
+		two_grid(h, psi, rho);
+		++steps;
+		double error = relative_error();
+		cout << " Step No. " << steps << "\tError = " << error << endl;
+		if (steps > 1 && error < accuracy)
+			break;
 	}
-
-
+	clock_t t1 = clock();
+	cout << " CPU time = " << double(t1 - t0) / CLOCKS_PER_SEC
+		<< " sec" << endl;
 
 	// write potential to file
-	//cout << " Potential in file poisson.data" << endl;
-	//ofstream date_file("poisson.data");
-	//for (int i = 0; i < L + 2; i++) {
-	//	double x = i * h;
-	//	for (int j = 0; j < L + 2; j++) {
-	//		double y = j * h;
-	//		date_file << x << '\t' << y << '\t' << V[i][j] << '\n';
-	//	}
-	//	date_file << '\n';
-	//}
-	//date_file.close();
+	ofstream file("poisson_mg.data");
+	for (int i = 0; i < L + 2; i++) {
+		double x = i * h;
+		for (int j = 0; j < L + 2; j++) {
+			double y = j * h;
+			file << x << '\t' << y << '\t' << psi[i][j] << '\n';
+		}
+		file << '\n';
+	}
+	file.close();
+	cout << " Potential in file poisson_mg.data" << endl;
 
 	system("Pause");
 	return 0;

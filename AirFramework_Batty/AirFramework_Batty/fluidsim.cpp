@@ -56,9 +56,9 @@ void FluidSim::advance(float dt) {
 
 void FluidSim::add_force(float dt) {
    int imid = ni/2;
-   int jmid = nj/2;
+   int jmid = nj/2 - 6;
    v(imid,jmid) = 10;
-   v(imid+1,jmid) = 10;
+   //v(imid+1,jmid) = 3;
 }
 
 //For extrapolated points, replace the normal component

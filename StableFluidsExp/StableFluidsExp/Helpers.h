@@ -29,6 +29,52 @@ void linear_combine_sub(int N, float * f_out, float * f, float * f0);
 void computeDivergence_unifrom(int N, float * u, float * v, float * div);
 float lerp(float t, float x0, float x1);
 float bilerp(float t, float s, float x0, float x1, float y0, float y1);
+float interpolate(int N, float x, float y, float * field);
+
+template<class S, class T>
+inline S _lerp(const S& value0, const S& value1, T f)
+{
+	return (1 - f)*value0 + f*value1;
+}
+
+template<class S, class T>
+inline S _bilerp(const S& v00, const S& v10,
+				const S& v01, const S& v11,
+				T fx, T fy){
+	return lerp(lerp(v00, v10, fx), lerp(v01, v11, fx),  fy);
+}
+
+template<class T>
+inline void get_barycentric(T x, int& i, T& f, int i_low, int i_high)
+{
+	T s = std::floor(x);
+	i = (int)s;
+	if (i<i_low){
+		i = i_low;
+		f = 0;
+	}
+	else if (i>i_high - 2){
+		i = i_high - 2;
+		f = 1;
+	}
+	else
+		f = (T)(x - s);
+}
+
+typedef struct _vec2{
+	_vec2(float _x, float _y){
+		x = _x; y = _y;
+	}
+
+	float x, y;
+}vec2;
+
+typedef struct _vec3{
+	_vec3(float _x, float _y, float _z){
+		x = _x; y = _y; z = _z;
+	}
+	float x, y, z;
+}vec3;
 
 typedef struct {
 	float x, y;
