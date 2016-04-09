@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -113,18 +113,18 @@ static int allocate_data(void)
 
 	// Initialize particle start position
 	for (int i = 0; i != numParticles / 2; i++){
-		particles[i].x = (N / 2) * world_scale;
-		particles[i].y = 7 * world_scale;
+		particles[i].x = (N / 2 + 5) * world_scale;
+		particles[i].y = 10 * world_scale;
 	}
 
 	for (int i = numParticles / 2; i != (numParticles / 2) + (numParticles / 4); i++){
-		particles[i].x = (N / 2 + 2) * world_scale;
-		particles[i].y = 7 * world_scale;
+		particles[i].x = (N / 2 - 5) * world_scale;
+		particles[i].y = 10 * world_scale;
 	}
 
 	for (int i = (numParticles / 2) + (numParticles / 4); i != numParticles; i++){
 		particles[i].x = (N / 2 - 2) * world_scale;
-		particles[i].y = 7 * world_scale;
+		particles[i].y = 10 * world_scale;
 	}
 
 	return (1);
@@ -303,12 +303,12 @@ static void idle_func(void)
 		if (i % 2 == 0) v_prev[IX(idxX + i, idxY)] = force - 15.0f * i;
 		else v_prev[IX(idxX - i, idxY)] = force - 15.0f * i;
 	}
-
-	for (int i = 0; i != 10; i++)
-	{
-		if (i % 2 == 0) dens_prev[IX(idxX + i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
-		else dens_prev[IX(idxX - i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
-	}
+	//
+	//for (int i = 0; i != 10; i++)
+	//{
+	//	if (i % 2 == 0) dens_prev[IX(idxX + i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
+	//	else dens_prev[IX(idxX - i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
+	//}
 	
 	if (!pause){
 		vel_step(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
@@ -323,9 +323,9 @@ static void display_func(void)
 	if (!pause){
 		pre_display();
 		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
-		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
+		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(u, v, 2.0f, 0.0f, 1.0f, 0.0f);
+		draw_particles(u, v, 10.0f, 1.0f, 0.0f, 0.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -375,12 +375,12 @@ int main(int argc, char ** argv)
 
 	if (argc == 1) {
 		N = 128;
-		dt = 0.01f;
+		dt = 0.005f;
 		diff = 0.0f;
 		visc = 0.0f;
 		force = 300.0f;
 		source = 70.0f;
-		numParticles = 500;
+		numParticles = 4;
 		world_scale = 1.0 / N;
 		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",

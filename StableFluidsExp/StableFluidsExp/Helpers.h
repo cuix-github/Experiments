@@ -41,7 +41,7 @@ template<class S, class T>
 inline S _bilerp(const S& v00, const S& v10,
 				const S& v01, const S& v11,
 				T fx, T fy){
-	return lerp(lerp(v00, v10, fx), lerp(v01, v11, fx),  fy);
+	return _lerp(_lerp(v00, v10, fx), _lerp(v01, v11, fx),  fy);
 }
 
 template<class T>

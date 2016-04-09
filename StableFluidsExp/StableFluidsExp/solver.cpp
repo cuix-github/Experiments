@@ -87,19 +87,12 @@ diffuse(int N, int b, float * x, float * x0, float diff, float dt){
 	Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
 }
 
-
-
 vec2
 get_velocity(int N, const vec2& position, float * u, float * v){
-	float u_out, v_out;
-	float u1, v1, u2, v2;
-	u1 = u2 = v1 = v2 = u_out = v_out = 0.0f;
-	u1 *= N; v1 *= N; v1 -= 0.5f;
-	u2 *= N; u2 -= 0.5f; v2 *= N;
-	u_out = interpolate(N, u1, v1, u);
-	v_out = interpolate(N, u2, v2, v);
-
-	return vec2(u_out, v_out);
+	float u0, v0;
+	u0 = interpolate(N, position.x * N - 0.0f, position.y * N - 0.5f, u);
+	v0 = interpolate(N, position.x * N - 0.5f, position.y * N - 0.0f, v);
+	return vec2(u0, v0);
 }
 
 // Mark:
@@ -108,8 +101,8 @@ get_velocity(int N, const vec2& position, float * u, float * v){
 // Runge-Kutta 2nd order integration for ODEs
 vec2 rk2(int N, float * u, float * v, const vec2& position, float dt){
 	vec2 vel = get_velocity(N, position, u, v);
-	vel = get_velocity(N, vec2(position.x + 0.5 * dt * N * vel.x, position.y + 0.5 * dt * N * vel.y), u, v);
-	return vec2(position.x + dt * N * vel.x, position.y + dt * N * vel.y);
+	vel = get_velocity(N, vec2(position.x + 0.5 * dt * vel.x, position.y + 0.5 * dt * vel.y), u, v);
+	return vec2(position.x + dt * vel.x, position.y + dt * vel.y);
 }
 
 void
@@ -123,8 +116,9 @@ advect_particles(int N, float * u, float * v, Particle* particles, int num_parti
 }
 
 void
-advect_rk2(int N, float * d, float d0, float * k, float * k0, float * u, float * v, float dt){
-	// TODO: Runge-Kutta 2nd order integration scheme for advection
+advect_particles(int N, Particle * particles, int num_particles, float * u, float * v, float dt){
+	float dt0 = dt * N;
+
 }
 
 void
