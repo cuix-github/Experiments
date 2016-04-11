@@ -81,9 +81,25 @@
     <ClCompile Include="demo.cpp" />
     <ClCompile Include="helpers.cpp" />
     <ClCompile Include="solver.cpp" />
+    <ClCompile Include="Utility\UTL_Analysis.cpp" />
+    <ClCompile Include="Utility\UTL_General.cpp" />
+    <ClCompile Include="Utility\UTL_LinearSolvers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helpers.h" />
+    <ClInclude Include="Utility\PCGSolver\blas_wrapper.h" />
+    <ClInclude Include="Utility\PCGSolver\pcg_solver.h" />
+    <ClInclude Include="Utility\PCGSolver\sparse_matrix.h" />
+    <ClInclude Include="Utility\PCGSolver\util.h" />
+    <ClInclude Include="Utility\UTL_Analysis.h" />
+    <ClInclude Include="Utility\UTL_General.h" />
+    <ClInclude Include="Utility\UTL_Grid.h" />
+    <ClInclude Include="Utility\UTL_LinearSolvers.h" />
+    <ClInclude Include="Utility\UTL_Matrix.h" />
+    <ClInclude Include="Utility\UTL_Vector.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Utility\PCGSolver\ReadMe.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

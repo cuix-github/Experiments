@@ -64,6 +64,7 @@ static void free_data(void)
 	if (dens_prev) free(dens_prev);
 	if (fx) free(fx);
 	if (fy) free(fy);
+	if (particles) free(particles);
 }
 
 static void clear_data(void)
@@ -77,6 +78,11 @@ static void clear_data(void)
 		psi[i] = 
 		du[i] = dv[i] =
 		wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
+	}
+
+	for (int i = 0; i != numParticles; i++){
+		particles[i].x = (N / 2 + VFXEpoch::RandomI(-10, 10)) * world_scale;
+		particles[i].y = (VFXEpoch::RandomI(20, 100)) * world_scale;
 	}
 }
 
@@ -112,19 +118,9 @@ static int allocate_data(void)
 	}
 
 	// Initialize particle start position
-	for (int i = 0; i != numParticles / 2; i++){
-		particles[i].x = (N / 2 + 5) * world_scale;
-		particles[i].y = 10 * world_scale;
-	}
-
-	for (int i = numParticles / 2; i != (numParticles / 2) + (numParticles / 4); i++){
-		particles[i].x = (N / 2 - 5) * world_scale;
-		particles[i].y = 10 * world_scale;
-	}
-
-	for (int i = (numParticles / 2) + (numParticles / 4); i != numParticles; i++){
-		particles[i].x = (N / 2 - 2) * world_scale;
-		particles[i].y = 10 * world_scale;
+	for (int i = 0; i != numParticles; i++){
+		particles[i].x = (N / 2 + VFXEpoch::RandomI(-10, 10)) * world_scale;
+		particles[i].y = (VFXEpoch::RandomI(0, 100)) * world_scale;
 	}
 
 	return (1);
@@ -179,6 +175,19 @@ static void draw_particles(float * u, float * v, float pointSize, float r, float
 
 	glBegin(GL_POINTS);
 	for (int i = 0; i != numParticles; i++){
+		if (particles[i].x >= 1 || particles[i].x <= 0 ||
+			particles[i].y >= 1 || particles[i].y <= 0){
+			particles[i].x = (N / 2) * world_scale;
+			particles[i].y = 10 * world_scale;
+		}
+		float ratio_vel = ::sqrt(::pow(particles[i].vel.x, 2) + ::pow(particles[i].vel.y, 2));
+		if (ratio_vel <= 0.75f) {
+			ratio_vel = 0.0f;
+			particles[i].x = (N / 2 + VFXEpoch::RandomI(-5, 5)) * world_scale;
+			particles[i].y = 0;
+		}
+		clip(ratio_vel, 0.0f, 1.0f);
+		glColor3f(ratio_vel, ratio_vel * 0.3, ratio_vel * 0.1);
 		glVertex2f(particles[i].x, particles[i].y);
 	}
 	glEnd();
@@ -303,6 +312,7 @@ static void idle_func(void)
 		if (i % 2 == 0) v_prev[IX(idxX + i, idxY)] = force - 15.0f * i;
 		else v_prev[IX(idxX - i, idxY)] = force - 15.0f * i;
 	}
+
 	//
 	//for (int i = 0; i != 10; i++)
 	//{
@@ -323,9 +333,9 @@ static void display_func(void)
 	if (!pause){
 		pre_display();
 		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
-		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
+		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(u, v, 10.0f, 1.0f, 0.0f, 0.0f);
+		draw_particles(u, v, 0.5f, 0.0f, 1.0f, 0.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -374,13 +384,13 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 128;
-		dt = 0.005f;
+		N = 192;
+		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
 		force = 300.0f;
 		source = 70.0f;
-		numParticles = 4;
+		numParticles = 10000;
 		world_scale = 1.0 / N;
 		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",

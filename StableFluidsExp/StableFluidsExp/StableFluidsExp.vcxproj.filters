@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="UTL">
+      <UniqueIdentifier>{26d820dc-a39e-4980-a7a2-64d8686d1436}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="solver.cpp">
@@ -24,10 +27,54 @@
     <ClCompile Include="helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Utility\UTL_Analysis.cpp">
+      <Filter>UTL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\UTL_General.cpp">
+      <Filter>UTL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\UTL_LinearSolvers.cpp">
+      <Filter>UTL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Utility\UTL_Analysis.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\UTL_General.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\UTL_Grid.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\UTL_LinearSolvers.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\UTL_Matrix.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\UTL_Vector.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\PCGSolver\blas_wrapper.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\PCGSolver\pcg_solver.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\PCGSolver\sparse_matrix.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\PCGSolver\util.h">
+      <Filter>UTL</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Utility\PCGSolver\ReadMe.txt">
+      <Filter>UTL</Filter>
+    </Text>
   </ItemGroup>
 </Project>

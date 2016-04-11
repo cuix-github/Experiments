@@ -107,18 +107,13 @@ vec2 rk2(int N, float * u, float * v, const vec2& position, float dt){
 
 void
 advect_particles(int N, float * u, float * v, Particle* particles, int num_particles, float dt){
-	vec2 vel(0.0f, 0.0f);
+	vec2 pos(0.0f, 0.0f);
 	for (int i = 0; i != num_particles; i++){
-		vel.x = vel.y = 0.0f;
-		vel = rk2(N, u, v, vec2(particles[i].x, particles[i].y), dt);
-		particles[i].x = vel.x; particles[i].y = vel.y;
+		pos.x = pos.y = 0.0f;
+		pos = rk2(N, u, v, vec2(particles[i].x, particles[i].y), dt);
+		particles[i].x = pos.x; particles[i].y = pos.y;
+		particles[i].vel = get_velocity(N, vec2(particles[i].x, particles[i].y), u, v);
 	}
-}
-
-void
-advect_particles(int N, Particle * particles, int num_particles, float * u, float * v, float dt){
-	float dt0 = dt * N;
-
 }
 
 void

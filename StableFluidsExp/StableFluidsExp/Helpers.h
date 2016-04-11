@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <math.h>
+#include "Utility\UTL_General.h"
 
 using namespace std;
 
@@ -61,6 +62,23 @@ inline void get_barycentric(T x, int& i, T& f, int i_low, int i_high)
 		f = (T)(x - s);
 }
 
+template<class T>
+const T& max(const T& a, const T& b)
+{
+	return (a < b) ? b : a;
+}
+
+template<class T>
+const T& min(const T& a, const T& b)
+{
+	return (b < a) ? b : a;
+}
+
+template <typename T>
+T clip(const T& n, const T& lower, const T& upper) {
+	return max(lower, min(n, upper));
+}
+
 typedef struct _vec2{
 	_vec2(float _x, float _y){
 		x = _x; y = _y;
@@ -78,5 +96,5 @@ typedef struct _vec3{
 
 typedef struct {
 	float x, y;
-	float padding;
+	vec2 vel;
 }Particle;
