@@ -181,13 +181,13 @@ static void draw_particles(float * u, float * v, float pointSize, float r, float
 			particles[i].y = 10 * world_scale;
 		}
 		float ratio_vel = ::sqrt(::pow(particles[i].vel.x, 2) + ::pow(particles[i].vel.y, 2));
-		if (ratio_vel <= 0.75f) {
+		if (ratio_vel <= 0.5f) {
 			ratio_vel = 0.0f;
 			particles[i].x = (N / 2 + VFXEpoch::RandomI(-5, 5)) * world_scale;
 			particles[i].y = 0;
 		}
 		clip(ratio_vel, 0.0f, 1.0f);
-		glColor3f(ratio_vel, ratio_vel * 0.3, ratio_vel * 0.1);
+		glColor3f(ratio_vel * 0.3, ratio_vel * 0.6, ratio_vel * 0.8);
 		glVertex2f(particles[i].x, particles[i].y);
 	}
 	glEnd();
@@ -211,11 +211,15 @@ static void draw_scalar_field(float * field, int r, int g, int b)
 			d01 = lerp(0.5f, dens[IX(i, j)], dens[IX(i, j + 1)]);
 			d10 = dens[IX(i + 1, j)];
 			d11 = lerp(0.5f, dens[IX(i + 1, j)], dens[IX(i + 1, j + 1)]);
+			clip(d00, 0.0f, 1.0f);
+			clip(d01, 0.0f, 1.0f);
+			clip(d10, 0.0f, 1.0f);
+			clip(d11, 0.0f, 1.0f);
 
-			glColor3f(d00, d00 * 0.7f, d00 * 0.3f); glVertex2f(x, y);
-			glColor3f(d10, d10 * 0.7f, d10 * 0.3f); glVertex2f(x + h, y);
-			glColor3f(d11, d11 * 0.7f, d11 * 0.3f); glVertex2f(x + h, y + h);
-			glColor3f(d01, d01 * 0.7f, d01 * 0.3f); glVertex2f(x, y + h);
+			glColor3f(d00 * r, d00 * g, d00 * b); glVertex2f(x, y);
+			glColor3f(d10 * r, d10 * g, d10 * b); glVertex2f(x + h, y);
+			glColor3f(d11 * r, d11 * g, d11 * b); glVertex2f(x + h, y + h);
+			glColor3f(d01 * r, d01 * g, d01 * b); glVertex2f(x, y + h);
 		}
 	}
 
@@ -313,12 +317,11 @@ static void idle_func(void)
 		else v_prev[IX(idxX - i, idxY)] = force - 15.0f * i;
 	}
 
-	//
-	//for (int i = 0; i != 10; i++)
-	//{
-	//	if (i % 2 == 0) dens_prev[IX(idxX + i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
-	//	else dens_prev[IX(idxX - i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
-	//}
+	for (int i = 0; i != 10; i++)
+	{
+		if (i % 2 == 0) dens_prev[IX(idxX + i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
+		else dens_prev[IX(idxX - i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
+	}
 	
 	if (!pause){
 		vel_step(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
@@ -332,7 +335,7 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
+		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
 		draw_particles(u, v, 0.5f, 0.0f, 1.0f, 0.0f);
@@ -384,7 +387,7 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 192;
+		N = 166;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
