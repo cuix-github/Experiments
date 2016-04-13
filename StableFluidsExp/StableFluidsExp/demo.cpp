@@ -133,7 +133,7 @@ static void pre_display(void)
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	//glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
