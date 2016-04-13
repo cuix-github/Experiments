@@ -234,8 +234,6 @@ void vel_step(int N,
 	zeros(N, du);
 	zeros(N, dv);
 
-	advect_particles(N, u, v, particles, num_particles, dt);
-
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);
 
@@ -257,6 +255,8 @@ void vel_step(int N,
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
 	project(N, u, v, u0, v0);
+
+	advect_particles(N, u, v, particles, num_particles, dt);
 }
 
 // Poisson Equation Laplace(Psi) = f(x);

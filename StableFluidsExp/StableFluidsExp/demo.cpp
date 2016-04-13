@@ -80,8 +80,8 @@ static void clear_data(void)
 	}
 
 	for (int i = 0; i != numParticles; i++){
-		particles[i].x = (N / 2 + VFXEpoch::RandomI(-10, 10)) * world_scale;
-		particles[i].y = (VFXEpoch::RandomI(0, 0)) * world_scale;
+		particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
+		particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;
 	}
 }
 
@@ -118,8 +118,8 @@ static int allocate_data(void)
 
 	// Initialize particle start position
 	for (int i = 0; i != numParticles; i++){
-		particles[i].x = (N / 2 + VFXEpoch::RandomI(-10, 10)) * world_scale;
-		particles[i].y = (VFXEpoch::RandomI(0, 100)) * world_scale;
+		particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
+		particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;
 	}
 
 	return (1);
@@ -133,7 +133,7 @@ static void pre_display(void)
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glEnable(GL_POINT_SMOOTH);
+	//glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -179,10 +179,10 @@ static void draw_particles(float * u, float * v, float pointSize, float r, float
 			particles[i].y = 10 * world_scale;
 		}
 		float ratio_vel = ::sqrt(::pow(particles[i].vel.x, 2) + ::pow(particles[i].vel.y, 2));
-		if (ratio_vel <= 0.1f) {
+		if (ratio_vel <= 0.3f) {
 			ratio_vel = 0.0f;
 			particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
-			particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;;
+			particles[i].y = (VFXEpoch::RandomI(0, 20)) * world_scale;;
 		}
 		clip(ratio_vel, 0.0f, 1.0f);
 		glColor3f(ratio_vel * r, ratio_vel * g, ratio_vel * b);
@@ -306,10 +306,10 @@ static void reshape_func(int width, int height)
 static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
-	int idxX = N / 2 + 1;
+	int idxX = N / 2;
 	int idxY = 7;
 
-	for (int i = 0; i != 10; i++)
+	for (int i = 0; i != 30; i++)
 	{
 		if (i % 2 == 0) v_prev[IX(idxX + i, idxY)] = force - 15.0f * i;
 		else v_prev[IX(idxX - i, idxY)] = force - 15.0f * i;
@@ -336,7 +336,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(u, v, 1.0f, 0.1f, 0.6f, 1.0f);
+		draw_particles(u, v, 1.0f, 0.2f, 0.8f, 1.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -385,17 +385,17 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 144;
+		N = 192;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
 		force = 400.0f;
 		source = 70.0f;
-		numParticles = 7000;
+		numParticles = 10000;
 		world_scale = 1.0 / N;
 		streamline_length = 10.0f;
-		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
-			N, dt, diff, visc, force, source);
+		fprintf(stderr, "Using defaults: \nN = %d\ndt = %g\ndiff = %g\nvisc = %g\nforce = %g \nsource = %g \nNumber of Particles:%d\n",
+			N, dt, diff, visc, force, source, numParticles);
 	}
 	else {
 		N = atoi(argv[1]);
@@ -405,13 +405,6 @@ int main(int argc, char ** argv)
 		force = atof(argv[5]);
 		source = atof(argv[6]);
 	}
-
-	printf("\n\nHow to use this demo:\n\n");
-	printf("\t Add densities with the right mouse button\n");
-	printf("\t Add velocities with the left mouse button and dragging the mouse\n");
-	printf("\t Toggle density/velocity display with the 'v' key\n");
-	printf("\t Clear the simulation by pressing the 'c' key\n");
-	printf("\t Quit by pressing the 'q' key\n");
 
 	if (!allocate_data()) exit(1);
 	clear_data();
