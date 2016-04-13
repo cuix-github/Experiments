@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -34,7 +34,7 @@ static float * fx, *fy;
 static float * psi, *wn, *dw, *w_bar, *w_star;
 static float * du, *dv;
 static float * dens, *dens_prev;
-static Particle* particles;
+static Particle * particles;
 
 static int win_id;
 static int win_x, win_y;
@@ -64,7 +64,6 @@ static void free_data(void)
 	if (dens_prev) free(dens_prev);
 	if (fx) free(fx);
 	if (fy) free(fy);
-	if (particles) free(particles);
 }
 
 static void clear_data(void)
@@ -82,7 +81,7 @@ static void clear_data(void)
 
 	for (int i = 0; i != numParticles; i++){
 		particles[i].x = (N / 2 + VFXEpoch::RandomI(-10, 10)) * world_scale;
-		particles[i].y = (VFXEpoch::RandomI(20, 100)) * world_scale;
+		particles[i].y = (VFXEpoch::RandomI(0, 0)) * world_scale;
 	}
 }
 
@@ -171,7 +170,6 @@ static void draw_vector_field(float * u, float * v, float lineWidth, float r, fl
 static void draw_particles(float * u, float * v, float pointSize, float r, float g, float b)
 {
 	glPointSize(pointSize);
-	glColor3f(r, g, b);
 
 	glBegin(GL_POINTS);
 	for (int i = 0; i != numParticles; i++){
@@ -181,13 +179,13 @@ static void draw_particles(float * u, float * v, float pointSize, float r, float
 			particles[i].y = 10 * world_scale;
 		}
 		float ratio_vel = ::sqrt(::pow(particles[i].vel.x, 2) + ::pow(particles[i].vel.y, 2));
-		if (ratio_vel <= 0.5f) {
+		if (ratio_vel <= 0.1f) {
 			ratio_vel = 0.0f;
-			particles[i].x = (N / 2 + VFXEpoch::RandomI(-5, 5)) * world_scale;
-			particles[i].y = 0;
+			particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
+			particles[i].y = (VFXEpoch::RandomI(0, 40)) * world_scale;;
 		}
 		clip(ratio_vel, 0.0f, 1.0f);
-		glColor3f(ratio_vel * 0.3, ratio_vel * 0.6, ratio_vel * 0.8);
+		glColor3f(ratio_vel * r, ratio_vel * g, ratio_vel * b);
 		glVertex2f(particles[i].x, particles[i].y);
 	}
 	glEnd();
@@ -338,7 +336,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(u, v, 0.5f, 0.0f, 1.0f, 0.0f);
+		draw_particles(u, v, 1.0f, 0.3f, 0.6f, 1.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -387,13 +385,13 @@ int main(int argc, char ** argv)
 	}
 
 	if (argc == 1) {
-		N = 166;
+		N = 144;
 		dt = 0.01f;
 		diff = 0.0f;
 		visc = 0.0f;
-		force = 300.0f;
+		force = 400.0f;
 		source = 70.0f;
-		numParticles = 10000;
+		numParticles = 6400;
 		world_scale = 1.0 / N;
 		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",

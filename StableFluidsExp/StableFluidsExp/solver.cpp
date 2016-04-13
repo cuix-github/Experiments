@@ -182,8 +182,8 @@ advect(int N, int b, float * d, float * d0, float * k, float * k0, float * u, fl
 			lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
 	END_FOR
 
-	set_bnd(N, b, d);
-	set_bnd(N, b, k);
+	set_bnd(N, 1, d);
+	set_bnd(N, 2, k);
 }
 
 void
@@ -197,8 +197,8 @@ project(int N, float * u, float * v, float * p, float * div){
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
 		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	END_FOR
-	set_bnd(N, 0, u);
-	set_bnd(N, 0, v);
+	set_bnd(N, 1, u);
+	set_bnd(N, 2, v);
 }
 
 void
@@ -241,14 +241,14 @@ void vel_step(int N,
 
 	SWAP(u0, u);
 	SWAP(v0, v);
-	diffuse(N, 0, u, u0, visc, dt);
-	diffuse(N, 0, v, v0, visc, dt);
+	diffuse(N, 1, u, u0, visc, dt);
+	diffuse(N, 2, v, v0, visc, dt);
 	project(N, u, v, u0, v0);
 	SWAP(u0, u);
 	SWAP(v0, v);
 	computeCurls_uniform(N, wn, u0, v0);
-	advect(N, 0, w_bar, wn, u0, v0, dt);
-	advect(N, 0, u, u0, v, v0, u0, v0, dt);
+	advect(N, 1, w_bar, wn, u0, v0, dt);
+	advect(N, 1, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
