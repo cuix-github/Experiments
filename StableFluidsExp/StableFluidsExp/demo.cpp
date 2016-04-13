@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <glut.h>
 #include "Helpers.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
@@ -133,7 +133,7 @@ static void pre_display(void)
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glEnable(GL_POINT_SMOOTH);
+	//glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -182,7 +182,7 @@ static void draw_particles(float * u, float * v, float pointSize, float r, float
 		if (ratio_vel <= 0.1f) {
 			ratio_vel = 0.0f;
 			particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
-			particles[i].y = (VFXEpoch::RandomI(0, 40)) * world_scale;;
+			particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;;
 		}
 		clip(ratio_vel, 0.0f, 1.0f);
 		glColor3f(ratio_vel * r, ratio_vel * g, ratio_vel * b);
@@ -336,7 +336,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(u, v, 1.0f, 0.3f, 0.6f, 1.0f);
+		draw_particles(u, v, 1.0f, 0.1f, 0.6f, 1.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -391,7 +391,7 @@ int main(int argc, char ** argv)
 		visc = 0.0f;
 		force = 400.0f;
 		source = 70.0f;
-		numParticles = 6400;
+		numParticles = 7000;
 		world_scale = 1.0 / N;
 		streamline_length = 10.0f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g diff=%g visc=%g force = %g source=%g\n",
