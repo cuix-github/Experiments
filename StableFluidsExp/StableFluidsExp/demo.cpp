@@ -79,9 +79,14 @@ static void clear_data(void)
 		wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
 	}
 
+	float r, g, b;
 	for (int i = 0; i != numParticles; i++){
 		particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
 		particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;
+		r = VFXEpoch::RandomF(0, 0.4);
+		g = VFXEpoch::RandomF(0, 0.8);
+		b = VFXEpoch::RandomF(0.8, 1.0);
+		particles[i].color = vec3(r, g, b);
 	}
 }
 
@@ -133,7 +138,7 @@ static void pre_display(void)
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	//glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -185,7 +190,7 @@ static void draw_particles(float * u, float * v, float pointSize, float r, float
 			particles[i].y = (VFXEpoch::RandomI(0, 20)) * world_scale;;
 		}
 		clip(ratio_vel, 0.0f, 1.0f);
-		glColor3f(ratio_vel * r, ratio_vel * g, ratio_vel * b);
+		glColor3f(ratio_vel * particles[i].color.x, ratio_vel * particles[i].color.y, ratio_vel * particles[i].color.z);
 		glVertex2f(particles[i].x, particles[i].y);
 	}
 	glEnd();
@@ -370,41 +375,17 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	glutInit(&argc, argv);
-
-	if (argc != 1 && argc != 6) {
-		fprintf(stderr, "usage : %s N dt diff visc force source\n", argv[0]);
-		fprintf(stderr, "where:\n"); \
-			fprintf(stderr, "\t N      : grid resolution\n");
-		fprintf(stderr, "\t dt     : time step\n");
-		fprintf(stderr, "\t diff   : diffusion rate of the density\n");
-		fprintf(stderr, "\t visc   : viscosity of the fluid\n");
-		fprintf(stderr, "\t force  : scales the mouse movement that generate a force\n");
-		fprintf(stderr, "\t source : amount of density that will be deposited\n");
-		exit(1);
-	}
-
-	if (argc == 1) {
-		N = 192;
-		dt = 0.01f;
-		diff = 0.0f;
-		visc = 0.0f;
-		force = 400.0f;
-		source = 70.0f;
-		numParticles = 10000;
-		world_scale = 1.0 / N;
-		streamline_length = 10.0f;
-		fprintf(stderr, "Using defaults: \nN = %d\ndt = %g\ndiff = %g\nvisc = %g\nforce = %g \nsource = %g \nNumber of Particles:%d\n",
-			N, dt, diff, visc, force, source, numParticles);
-	}
-	else {
-		N = atoi(argv[1]);
-		dt = atof(argv[2]);
-		diff = atof(argv[3]);
-		visc = atof(argv[4]);
-		force = atof(argv[5]);
-		source = atof(argv[6]);
-	}
+	N = 128;
+	dt = 0.01f;
+	diff = 0.0f;
+	visc = 0.0f;
+	force = 400.0f;
+	source = 70.0f;
+	numParticles = 20000;
+	world_scale = 1.0 / N;
+	streamline_length = 10.0f;
+	fprintf(stderr, "Using defaults: \nN = %d\ndt = %g\ndiff = %g\nvisc = %g\nforce = %g \nsource = %g \nNumber of Particles:%d\n",
+		N, dt, diff, visc, force, source, numParticles);
 
 	if (!allocate_data()) exit(1);
 	clear_data();

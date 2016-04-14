@@ -1,11 +1,3 @@
-//
-//  main.c
-//  Stable Fluids 3D
-//
-//  Created by satanwoo on 13-11-10.
-//  Copyright (c) 2013年 Ziqi Wu. All rights reserved.
-//
-
 #include <stdio.h>
 #include <glut.h>
 
@@ -72,11 +64,12 @@ void wuInitialize()
     translationY = 0;
     translationZ = -5.0;
     
-    N = 32;
-    timeStep = 0.01;
+    N = 42;
+    timeStep = 0.1;
     viscocity = 0.0f;
-    force = 700;
-    source = 700.0;
+	//diffuse = 0.0f;
+    force = 100;
+    source = 100.0;
     
     const int eachGridCount = N + 2;
     const int size = eachGridCount * eachGridCount * eachGridCount;
@@ -114,10 +107,6 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
     memset(v, 0, sizeof(GLfloat) * size);
     memset(w, 0, sizeof(GLfloat) * size);
     memset(density, 0, sizeof(GLfloat) * size);
-
-	for (int i = 0; i != size; i++){
-		v[i] = -0.00098;
-	}
  
     if (addVelocityX == true)
     {
@@ -125,7 +114,7 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
         indexY = N/2;
         indexZ = N/2;
         
-        u[wuIndex(indexX, indexY, indexZ)] = force * 10;
+        u[wuIndex(indexX, indexY, indexZ)] = force;
         addVelocityX = false;
     }
     
@@ -135,7 +124,7 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
         indexY = 2;
         indexZ = N/2;
         
-        v[wuIndex(indexX, indexY, indexZ)] = force * 10.0f;
+        v[wuIndex(indexX, indexY, indexZ)] = force;
         addVelocityY = true;
     }
     
@@ -145,7 +134,7 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
         indexY = N/2;
         indexZ = 2;
         
-        w[wuIndex(indexX, indexY, indexZ)] = force * 10;
+        w[wuIndex(indexX, indexY, indexZ)] = force;
         addVelocityZ = false;
     }
     
@@ -157,20 +146,6 @@ void wuSource(GLfloat *density, GLfloat *u, GLfloat *v, GLfloat *w)
         
         density[wuIndex(indexX, indexY, indexZ)] = source;
         addDensity = true;
-    }
-    
-    for (int x = 1; x < N;x++)
-    {
-        for (int y = 1;y < N;y++)
-        {
-            for (int z = 1;z < N;z++)
-            {
-                if (density[wuIndex(x, y, z)] > 0)
-                {
-                    v[wuIndex(x, y, z)] += v[wuIndex(x, y, z)] - density[wuIndex(x, y, z)] * 0.2 * (y + 1)/N;
-                }
-            }
-        }
     }
 }
 
@@ -500,8 +475,8 @@ void wuKeyBoard(unsigned char key, int x, int y)
 void wuIdle()
 {
     wuSource(previousDensity, previousVelocityU, previousVelocityV, previousVelocityW);
-	get_velocity(N, velocityU, velocityV, velocityW, previousVelocityU, previousVelocityV, previousVelocityW, viscocity, timeStep);
-    get_density(N, density, previousDensity, velocityU, velocityV, velocityW, diffuse, timeStep);    
+	get_velocity(N, velocityU, velocityV, velocityW, previousVelocityU, previousVelocityV, previousVelocityW, 0.0f, timeStep);
+    get_density(N, density, previousDensity, velocityU, velocityV, velocityW, 0.0f, timeStep);    
     glutPostRedisplay();
 }
 

@@ -97,4 +97,5 @@ typedef struct _vec3{
 typedef struct {
 	float x, y;
 	vec2 vel;
+	vec3 color;
 }Particle;
