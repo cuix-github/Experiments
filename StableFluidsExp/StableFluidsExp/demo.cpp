@@ -375,7 +375,7 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 128;
+	N = 64;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
