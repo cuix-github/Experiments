@@ -138,7 +138,7 @@ static void pre_display(void)
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glEnable(GL_POINT_SMOOTH);
+	//glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -379,7 +379,7 @@ int main(int argc, char ** argv)
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 600.0f;
+	force = 400.0f;
 	source = 70.0f;
 	numParticles = 20000;
 	world_scale = 1.0 / N;
