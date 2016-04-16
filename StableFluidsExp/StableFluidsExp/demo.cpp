@@ -375,17 +375,22 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 64;
+	N = 192;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 400.0f;
+	force = 600.0f;
 	source = 70.0f;
 	numParticles = 20000;
 	world_scale = 1.0 / N;
 	streamline_length = 10.0f;
-	fprintf(stderr, "Using defaults: \nN = %d\ndt = %g\ndiff = %g\nvisc = %g\nforce = %g \nsource = %g \nNumber of Particles:%d\n",
-		N, dt, diff, visc, force, source, numParticles);
+	cout << "Default values of the simualtion: " << endl;
+	cout << "Dim = " << N << " x " << N << endl;
+	cout << "Time step = " << dt << endl;
+	cout << "Diffuse = " << diff << endl;
+	cout << "Viscosity = " << visc << endl;
+	cout << "Source = " << source << endl;
+	cout << "Number of Particles = " << numParticles << endl;
 
 	if (!allocate_data()) exit(1);
 	clear_data();
