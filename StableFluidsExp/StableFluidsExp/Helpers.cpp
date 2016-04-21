@@ -15,7 +15,7 @@ float lerp(float t, float x0, float x1){
 	return (1 - t) * x0 + t * x1;
 }
 
-float bilerp(float t, float s, float x0, float x1, float y0, float y1){
+float bilerp(float s, float t, float x0, float x1, float y0, float y1){
 	return lerp(t, lerp(s, x0, x1), lerp(s, y0, y1));
 }
 
@@ -157,7 +157,7 @@ double relative_error(int N, float * curr, float * prev)
 void computeDivergence_unifrom(int N, float * u, float * v, float * div){
 	int i, j;
 	FOR_EACH_CELL
-		div[IX(i, j)] = - 0.5f*(u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
+		div[IX(i, j)] = 0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
 	END_FOR
 }
 
@@ -168,5 +168,5 @@ float interpolate(int N, float x, float y, float * field){
 	get_barycentric(x, i, fx, 0, N);
 	get_barycentric(y, j, fy, 0, N);
 
-	return _bilerp(field[IX(i, j)], field[IX(i + 1, j)], field[IX(i, j + 1)], field[IX(i + 1, j + 1)], fx, fy);
+	return bilerp(fx, fy, field[IX(i, j)], field[IX(i + 1, j)], field[IX(i, j + 1)], field[IX(i + 1, j + 1)]);
 }
