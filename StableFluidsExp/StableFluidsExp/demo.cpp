@@ -10,7 +10,7 @@ extern void dens_step(int N,
 					  float * u, float * v, 
 					  float diff, float dt);
 
-extern void vel_step(int N,
+extern void IVOCKAdvance(int N,
 					 Particle* particles,
 					 int num_particles,
 					 float * fx, float * fy,
@@ -83,8 +83,8 @@ static void clear_data(void)
 	for (int i = 0; i != numParticles; i++){
 		particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
 		particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;
-		r = VFXEpoch::RandomF(0, 0.4);
-		g = VFXEpoch::RandomF(0, 0.8);
+		r = VFXEpoch::RandomF(0.5, 0.7);
+		g = VFXEpoch::RandomF(0.6, 0.8);
 		b = VFXEpoch::RandomF(0.8, 1.0);
 		particles[i].color = vec3(r, g, b);
 	}
@@ -138,7 +138,9 @@ static void pre_display(void)
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glEnable(GL_POINT_SMOOTH);
+	
+	// Make the pixel looks round.
+	//glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -172,7 +174,7 @@ static void draw_vector_field(float * u, float * v, float lineWidth, float r, fl
 	glEnd();
 }
 
-static void draw_particles(float * u, float * v, float pointSize, float r, float g, float b)
+static void draw_particles(float lifeSpan, float * u, float * v, float pointSize)
 {
 	glPointSize(pointSize);
 
@@ -184,7 +186,7 @@ static void draw_particles(float * u, float * v, float pointSize, float r, float
 			particles[i].y = 10 * world_scale;
 		}
 		float ratio_vel = ::sqrt(::pow(particles[i].vel.x, 2) + ::pow(particles[i].vel.y, 2));
-		if (ratio_vel <= 0.3f) {
+		if (ratio_vel <=  1.0f - lifeSpan) {
 			ratio_vel = 0.0f;
 			particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
 			particles[i].y = (VFXEpoch::RandomI(0, 20)) * world_scale;;
@@ -312,22 +314,23 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 7;
+	int idxY = 5;
 
-	for (int i = 0; i != 30; i++)
+	for (int i = 0; i != 10; i++)
 	{
 		if (i % 2 == 0) v_prev[IX(idxX + i, idxY)] = force - 15.0f * i;
 		else v_prev[IX(idxX - i, idxY)] = force - 15.0f * i;
 	}
 
-	for (int i = 0; i != 10; i++)
-	{
-		if (i % 2 == 0) dens_prev[IX(idxX + i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
-		else dens_prev[IX(idxX - i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
-	}
+	// If using desity to visualize the fluids, then enable following code
+	//for (int i = 0; i != 10; i++)
+	//{
+	//	if (i % 2 == 0) dens_prev[IX(idxX + i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
+	//	else dens_prev[IX(idxX - i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
+	//}
 	
 	if (!pause){
-		vel_step(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
+		IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		dens_step(N, dens, dens_prev, u, v, diff, dt);
 	}
 	glutSetWindow(win_id);
@@ -341,7 +344,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(u, v, 1.0f, 0.2f, 0.8f, 1.0f);
+		draw_particles(0.9f, u, v, 1.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -379,9 +382,9 @@ int main(int argc, char ** argv)
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 400.0f;
+	force = 300.0f;
 	source = 70.0f;
-	numParticles = 20000;
+	numParticles = 10000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;

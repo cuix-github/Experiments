@@ -11,7 +11,7 @@ void add_source(int N, float * x, float * s, float dt)
 	for (i = 0; i < size; i++) x[i] += dt*s[i];
 }
 
-void set_bnd(int N, int b, float * x){
+void set_boundaries(int N, int b, float * x){
 	for (int i = 1; i <= N; i++) {
 		x[IX(0, i)] = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
 		x[IX(N + 1, i)] = b == 1 ? -x[IX(N, i)] : x[IX(N, i)];
@@ -36,24 +36,24 @@ Gauss_Seidel(int N, int b, float * x, float * x0, float a, float c){
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
-		set_bnd(N, b, x);
+		set_boundaries(N, b, x);
 	}
 }
 
 void
-Gauss_Seidel_Streamfunction(int N, int b, float * x, float * x0, float a, float c){
+GSSolveStreamfunction(int N, int b, float * x, float * x0, float a, float c, int iter, float IVOCK_coef){
 	int i, j, k;
 
 	double h = 1 / double(N + 1);
 
 	// Too many hard code inside
-	for (k = 0; k < 30; k++) {
+	for (k = 0; k < iter; k++) {
 		FOR_EACH_CELL
-			x[IX(i, j)] = (x0[IX(i, j)] * h * h * 2.0f + a *
+			x[IX(i, j)] = (x0[IX(i, j)] * h * h * IVOCK_coef + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
-		set_bnd(N, b, x);
+		set_boundaries(N, b, x);
 	}
 }
 
@@ -75,7 +75,7 @@ Jacobi_solve(int N, int b, float * x, float * x0, float a, float c){
 			FOR_EACH_CELL
 			x[IX(i, j)] = aux[IX(i, j)];
 		END_FOR
-		set_bnd(N, b, x);
+		set_boundaries(N, b, x);
 	}
 
 	free(aux);
@@ -117,6 +117,28 @@ advect_particles(int N, float * u, float * v, Particle* particles, int num_parti
 }
 
 void
+vel_self_advect_rk2(int N, float * u, float * u0, float * v, float * v0, float dt){
+	int i, j;
+	
+	// TODO: Semi-Lag advect u-component
+	FOR_EACH_CELL
+		vec2 pos(i * (1 / N), (j + 0.5f) * (1 / N));
+		pos = rk2(N, u0, v0, pos, -dt);
+		u[IX(i, j)] = get_velocity(N, pos, u0, v0).x;
+	END_FOR
+
+	// TODO: Semi-Lag advect v-component
+	FOR_EACH_CELL
+		vec2 pos((i + 0.5f) * (1 / N), j * (1 / N));
+		pos = rk2(N, u0, v0, pos, -dt);
+		v[IX(i, j)] = get_velocity(N, pos, u0, v0).y;
+	END_FOR
+
+	set_boundaries(N, 1, u);
+	set_boundaries(N, 2, v);
+}
+
+void
 advect(int N, int b, float * d, float * d0, float * u, float * v, float dt){
 	int i, j, i0, j0, i1, j1;
 	float x, y, s1, t1, dt0;
@@ -145,11 +167,11 @@ advect(int N, int b, float * d, float * d0, float * u, float * v, float dt){
 		float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
 		d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
 	END_FOR
-	set_bnd(N, b, d);
+	set_boundaries(N, b, d);
 }
 
 void
-advect(int N, int b, float * d, float * d0, float * k, float * k0, float * u, float * v, float dt){
+vel_self_advect(int N, int b, float * d, float * d0, float * k, float * k0, float * u, float * v, float dt){
 	int i, j, i0, j0, i1, j1;
 	float x, y, s1, t1, dt0;
 
@@ -182,8 +204,8 @@ advect(int N, int b, float * d, float * d0, float * k, float * k0, float * u, fl
 			lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
 	END_FOR
 
-	set_bnd(N, 1, d);
-	set_bnd(N, 2, k);
+	set_boundaries(N, b, d);
+	set_boundaries(N, b, k);
 }
 
 void
@@ -198,8 +220,8 @@ project(int N, float * u, float * v, float * p, float * div){
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
 		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	END_FOR
-	set_bnd(N, 1, u);
-	set_bnd(N, 2, v);
+	set_boundaries(N, 1, u);
+	set_boundaries(N, 2, v);
 }
 
 void
@@ -218,7 +240,7 @@ dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float 
 	SWAP(x0, x); advect(N, 0, x, x0, u, v, dt);
 }
 
-void vel_step(int N, 
+void IVOCKAdvance(int N, 
 			  Particle* particles, int num_particles, 
 			  float * fx, float * fy, 
 			  float * psi,  float * du, float * dv, float * wn, float *dw, float * w_bar, float * w_star, 
@@ -247,11 +269,11 @@ void vel_step(int N,
 	SWAP(v0, v);
 	computeCurls_uniform(N, wn, u0, v0);
 	advect(N, 1, w_bar, wn, u0, v0, dt);
-	advect(N, 1, u, u0, v, v0, u0, v0, dt);
+	vel_self_advect(N, 1, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	Gauss_Seidel_Streamfunction(N, 0, psi, dw, -1, -4);
+	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
 	find_vector_potential_2D(N, du, dv, psi);
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
