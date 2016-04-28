@@ -119,7 +119,7 @@ void FluidSim::advect(float dt) {
    for(int j = 0; j < nj; ++j) for(int i = 0; i < ni+1; ++i) {
       Vec2f pos(i*dx, (j+0.5)*dx);
       pos = trace_rk2(pos, -dt);
-      temp_u(i,j) = get_velocity(pos)[0];  
+      temp_u(i,j) = get_velocity(pos)[0]; 
    }
 
    //semi-Lagrangian advection on v-component of velocity

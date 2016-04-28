@@ -1,3 +1,6 @@
+#ifndef _HELPERS_H_
+#define _HELPERS_H_
+
 #include <iostream>
 #include <iomanip>
 #include <math.h>
@@ -99,3 +102,5 @@ typedef struct {
 	vec2 vel;
 	vec3 color;
 }Particle;
+
+#endif

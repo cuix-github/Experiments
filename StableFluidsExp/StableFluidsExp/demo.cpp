@@ -2,25 +2,9 @@
 #include <stdio.h>
 #include <glut.h>
 #include "Helpers.h"
+#include "solver.h"
 
 #define IX(i,j) ((i) * (N + 2) + (j))
-
-extern void dens_step(int N,
-					  float * x, float * x0, 
-					  float * u, float * v, 
-					  float diff, float dt);
-
-extern void IVOCKAdvance(int N,
-					 Particle* particles,
-					 int num_particles,
-					 float * fx, float * fy,
-					 float * psi,
-					 float * du, float * dv,
-					 float * wn, float * dw, 
-					 float * w_bar, float * w_star, 
-					 float * u, float * v, 
-					 float * u0, float * v0, 
-					 float visc, float dt);
 
 static int N;
 static int nx;
@@ -72,7 +56,7 @@ static void clear_data(void)
 
 	for (i = 0; i<size; i++) {
 		fx[i] = fy[i] =
-		u[i] = v[i] = u_prev[i] = v_prev[i] = 
+		u[i] = v[i] = u_prev[i] = v_prev[i] =
 		dens[i] = dens_prev[i] = 
 		psi[i] = 
 		du[i] = dv[i] =
@@ -115,7 +99,7 @@ static int allocate_data(void)
 	if (!fx || !fy || 
 		!psi || 
 		!wn || !dw || !w_bar || !w_star ||
-		!u || !v || !du || !dv || !u_prev || !v_prev || 
+		!u || !v || !du || !dv || !u_prev || !v_prev ||
 		!dens || !dens_prev) {
 		fprintf(stderr, "cannot allocate data\n");
 		return (0);
@@ -140,7 +124,7 @@ static void pre_display(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	// Make the pixel looks round.
-	//glEnable(GL_POINT_SMOOTH);
+	// glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -314,12 +298,12 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 5;
+	int idxY = 7;
 
-	for (int i = 0; i != 10; i++)
+	for (int i = 0; i != 20; i++)
 	{
-		if (i % 2 == 0) v_prev[IX(idxX + i, idxY)] = force - 15.0f * i;
-		else v_prev[IX(idxX - i, idxY)] = force - 15.0f * i;
+		if (i % 2 == 0) v_prev[IX(idxX + i, idxY)] = force - 10.0f * i;
+		else v_prev[IX(idxX - i, idxY)] = force - 10.0f * i;
 	}
 
 	// If using desity to visualize the fluids, then enable following code
@@ -331,7 +315,7 @@ static void idle_func(void)
 	
 	if (!pause){
 		IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
-		dens_step(N, dens, dens_prev, u, v, diff, dt);
+		MoveDens(N, dens, dens_prev, u, v, diff, dt);
 	}
 	glutSetWindow(win_id);
 	glutPostRedisplay();
@@ -382,9 +366,9 @@ int main(int argc, char ** argv)
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 300.0f;
+	force = 400.0f;
 	source = 70.0f;
-	numParticles = 10000;
+	numParticles = 20000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;
@@ -392,6 +376,7 @@ int main(int argc, char ** argv)
 	cout << "Time step = " << dt << endl;
 	cout << "Diffuse = " << diff << endl;
 	cout << "Viscosity = " << visc << endl;
+	cout << "Force = " << force << endl;
 	cout << "Source = " << source << endl;
 	cout << "Number of Particles = " << numParticles << endl;
 

@@ -71,6 +71,9 @@
     <ClInclude Include="Utility\PCGSolver\util.h">
       <Filter>UTL</Filter>
     </ClInclude>
+    <ClInclude Include="solver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Utility\PCGSolver\ReadMe.txt">

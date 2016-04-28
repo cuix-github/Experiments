@@ -5,13 +5,14 @@
 #define FOR_EACH_CELL for ( i=1 ; i<=N ; i++ ) { for ( j=1 ; j<=N ; j++ ) {
 #define END_FOR }}
 
-void add_source(int N, float * x, float * s, float dt)
-{
+void 
+add_source(int N, float * x, float * s, float dt){
 	int i, size = (N + 2)*(N + 2);
 	for (i = 0; i < size; i++) x[i] += dt*s[i];
 }
 
-void set_boundaries(int N, int b, float * x){
+void 
+set_boundaries(int N, int b, float * x){
 	for (int i = 1; i <= N; i++) {
 		x[IX(0, i)] = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
 		x[IX(N + 1, i)] = b == 1 ? -x[IX(N, i)] : x[IX(N, i)];
@@ -116,26 +117,28 @@ advect_particles(int N, float * u, float * v, Particle* particles, int num_parti
 	}
 }
 
+// Problems: Blow up : (
+// 2nd order Runge-Kutta ODEs integrator for advection bugs
 void
-vel_self_advect_rk2(int N, float * u, float * u0, float * v, float * v0, float dt){
+vel_self_advect_rk2(int N, float * u, float * u0, float * v, float * v0, float * u_tmp, float * v_tmp, float dt){
 	int i, j;
+	float h;
+	h = 1 / N;
 	
-	// TODO: Semi-Lag advect u-component
 	FOR_EACH_CELL
-		vec2 pos(i * (1 / N), (j + 0.5f) * (1 / N));
-		pos = rk2(N, u0, v0, pos, -dt);
-		u[IX(i, j)] = get_velocity(N, pos, u0, v0).x;
+		vec2 pos(i * h, (j + 0.5f) * h);
+		pos = rk2(N, u, v, pos, -dt);
+		u0[IX(i, j)] = get_velocity(N, pos, u, v).x;
 	END_FOR
 
-	// TODO: Semi-Lag advect v-component
 	FOR_EACH_CELL
-		vec2 pos((i + 0.5f) * (1 / N), j * (1 / N));
-		pos = rk2(N, u0, v0, pos, -dt);
-		v[IX(i, j)] = get_velocity(N, pos, u0, v0).y;
+		vec2 pos((i + 0.5f) * h, j * h);
+		pos = rk2(N, u, v, pos, -dt);
+		v0[IX(i, j)] = get_velocity(N, pos, u, v).y;
 	END_FOR
 
-	set_boundaries(N, 1, u);
-	set_boundaries(N, 2, v);
+	u = u0;
+	v = v0;
 }
 
 void
@@ -175,6 +178,7 @@ vel_self_advect(int N, int b, float * d, float * d0, float * k, float * k0, floa
 	int i, j, i0, j0, i1, j1;
 	float x, y, s1, t1, dt0;
 
+	// TODO: Modify this piece of code to archive 2nd Order RK
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
@@ -234,19 +238,19 @@ add_force(int N, float dt, float * u, float * v, float * fx, float * fy){
 }
 
 void
-dens_step(int N, float * x, float * x0, float * u, float * v, float diff, float dt){
+MoveDens(int N, float * x, float * x0, float * u, float * v, float diff, float dt){
 	add_source(N, x, x0, dt);
 	SWAP(x0, x); diffuse(N, 0, x, x0, diff, dt);
 	SWAP(x0, x); advect(N, 0, x, x0, u, v, dt);
 }
 
 void IVOCKAdvance(int N, 
-			  Particle* particles, int num_particles, 
-			  float * fx, float * fy, 
-			  float * psi,  float * du, float * dv, float * wn, float *dw, float * w_bar, float * w_star, 
-			  float * u, float * v, float * u0, float * v0, 
-			  float visc, 
-			  float dt){
+				  Particle* particles, int num_particles, 
+				  float * fx, float * fy, 
+				  float * psi,  float * du, float * dv, float * wn, float *dw, float * w_bar, float * w_star, 
+				  float * u, float * v, float * u0, float * v0, 
+				  float visc, 
+				  float dt){
 
 	// IVOCK advection
 	zeros(N, wn);
@@ -260,6 +264,8 @@ void IVOCKAdvance(int N,
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);
 
+	advect_particles(N, u, v, particles, num_particles, dt);
+
 	SWAP(u0, u);
 	SWAP(v0, v);
 	diffuse(N, 1, u, u0, visc, dt);
@@ -270,16 +276,17 @@ void IVOCKAdvance(int N,
 	computeCurls_uniform(N, wn, u0, v0);
 	advect(N, 1, w_bar, wn, u0, v0, dt);
 	vel_self_advect(N, 1, u, u0, v, v0, u0, v0, dt);
+
+	// TODO: Fix the problem in Runge-Kutta 2nd order integrator for advection.
+	// vel_self_advect_rk2(N, u, u0, v, v0, u_tmp, v_tmp, dt);
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
 	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
 	find_vector_potential_2D(N, du, dv, psi);
-	linear_combine_add(N, u, u, du);
-	linear_combine_add(N, v, v, dv);
+	// linear_combine_add(N, u, u, du);
+	// linear_combine_add(N, v, v, dv);
 	project(N, u, v, u0, v0);
-
-	advect_particles(N, u, v, particles, num_particles, dt);
 }
 
 // Poisson Equation Laplace(Psi) = f(x);
