@@ -211,7 +211,7 @@ vector2D_advector(int N, int b, float * d, float * d0, float * k, float * k0, fl
 	END_FOR
 
 	set_boundaries(N, b, d);
-	set_boundaries(N, b, k);
+	set_boundaries(N, b + 1, k);
 }
 
 void
@@ -277,17 +277,17 @@ void IVOCKAdvance(int N,
 	SWAP(v0, v);
 	computeCurls_uniform(N, wn, u0, v0);
 	scalar_advector(N, 1, w_bar, wn, u0, v0, dt);
-	// vector2D_advector(N, 1, u, u0, v, v0, u0, v0, dt);
+	vector2D_advector(N, 1, u, u0, v, v0, u0, v0, dt);
 
 	// TODO: Fix the problem in Runge-Kutta 2nd order integrator for advection.
-	vector2D_advector_rk2(N, u, u0, v, v0, dt);
+	// vector2D_advector_rk2(N, u, u0, v, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
+	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 100, 2.0f);
 	find_vector_potential_2D(N, du, dv, psi);
-	// linear_combine_add(N, u, u, du);
-	// linear_combine_add(N, v, v, dv);
+	linear_combine_add(N, u, u, du);
+	linear_combine_add(N, v, v, dv);
 	project(N, u, v, u0, v0);
 }
 

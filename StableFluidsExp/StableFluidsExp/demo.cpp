@@ -368,7 +368,7 @@ int main(int argc, char ** argv)
 	visc = 0.0f;
 	force = 400.0f;
 	source = 70.0f;
-	numParticles = 20000;
+	numParticles = 50000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;
