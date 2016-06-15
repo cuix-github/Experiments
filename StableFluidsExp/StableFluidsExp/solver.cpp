@@ -257,7 +257,7 @@ void IVOCKAdvance(int N,
 				  float visc, 
 				  float dt){
 
-	if (system("CLS")) system("clear");
+	//if (system("CLS")) system("clear");
 
 	// IVOCK advection
 	zeros(N, wn);
@@ -268,27 +268,27 @@ void IVOCKAdvance(int N,
 	zeros(N, du);
 	zeros(N, dv);
 
-	zeros(N, u);
-	zeros(N, v);
-	zeros(N, u0);
-	zeros(N, v0);
+	//zeros(N, u);
+	//zeros(N, v);
+	//zeros(N, u0);
+	//zeros(N, v0);
 	
-	v0[IX(1, 1)] = 3.0f;
-	v0[IX(2, 1)] = 0.75f;
-	v0[IX(3, 1)] = 0.5f;
+	//v0[IX(1, 1)] = 3.0f;
+	//v0[IX(2, 1)] = 0.75f;
+	//v0[IX(3, 1)] = 0.5f;
 	
-	cout << endl << "u v field: " << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	cout << endl << "u0 v0 field: " << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "u v field: " << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field: " << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);
-	cout << endl << "------------------ After Add source ------------------" << endl;
-	cout << endl << "u v field: " << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	cout << endl << "u0 v0 field: " << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "------------------ After Add source ------------------" << endl;
+	//cout << endl << "u v field: " << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field: " << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 
 	particle_advector_rk2(N, u, v, particles, num_particles, dt);
 
@@ -297,20 +297,18 @@ void IVOCKAdvance(int N,
 	diffuse(N, 0, u, u0, visc, dt);
 	diffuse(N, 0, v, v0, visc, dt);
 	
-	cout << endl << "------------------ After diffuse ------------------" << endl;
-	cout << endl << "u v field: " << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	cout << endl << "u0 v0 field: " << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "------------------ After diffuse ------------------" << endl;
+	//cout << endl << "u v field: " << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field: " << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 
 	project(N, u, v, u0, v0);
-	zeros(N, u0);
-	zeros(N, v0);
-	cout << endl << "------------------ After 1st Pressure correction ------------------" << endl;
-	cout << endl << "u v field: " << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	cout << endl << "u0 v0 field: " << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "------------------ After 1st Pressure correction ------------------" << endl;
+	//cout << endl << "u v field: " << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field: " << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 
 	SWAP(u0, u);
 	SWAP(v0, v);
@@ -318,11 +316,11 @@ void IVOCKAdvance(int N,
 	computeCurls_uniform(N, wn, u0, v0);
 	scalar_advector(N, 1, w_bar, wn, u0, v0, dt);
 	vector2D_advector(N, 0, u, u0, v, v0, u0, v0, dt);
-	cout << endl << "------------------ After advection ------------------" << endl;
-	cout << endl << "u v field: " << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	cout << endl << "u0 v0 field: " << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "------------------ After advection ------------------" << endl;
+	//cout << endl << "u v field: " << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field: " << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 
 	// TODO: Fix the problem in Runge-Kutta 2nd order integrator for advection.
 	// vector2D_advector_rk2(N, u, u0, v, v0, dt);
@@ -334,14 +332,12 @@ void IVOCKAdvance(int N,
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
 	project(N, u, v, u0, v0);
-	zeros(N, u0);
-	zeros(N, v0);
 
-	cout << endl << "------------------ After 2nd pressure projection ------------------" << endl;
-	cout << endl << "u v field: " << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	cout << endl << "u0 v0 field: " << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
+	//cout << endl << "------------------ After 2nd pressure projection ------------------" << endl;
+	//cout << endl << "u v field: " << endl;
+	//displayVectorField(N + 2, N + 2, u, v);
+	//cout << endl << "u0 v0 field: " << endl;
+	//displayVectorField(N + 2, N + 2, u0, v0);
 }
 
 // Poisson Equation Laplace(Psi) = f(x);
