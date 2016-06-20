@@ -71,7 +71,7 @@ int main(int argc, char **argv)
    
    glEnable(GL_POINT_SMOOTH);
    //Set up the simulation
-   sim.initialize(grid_width, grid_resolution, grid_resolution);
+   sim.initialize(grid_width, grid_resolution, grid_resolution + 5);
    sim.set_boundary(boundary_phi);
    
    for(int i = 0; i < 100 * 10; ++i) {
