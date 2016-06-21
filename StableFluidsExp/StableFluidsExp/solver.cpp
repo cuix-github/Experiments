@@ -1,17 +1,17 @@
-#include "Helpers.h"
+﻿#include "Helpers.h"
 
 #define IX(i,j) ((i)*(N+2)+(j))
 #define SWAP(x0,x) {float * tmp=x0;x0=x;x=tmp;}
 #define FOR_EACH_CELL for ( i=1 ; i<=N ; i++ ) { for ( j=1 ; j<=N ; j++ ) {
 #define END_FOR }}
 
-void 
+void
 add_source(int N, float * x, float * s, float dt){
 	int i, size = (N + 2)*(N + 2);
 	for (i = 0; i < size; i++) x[i] += dt*s[i];
 }
 
-void 
+void
 set_boundaries(int N, int b, float * x){
 	for (int i = 1; i <= N; i++) {
 		x[IX(0, i)] = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
@@ -29,21 +29,23 @@ void
 Gauss_Seidel(int N, int b, float * x, float * x0, float a, float c){
 	int i, j, k;
 
-	for (k = 0; k < 30; k++) {
+	double h = 1 / double(N + 1);
+
+	for (k = 0; k < 20; k++) {
 		FOR_EACH_CELL
 			x[IX(i, j)] = (x0[IX(i, j)] + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
-		set_boundaries(N, b, x);
+			set_boundaries(N, b, x);
 	}
 }
 
 void
-GS_Solve_Streamfunction(int N, int b, float * x, float * x0, float a, float c, int iter, float IVOCK_coef){
+GSSolveStreamfunction(int N, int b, float * x, float * x0, float a, float c, int iter, float IVOCK_coef){
 	int i, j, k;
 
-	double h = 1 / double(N);
+	double h = 1 / double(N + 1);
 
 	// Too many hard code inside
 	for (k = 0; k < iter; k++) {
@@ -52,7 +54,7 @@ GS_Solve_Streamfunction(int N, int b, float * x, float * x0, float a, float c, i
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
-		set_boundaries(N, b, x);
+			set_boundaries(N, b, x);
 	}
 }
 
@@ -61,6 +63,7 @@ Jacobi_solve(int N, int b, float * x, float * x0, float a, float c){
 	int i, j, k;
 	int size = (N + 2) * (N + 2);
 	float* aux = (float*)malloc(size*sizeof(float));
+	double h = 1 / (double)(N + 1);
 
 	for (k = 0; k < 30; k++)
 	{
@@ -73,7 +76,7 @@ Jacobi_solve(int N, int b, float * x, float * x0, float a, float c){
 			FOR_EACH_CELL
 			x[IX(i, j)] = aux[IX(i, j)];
 		END_FOR
-		set_boundaries(N, b, x);
+			set_boundaries(N, b, x);
 	}
 
 	free(aux);
@@ -82,21 +85,15 @@ Jacobi_solve(int N, int b, float * x, float * x0, float a, float c){
 void
 diffuse(int N, int b, float * x, float * x0, float diff, float dt){
 	float a = dt*diff*N*N;
-	//Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
-	//cout << endl << "Linear Solver Parameters:" << endl;
-	//cout << "dt:" << dt << endl;
-	//cout << "diff:" << diff << endl;
-	//cout << "N:" << N << endl;
-	//cout << "a:" << a << endl;
-	Gauss_Seidel(N, b, x, x0, a, 1 + 4 * a);
+	Jacobi_solve(N, b, x, x0, a, 1 + 4 * a);
 }
 
 vec2
 get_velocity(int N, const vec2& position, float * u, float * v){
-	float u1, v1;
-	u1 = interpolate(N, position.x * N, position.y * N - 0.5f, u);
-	v1 = interpolate(N, position.x * N - 0.5f, position.y * N, v);
-	return vec2(u1, v1);
+	float u0, v0;
+	u0 = interpolate(N, position.x * N - 0.0f, position.y * N - 0.5f, u);
+	v0 = interpolate(N, position.x * N - 0.5f, position.y * N - 0.0f, v);
+	return vec2(u0, v0);
 }
 
 // Mark:
@@ -110,7 +107,7 @@ vec2 rk2(int N, float * u, float * v, const vec2& position, float dt){
 }
 
 void
-particle_advector_rk2(int N, float * u, float * v, Particle* particles, int num_particles, float dt){
+advect_particles(int N, float * u, float * v, Particle* particles, int num_particles, float dt){
 	vec2 pos(0.0f, 0.0f);
 	for (int i = 0; i != num_particles; i++){
 		pos.x = pos.y = 0.0f;
@@ -123,63 +120,61 @@ particle_advector_rk2(int N, float * u, float * v, Particle* particles, int num_
 // Problems: Blow up : (
 // 2nd order Runge-Kutta ODEs integrator for advection bugs
 void
-vector2D_advector_rk2(int N, float * u, float * u0, float * v, float * v0, float dt){
+vel_self_advect_rk2(int N, float * u, float * u0, float * v, float * v0, float * u_tmp, float * v_tmp, float dt){
 	int i, j;
 	float h;
 	h = 1 / N;
 
-	dt *= N;
-	
 	FOR_EACH_CELL
 		vec2 pos(i * h, (j + 0.5f) * h);
-		pos = rk2(N, u, v, pos, -dt);
-		u0[IX(i, j)] = get_velocity(N, pos, u, v).x;
+	pos = rk2(N, u, v, pos, -dt);
+	u0[IX(i, j)] = get_velocity(N, pos, u, v).x;
 	END_FOR
 
-	FOR_EACH_CELL
+		FOR_EACH_CELL
 		vec2 pos((i + 0.5f) * h, j * h);
-		pos = rk2(N, u, v, pos, -dt);
-		v0[IX(i, j)] = get_velocity(N, pos, u, v).y;
+	pos = rk2(N, u, v, pos, -dt);
+	v0[IX(i, j)] = get_velocity(N, pos, u, v).y;
 	END_FOR
 
-	u = u0;
+		u = u0;
 	v = v0;
 }
 
 void
-scalar_advector(int N, int b, float * d, float * d0, float * u, float * v, float dt){
+advect(int N, int b, float * d, float * d0, float * u, float * v, float dt){
 	int i, j, i0, j0, i1, j1;
 	float x, y, s1, t1, dt0;
 
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
-		y = j - dt0*v[IX(i, j)];
+	y = j - dt0*v[IX(i, j)];
 
-		if (x < 0.5f) x = 0.5f;
-		if (x > N + 0.5f) x = N + 0.5f;
+	if (x < 0.5f) x = 0.5f;
+	if (x > N + 0.5f) x = N + 0.5f;
 
-		i0 = (int)x;
-		i1 = i0 + 1;
+	i0 = (int)x;
+	i1 = i0 + 1;
 
-		if (y < 0.5f) y = 0.5f;
-		if (y > N + 0.5f) y = N + 0.5f;
+	if (y < 0.5f) y = 0.5f;
+	if (y > N + 0.5f) y = N + 0.5f;
 
-		j0 = (int)y;
-		j1 = j0 + 1;
+	j0 = (int)y;
+	j1 = j0 + 1;
 
-		s1 = x - i0;
-		t1 = y - j0;
+	s1 = x - i0;
+	t1 = y - j0;
 
-		float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
-		float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
-		d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
+	float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
+	float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
+	d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
 	END_FOR
-	set_boundaries(N, b, d);
+		set_boundaries(N, b, d);
 }
 
 void
-vector2D_advector(int N, int b, float * d, float * d0, float * k, float * k0, float * u, float * v, float dt){
+vel_self_advect(int N, int b, float * d, float * d0, float * k, float * k0, float * u, float * v, float dt){
 	int i, j, i0, j0, i1, j1;
 	float x, y, s1, t1, dt0;
 
@@ -187,33 +182,33 @@ vector2D_advector(int N, int b, float * d, float * d0, float * k, float * k0, fl
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
-		y = j - dt0*v[IX(i, j)];
+	y = j - dt0*v[IX(i, j)];
 
-		if (x < 0.5f) x = 0.5f;
-		if (x > N + 0.5f) x = N + 0.5f;
+	if (x < 0.5f) x = 0.5f;
+	if (x > N + 0.5f) x = N + 0.5f;
 
-		i0 = (int)x;
-		i1 = i0 + 1;
+	i0 = (int)x;
+	i1 = i0 + 1;
 
-		if (y < 0.5f) y = 0.5f;
-		if (y > N + 0.5f) y = N + 0.5f;
+	if (y < 0.5f) y = 0.5f;
+	if (y > N + 0.5f) y = N + 0.5f;
 
-		j0 = (int)y;
-		j1 = j0 + 1;
+	j0 = (int)y;
+	j1 = j0 + 1;
 
-		s1 = x - i0;
-		t1 = y - j0;
+	s1 = x - i0;
+	t1 = y - j0;
 
-		d[IX(i, j)] = lerp(s1,
-			lerp(t1, d0[IX(i0, j0)], d0[IX(i0, j1)]),
-			lerp(t1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
+	d[IX(i, j)] = lerp(s1,
+		lerp(t1, d0[IX(i0, j0)], d0[IX(i0, j1)]),
+		lerp(t1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
 
-		k[IX(i, j)] = lerp(s1,
-			lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]),
-			lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
+	k[IX(i, j)] = lerp(s1,
+		lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]),
+		lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
 	END_FOR
 
-	set_boundaries(N, b, d);
+		set_boundaries(N, b, d);
 	set_boundaries(N, b, k);
 }
 
@@ -227,9 +222,9 @@ project(int N, float * u, float * v, float * p, float * div){
 	Jacobi_solve(N, 0, p, div, 1, 4);
 	FOR_EACH_CELL
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
-		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
+	v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	END_FOR
-	set_boundaries(N, 0, u);
+		set_boundaries(N, 0, u);
 	set_boundaries(N, 0, v);
 }
 
@@ -238,7 +233,7 @@ add_force(int N, float dt, float * u, float * v, float * fx, float * fy){
 	int i, j;
 	FOR_EACH_CELL
 		v[IX(i, j)] += dt * fy[IX(i, j)];
-		u[IX(i, j)] += dt * fx[IX(i, j)];
+	u[IX(i, j)] += dt * fx[IX(i, j)];
 	END_FOR
 }
 
@@ -246,41 +241,52 @@ void
 MoveDens(int N, float * x, float * x0, float * u, float * v, float diff, float dt){
 	add_source(N, x, x0, dt);
 	SWAP(x0, x); diffuse(N, 0, x, x0, diff, dt);
-	SWAP(x0, x); scalar_advector(N, 0, x, x0, u, v, dt);
+	SWAP(x0, x); advect(N, 0, x, x0, u, v, dt);
 }
 
-void IVOCKAdvance(int N, 
-				  Particle* particles, int num_particles, 
-				  float * fx, float * fy, 
-				  float * psi,  float * du, float * dv, float * wn, float *dw, float * w_bar, float * w_star, 
-				  float * u, float * v, float * u0, float * v0, 
-				  float visc, 
-				  float dt){
+void IVOCKAdvance(int N,
+	Particle* particles, int num_particles,
+	float * fx, float * fy,
+	float * psi, float * du, float * dv, float * wn, float *dw, float * w_bar, float * w_star,
+	float * u, float * v, float * u0, float * v0,
+	float visc,
+	float dt){
 
-	//if (system("CLS")) system("clear");
-
-	// IVOCK advection
-	zeros(N, wn);
-	zeros(N, w_bar);
-	zeros(N, w_star);
-	zeros(N, dw);
-	zeros(N, psi);
-	zeros(N, du);
-	zeros(N, dv);
-
-	//zeros(N, u);
-	//zeros(N, v);
-	//zeros(N, u0);
-	//zeros(N, v0);
-	
-	//v0[IX(1, 1)] = 3.0f;
-	//v0[IX(2, 1)] = 0.75f;
-	//v0[IX(3, 1)] = 0.5f;
-	
-	//cout << endl << "u v field: " << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field: " << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
+	//// IVOCK advection
+	//zeros(N, wn);
+	//zeros(N, w_bar);
+	//zeros(N, w_star);
+	//zeros(N, dw);
+	//zeros(N, psi);
+	//zeros(N, du);
+	//zeros(N, dv);
+	//
+	//add_source(N, u, u0, dt);
+	//add_source(N, v, v0, dt);
+	//
+	//advect_particles(N, u, v, particles, num_particles, dt);
+	//
+	//SWAP(u0, u);
+	//SWAP(v0, v);
+	//diffuse(N, 1, u, u0, visc, dt);
+	//diffuse(N, 2, v, v0, visc, dt);
+	//project(N, u, v, u0, v0);
+	//SWAP(u0, u);
+	//SWAP(v0, v);
+	//computeCurls_uniform(N, wn, u0, v0);
+	//advect(N, 1, w_bar, wn, u0, v0, dt);
+	//vel_self_advect(N, 1, u, u0, v, v0, u0, v0, dt);
+	//
+	//// TODO: Fix the problem in Runge-Kutta 2nd order integrator for advection.
+	//// vel_self_advect_rk2(N, u, u0, v, v0, u_tmp, v_tmp, dt);
+	//computeCurls_uniform(N, w_star, u, v);
+	//linear_combine_sub(N, dw, w_bar, w_star);
+	//scaler(N, dw, -1.0f);
+	//GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
+	//find_vector_potential_2D(N, du, dv, psi);
+	//linear_combine_add(N, u, u, du);
+	//linear_combine_add(N, v, v, dv);
+	//project(N, u, v, u0, v0);
 
 	zeros(N, u0);
 	zeros(N, v0);
@@ -298,13 +304,13 @@ void IVOCKAdvance(int N,
 	cout << endl << "u0 v0 field: " << endl;
 	displayVectorField(N + 2, N + 2, u0, v0);
 
-	particle_advector_rk2(N, u, v, particles, num_particles, dt);
+	advect_particles(N, u, v, particles, num_particles, dt);
 
 	SWAP(u0, u);
 	SWAP(v0, v);
 	diffuse(N, 0, u, u0, visc, dt);
 	diffuse(N, 0, v, v0, visc, dt);
-	
+
 	//cout << endl << "------------------ After diffuse ------------------" << endl;
 	//cout << endl << "u v field: " << endl;
 	//displayVectorField(N + 2, N + 2, u, v);
@@ -324,10 +330,10 @@ void IVOCKAdvance(int N,
 	computeCurls_uniform(N, wn, u0, v0);
 	cout << "wn field" << endl;
 	displayField(N + 2, N + 2, wn);
-	scalar_advector(N, 1, w_bar, wn, u0, v0, dt);
+	advect(N, 0, w_bar, wn, u0, v0, dt);
 	cout << "w_bar field" << endl;
 	displayField(N + 2, N + 2, w_bar);
-	vector2D_advector(N, 0, u, u0, v, v0, u0, v0, dt);
+	vel_self_advect(N, 0, u, u0, v, v0, u0, v0, dt);
 	//cout << endl << "------------------ After advection ------------------" << endl;
 	//cout << endl << "u v field: " << endl;
 	//displayVectorField(N + 2, N + 2, u, v);
@@ -337,12 +343,20 @@ void IVOCKAdvance(int N,
 	// TODO: Fix the problem in Runge-Kutta 2nd order integrator for advection.
 	// vector2D_advector_rk2(N, u, u0, v, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
+	cout << "w_star field" << endl;
+	displayField(N + 2, N + 2, w_star);
+	cout << "w_bar field" << endl;
+	displayField(N + 2, N + 2, w_bar);
 	linear_combine_sub(N, dw, w_bar, w_star);
+	cout << "dw before scaling" << endl;
+	displayField(N + 2, N + 2, dw);
 	scaler(N, dw, -1.0f);
-	GS_Solve_Streamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
+	cout << "dw field" << endl;
+	displayField(N + 2, N + 2, dw);
+	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
 	cout << "psi from dw" << endl;
 	displayField(N + 2, N + 2, psi);
-	
+
 	find_vector_potential_2D(N, du, dv, psi);
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);

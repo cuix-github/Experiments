@@ -56,11 +56,11 @@ static void clear_data(void)
 
 	for (i = 0; i<size; i++) {
 		fx[i] = fy[i] =
-		u[i] = v[i] = u_prev[i] = v_prev[i] =
-		dens[i] = dens_prev[i] = 
-		psi[i] = 
-		du[i] = dv[i] =
-		wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
+			u[i] = v[i] = u_prev[i] = v_prev[i] =
+			dens[i] = dens_prev[i] =
+			psi[i] =
+			du[i] = dv[i] =
+			wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
 	}
 
 	float r, g, b;
@@ -94,10 +94,10 @@ static int allocate_data(void)
 	dens = (float *)malloc(size*sizeof(float));
 	dens_prev = (float *)malloc(size*sizeof(float));
 	particles = (Particle*)malloc(numParticles*sizeof(Particle));
-	
 
-	if (!fx || !fy || 
-		!psi || 
+
+	if (!fx || !fy ||
+		!psi ||
 		!wn || !dw || !w_bar || !w_star ||
 		!u || !v || !du || !dv || !u_prev || !v_prev ||
 		!dens || !dens_prev) {
@@ -122,7 +122,7 @@ static void pre_display(void)
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	// Make the pixel looks round.
 	// glEnable(GL_POINT_SMOOTH);
 }
@@ -151,7 +151,7 @@ static void draw_vector_field(float * u, float * v, float lineWidth, float r, fl
 
 			glVertex2f(x, y);
 			glVertex2f(x + u[IX(i, j)] * streamline_length / N,
-					   y + v[IX(i, j)] * streamline_length / N);
+				y + v[IX(i, j)] * streamline_length / N);
 		}
 	}
 
@@ -170,7 +170,7 @@ static void draw_particles(float lifeSpan, float * u, float * v, float pointSize
 			particles[i].y = 10 * world_scale;
 		}
 		float ratio_vel = ::sqrt(::pow(particles[i].vel.x, 2) + ::pow(particles[i].vel.y, 2));
-		if (ratio_vel <=  1.0f - lifeSpan) {
+		if (ratio_vel <= 1.0f - lifeSpan) {
 			ratio_vel = 0.0f;
 			particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
 			particles[i].y = (VFXEpoch::RandomI(0, 20)) * world_scale;;
@@ -312,7 +312,7 @@ static void idle_func(void)
 	//	if (i % 2 == 0) dens_prev[IX(idxX + i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
 	//	else dens_prev[IX(idxX - i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
 	//}
-	
+
 	if (!pause){
 		IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
 		MoveDens(N, dens, dens_prev, u, v, diff, dt);
@@ -340,7 +340,7 @@ static void open_glut_window(void)
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - win_x) / 2,
-						   (glutGet(GLUT_SCREEN_HEIGHT) - win_y) / 2);
+		(glutGet(GLUT_SCREEN_HEIGHT) - win_y) / 2);
 	glutInitWindowSize(win_x, win_y);
 	win_id = glutCreateWindow("Smoke");
 
@@ -368,7 +368,7 @@ int main(int argc, char ** argv)
 	visc = 0.0f;
 	force = 400.0f;
 	source = 70.0f;
-	numParticles = 50000;
+	numParticles = 20000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;
