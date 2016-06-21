@@ -282,13 +282,21 @@ void IVOCKAdvance(int N,
 	//cout << endl << "u0 v0 field: " << endl;
 	//displayVectorField(N + 2, N + 2, u0, v0);
 
+	zeros(N, u0);
+	zeros(N, v0);
+
+	u0[IX(2, 2)] = 3.0f;
+	v0[IX(2, 2)] = 1.75f;
+	u0[IX(3, 2)] = 4.0f;
+	v0[IX(3, 2)] = 10.0f;
+
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);
-	//cout << endl << "------------------ After Add source ------------------" << endl;
-	//cout << endl << "u v field: " << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field: " << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
+	cout << endl << "------------------ After Add source ------------------" << endl;
+	cout << endl << "u v field: " << endl;
+	displayVectorField(N + 2, N + 2, u, v);
+	cout << endl << "u0 v0 field: " << endl;
+	displayVectorField(N + 2, N + 2, u0, v0);
 
 	particle_advector_rk2(N, u, v, particles, num_particles, dt);
 
@@ -304,17 +312,21 @@ void IVOCKAdvance(int N,
 	//displayVectorField(N + 2, N + 2, u0, v0);
 
 	project(N, u, v, u0, v0);
-	//cout << endl << "------------------ After 1st Pressure correction ------------------" << endl;
-	//cout << endl << "u v field: " << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field: " << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
+	cout << endl << "------------------ After 1st Pressure correction ------------------" << endl;
+	cout << endl << "u v field: " << endl;
+	displayVectorField(N + 2, N + 2, u, v);
+	cout << endl << "u0 v0 field: " << endl;
+	displayVectorField(N + 2, N + 2, u0, v0);
 
 	SWAP(u0, u);
 	SWAP(v0, v);
 
 	computeCurls_uniform(N, wn, u0, v0);
+	cout << "wn field" << endl;
+	displayField(N + 2, N + 2, wn);
 	scalar_advector(N, 1, w_bar, wn, u0, v0, dt);
+	cout << "w_bar field" << endl;
+	displayField(N + 2, N + 2, w_bar);
 	vector2D_advector(N, 0, u, u0, v, v0, u0, v0, dt);
 	//cout << endl << "------------------ After advection ------------------" << endl;
 	//cout << endl << "u v field: " << endl;
@@ -327,11 +339,16 @@ void IVOCKAdvance(int N,
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	GS_Solve_Streamfunction(N, 0, psi, dw, -1, -4, 50, 2.0f);
+	GS_Solve_Streamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
+	cout << "psi from dw" << endl;
+	displayField(N + 2, N + 2, psi);
+	
 	find_vector_potential_2D(N, du, dv, psi);
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
 	project(N, u, v, u0, v0);
+	cout << "Final v field" << endl;
+	displayVectorField(N + 2, N + 2, u, v);
 
 	//cout << endl << "------------------ After 2nd pressure projection ------------------" << endl;
 	//cout << endl << "u v field: " << endl;
