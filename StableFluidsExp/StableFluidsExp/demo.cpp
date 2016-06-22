@@ -298,7 +298,7 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 5;
+	int idxY = 20;
 
 	v_prev[IX(idxX, idxY)] = force * 0.5f;
 	v_prev[IX(idxX - 2, idxY)] = force;
@@ -325,7 +325,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(0.99f, u, v, 3.0f);
+		draw_particles(0.9f, u, v, 3.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -359,11 +359,11 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 192;
+	N = 4;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 10.0f;
+	force = 100.0f;
 	source = 70.0f;
 	numParticles = 50000;
 	world_scale = 1.0 / N;
