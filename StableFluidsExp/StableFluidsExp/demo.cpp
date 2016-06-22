@@ -67,9 +67,9 @@ static void clear_data(void)
 	for (int i = 0; i != numParticles; i++){
 		particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
 		particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;
-		r = VFXEpoch::RandomF(0.5, 0.7);
-		g = VFXEpoch::RandomF(0.6, 0.8);
-		b = VFXEpoch::RandomF(0.8, 1.0);
+		r = 1.0f;
+		g = 1.0f;
+		b = 1.0f;
 		particles[i].color = vec3(r, g, b);
 	}
 }
@@ -169,7 +169,7 @@ static void draw_particles(float lifeSpan, float * u, float * v, float pointSize
 			particles[i].x = (N / 2) * world_scale;
 			particles[i].y = 10 * world_scale;
 		}
-		float ratio_vel = ::sqrt(::pow(particles[i].vel.x, 2) + ::pow(particles[i].vel.y, 2));
+		float ratio_vel = ::sqrt(::pow(particles[i].vel.x, 2) + ::pow(particles[i].vel.y, 2)) * 10.0f;
 		if (ratio_vel <= 1.0f - lifeSpan) {
 			ratio_vel = 0.0f;
 			particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
@@ -231,8 +231,8 @@ static void get_from_UI(float * d, float * u, float * v)
 	if (i<1 || i>N || j<1 || j>N) return;
 
 	if (mouse_down[0]) {
-		u[IX(i, j)] = force * 0.06f * (mx - omx);
-		v[IX(i, j)] = force * 0.06f * (omy - my);
+		u[IX(i, j)] = force * (mx - omx);
+		v[IX(i, j)] = force * (omy - my);
 	}
 
 	if (mouse_down[2]) {
@@ -298,20 +298,17 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 7;
+	int idxY = 5;
 
-	for (int i = 0; i != 20; i++)
-	{
-		if (i % 2 == 0) v_prev[IX(idxX + i, idxY)] = force - 10.0f * i;
-		else v_prev[IX(idxX - i, idxY)] = force - 10.0f * i;
-	}
-
-	// If using desity to visualize the fluids, then enable following code
-	//for (int i = 0; i != 10; i++)
-	//{
-	//	if (i % 2 == 0) dens_prev[IX(idxX + i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
-	//	else dens_prev[IX(idxX - i, idxY)] = (source - 15.0f * i) >= 0 ? (source - 15.0f * i) : 0;
-	//}
+	v_prev[IX(idxX, idxY)] = force * 0.5f;
+	v_prev[IX(idxX - 2, idxY)] = force;
+	v_prev[IX(idxX - 1, idxY)] = force;
+	v_prev[IX(idxX + 1, idxY)] = force;
+	v_prev[IX(idxX + 2, idxY)] = force;
+	v_prev[IX(idxX - 3, idxY)] = force;
+	v_prev[IX(idxX - 4, idxY)] = force;
+	v_prev[IX(idxX + 3, idxY)] = force;
+	v_prev[IX(idxX + 4, idxY)] = force;
 
 	if (!pause){
 		IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
@@ -328,7 +325,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(0.9f, u, v, 1.0f);
+		draw_particles(0.99f, u, v, 3.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -362,13 +359,13 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 4;
+	N = 192;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 400.0f;
+	force = 10.0f;
 	source = 70.0f;
-	numParticles = 20000;
+	numParticles = 50000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;

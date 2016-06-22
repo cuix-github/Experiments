@@ -107,7 +107,7 @@ vec2 rk2(int N, float * u, float * v, const vec2& position, float dt){
 }
 
 void
-advect_particles(int N, float * u, float * v, Particle* particles, int num_particles, float dt){
+particles_advector(int N, float * u, float * v, Particle* particles, int num_particles, float dt){
 	vec2 pos(0.0f, 0.0f);
 	for (int i = 0; i != num_particles; i++){
 		pos.x = pos.y = 0.0f;
@@ -120,61 +120,43 @@ advect_particles(int N, float * u, float * v, Particle* particles, int num_parti
 // Problems: Blow up : (
 // 2nd order Runge-Kutta ODEs integrator for advection bugs
 void
-vel_self_advect_rk2(int N, float * u, float * u0, float * v, float * v0, float * u_tmp, float * v_tmp, float dt){
-	int i, j;
-	float h;
-	h = 1 / N;
-
-	FOR_EACH_CELL
-		vec2 pos(i * h, (j + 0.5f) * h);
-	pos = rk2(N, u, v, pos, -dt);
-	u0[IX(i, j)] = get_velocity(N, pos, u, v).x;
-	END_FOR
-
-		FOR_EACH_CELL
-		vec2 pos((i + 0.5f) * h, j * h);
-	pos = rk2(N, u, v, pos, -dt);
-	v0[IX(i, j)] = get_velocity(N, pos, u, v).y;
-	END_FOR
-
-		u = u0;
-	v = v0;
+vector_advector_rk2(int N, float * u, float * u0, float * v, float * v0, float * u_tmp, float * v_tmp, float dt){
+	// TODO: Runge Kutta integrator (2nd order)
 }
 
 void
-advect(int N, int b, float * d, float * d0, float * u, float * v, float dt){
+scalar_advector(int N, float * d, float * d0, float * u, float * v, float dt){
 	int i, j, i0, j0, i1, j1;
 	float x, y, s1, t1, dt0;
 
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
-	y = j - dt0*v[IX(i, j)];
+		y = j - dt0*v[IX(i, j)];
 
-	if (x < 0.5f) x = 0.5f;
-	if (x > N + 0.5f) x = N + 0.5f;
+		if (x < 0.5f) x = 0.5f;
+		if (x > N + 0.5f) x = N + 0.5f;
 
-	i0 = (int)x;
-	i1 = i0 + 1;
+		i0 = (int)x;
+		i1 = i0 + 1;
 
-	if (y < 0.5f) y = 0.5f;
-	if (y > N + 0.5f) y = N + 0.5f;
+		if (y < 0.5f) y = 0.5f;
+		if (y > N + 0.5f) y = N + 0.5f;
 
-	j0 = (int)y;
-	j1 = j0 + 1;
+		j0 = (int)y;
+		j1 = j0 + 1;
 
-	s1 = x - i0;
-	t1 = y - j0;
+		s1 = x - i0;
+		t1 = y - j0;
 
-	float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
-	float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
-	d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
+		float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
+		float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
+		d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
 	END_FOR
-		set_boundaries(N, b, d);
 }
 
 void
-vel_self_advect(int N, int b, float * d, float * d0, float * k, float * k0, float * u, float * v, float dt){
+vector_advector(int N, float * d, float * d0, float * k, float * k0, float * u, float * v, float dt){
 	int i, j, i0, j0, i1, j1;
 	float x, y, s1, t1, dt0;
 
@@ -182,34 +164,31 @@ vel_self_advect(int N, int b, float * d, float * d0, float * k, float * k0, floa
 	dt0 = dt*N;
 	FOR_EACH_CELL
 		x = i - dt0*u[IX(i, j)];
-	y = j - dt0*v[IX(i, j)];
+		y = j - dt0*v[IX(i, j)];
 
-	if (x < 0.5f) x = 0.5f;
-	if (x > N + 0.5f) x = N + 0.5f;
+		if (x < 0.5f) x = 0.5f;
+		if (x > N + 0.5f) x = N + 0.5f;
 
-	i0 = (int)x;
-	i1 = i0 + 1;
+		i0 = (int)x;
+		i1 = i0 + 1;
 
-	if (y < 0.5f) y = 0.5f;
-	if (y > N + 0.5f) y = N + 0.5f;
+		if (y < 0.5f) y = 0.5f;
+		if (y > N + 0.5f) y = N + 0.5f;
 
-	j0 = (int)y;
-	j1 = j0 + 1;
+		j0 = (int)y;
+		j1 = j0 + 1;
 
-	s1 = x - i0;
-	t1 = y - j0;
+		s1 = x - i0;
+		t1 = y - j0;
 
-	d[IX(i, j)] = lerp(s1,
-		lerp(t1, d0[IX(i0, j0)], d0[IX(i0, j1)]),
-		lerp(t1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
+		d[IX(i, j)] = lerp(s1,
+			lerp(t1, d0[IX(i0, j0)], d0[IX(i0, j1)]),
+			lerp(t1, d0[IX(i1, j0)], d0[IX(i1, j1)]));
 
-	k[IX(i, j)] = lerp(s1,
-		lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]),
-		lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
+		k[IX(i, j)] = lerp(s1,
+			lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]),
+			lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
 	END_FOR
-
-		set_boundaries(N, b, d);
-	set_boundaries(N, b, k);
 }
 
 void
@@ -224,7 +203,7 @@ project(int N, float * u, float * v, float * p, float * div){
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
 	v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	END_FOR
-		set_boundaries(N, 0, u);
+	set_boundaries(N, 0, u);
 	set_boundaries(N, 0, v);
 }
 
@@ -241,7 +220,7 @@ void
 MoveDens(int N, float * x, float * x0, float * u, float * v, float diff, float dt){
 	add_source(N, x, x0, dt);
 	SWAP(x0, x); diffuse(N, 0, x, x0, diff, dt);
-	SWAP(x0, x); advect(N, 0, x, x0, u, v, dt);
+	SWAP(x0, x); scalar_advector(N, x, x0, u, v, dt);
 }
 
 void IVOCKAdvance(int N,
@@ -260,115 +239,38 @@ void IVOCKAdvance(int N,
 	//zeros(N, psi);
 	//zeros(N, du);
 	//zeros(N, dv);
-	//
-	//add_source(N, u, u0, dt);
-	//add_source(N, v, v0, dt);
-	//
-	//advect_particles(N, u, v, particles, num_particles, dt);
-	//
-	//SWAP(u0, u);
-	//SWAP(v0, v);
-	//diffuse(N, 1, u, u0, visc, dt);
-	//diffuse(N, 2, v, v0, visc, dt);
-	//project(N, u, v, u0, v0);
-	//SWAP(u0, u);
-	//SWAP(v0, v);
-	//computeCurls_uniform(N, wn, u0, v0);
-	//advect(N, 1, w_bar, wn, u0, v0, dt);
-	//vel_self_advect(N, 1, u, u0, v, v0, u0, v0, dt);
-	//
-	//// TODO: Fix the problem in Runge-Kutta 2nd order integrator for advection.
-	//// vel_self_advect_rk2(N, u, u0, v, v0, u_tmp, v_tmp, dt);
-	//computeCurls_uniform(N, w_star, u, v);
-	//linear_combine_sub(N, dw, w_bar, w_star);
-	//scaler(N, dw, -1.0f);
-	//GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
-	//find_vector_potential_2D(N, du, dv, psi);
-	//linear_combine_add(N, u, u, du);
-	//linear_combine_add(N, v, v, dv);
-	//project(N, u, v, u0, v0);
 
-	zeros(N, u0);
-	zeros(N, v0);
-
-	u0[IX(2, 2)] = 3.0f;
-	v0[IX(2, 2)] = 1.75f;
-	u0[IX(3, 2)] = 4.0f;
-	v0[IX(3, 2)] = 10.0f;
+	//u0[IX(2, 2)] = 3.0f;
+	//v0[IX(2, 2)] = 1.75f;
+	//u0[IX(3, 2)] = 4.0f;
+	//v0[IX(3, 2)] = 10.0f;
 
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);
-	cout << endl << "------------------ After Add source ------------------" << endl;
-	cout << endl << "u v field: " << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	cout << endl << "u0 v0 field: " << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
 
-	advect_particles(N, u, v, particles, num_particles, dt);
+	particles_advector(N, u, v, particles, num_particles, dt);
 
 	SWAP(u0, u);
 	SWAP(v0, v);
 	diffuse(N, 0, u, u0, visc, dt);
 	diffuse(N, 0, v, v0, visc, dt);
 
-	//cout << endl << "------------------ After diffuse ------------------" << endl;
-	//cout << endl << "u v field: " << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field: " << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-
 	project(N, u, v, u0, v0);
-	cout << endl << "------------------ After 1st Pressure correction ------------------" << endl;
-	cout << endl << "u v field: " << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-	cout << endl << "u0 v0 field: " << endl;
-	displayVectorField(N + 2, N + 2, u0, v0);
 
 	SWAP(u0, u);
 	SWAP(v0, v);
 
 	computeCurls_uniform(N, wn, u0, v0);
-	cout << "wn field" << endl;
-	displayField(N + 2, N + 2, wn);
-	advect(N, 0, w_bar, wn, u0, v0, dt);
-	cout << "w_bar field" << endl;
-	displayField(N + 2, N + 2, w_bar);
-	vel_self_advect(N, 0, u, u0, v, v0, u0, v0, dt);
-	//cout << endl << "------------------ After advection ------------------" << endl;
-	//cout << endl << "u v field: " << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field: " << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
-
-	// TODO: Fix the problem in Runge-Kutta 2nd order integrator for advection.
-	// vector2D_advector_rk2(N, u, u0, v, v0, dt);
+	scalar_advector(N, w_bar, wn, u0, v0, dt);
+	vector_advector(N, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
-	cout << "w_star field" << endl;
-	displayField(N + 2, N + 2, w_star);
-	cout << "w_bar field" << endl;
-	displayField(N + 2, N + 2, w_bar);
 	linear_combine_sub(N, dw, w_bar, w_star);
-	cout << "dw before scaling" << endl;
-	displayField(N + 2, N + 2, dw);
 	scaler(N, dw, -1.0f);
-	cout << "dw field" << endl;
-	displayField(N + 2, N + 2, dw);
 	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
-	cout << "psi from dw" << endl;
-	displayField(N + 2, N + 2, psi);
-
 	find_vector_potential_2D(N, du, dv, psi);
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
 	project(N, u, v, u0, v0);
-	cout << "Final v field" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
-
-	//cout << endl << "------------------ After 2nd pressure projection ------------------" << endl;
-	//cout << endl << "u v field: " << endl;
-	//displayVectorField(N + 2, N + 2, u, v);
-	//cout << endl << "u0 v0 field: " << endl;
-	//displayVectorField(N + 2, N + 2, u0, v0);
 }
 
 // Poisson Equation Laplace(Psi) = f(x);
