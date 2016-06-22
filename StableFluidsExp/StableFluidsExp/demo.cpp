@@ -300,7 +300,7 @@ static void idle_func(void)
 	int idxX = N / 2;
 	int idxY = 20;
 
-	v_prev[IX(idxX, idxY)] = force * 0.5f;
+	v_prev[IX(idxX, idxY)] = force * 10.f;
 	v_prev[IX(idxX - 2, idxY)] = force;
 	v_prev[IX(idxX - 1, idxY)] = force;
 	v_prev[IX(idxX + 1, idxY)] = force;
@@ -325,7 +325,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(0.9f, u, v, 3.0f);
+		draw_particles(0.5f, u, v, 3.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -365,7 +365,7 @@ int main(int argc, char ** argv)
 	visc = 0.0f;
 	force = 100.0f;
 	source = 70.0f;
-	numParticles = 50000;
+	numParticles = 30000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;
