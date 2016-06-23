@@ -45,7 +45,7 @@ void
 GSSolveStreamfunction(int N, int b, float * x, float * x0, float a, float c, int iter, float IVOCK_coef){
 	int i, j, k;
 
-	double h = 1 / double(N + 1);
+	double h = 1 / double(N);
 
 	// Too many hard code inside
 	for (k = 0; k < iter; k++) {
@@ -240,14 +240,14 @@ void IVOCKAdvance(int N,
 	zeros(N, du);
 	zeros(N, dv);
 
-	//zeros(N, u0);
-	//zeros(N, v0);
-	//zeros(N, u);
-	//zeros(N, v);
-	//u0[IX(2, 2)] = 3.0f;
-	//v0[IX(2, 2)] = 1.75f;
-	//u0[IX(3, 2)] = 4.0f;
-	//v0[IX(3, 2)] = 10.0f;
+	zeros(N, u0);
+	zeros(N, v0);
+	zeros(N, u);
+	zeros(N, v);
+	u0[IX(2, 2)] = 3.0f;
+	v0[IX(2, 2)] = 1.75f;
+	u0[IX(3, 2)] = 4.0f;
+	v0[IX(3, 2)] = 10.0f;
 
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);
@@ -271,8 +271,12 @@ void IVOCKAdvance(int N,
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 1.0f);
+	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
 	find_vector_potential_2D(N, du, dv, psi);
+	cout << endl << "dvel field" << endl;
+	displayField(N + 2, N + 2, psi);
+	cout << endl << "dvel field" << endl;
+	displayVectorField(N + 2, N + 2, du, dv);
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
 	project(N, u, v, u0, v0);
