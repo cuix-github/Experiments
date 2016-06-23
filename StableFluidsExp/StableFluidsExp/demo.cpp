@@ -325,7 +325,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(0.5f, u, v, 3.0f);
+		draw_particles(0.5f, u, v, 5.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -359,13 +359,13 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 4;
+	N = 192;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
 	force = 100.0f;
 	source = 70.0f;
-	numParticles = 30000;
+	numParticles = 30;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;

@@ -252,7 +252,7 @@ void IVOCKAdvance(int N,
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);
 
-	particles_advector(N, u, v, particles, num_particles, dt);
+	//particles_advector(N, u, v, particles, num_particles, dt);
 
 	SWAP(u0, u);
 	SWAP(v0, v);
@@ -275,11 +275,7 @@ void IVOCKAdvance(int N,
 	find_vector_potential_2D(N, du, dv, psi);
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
-	cout << endl << "Final v field" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
 	project(N, u, v, u0, v0);
-	cout << endl << "Final v field" << endl;
-	displayVectorField(N + 2, N + 2, u, v);
 }
 
 // Poisson Equation Laplace(Psi) = f(x);
