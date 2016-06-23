@@ -273,13 +273,13 @@ void IVOCKAdvance(int N,
 	scaler(N, dw, -1.0f);
 	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
 	find_vector_potential_2D(N, du, dv, psi);
-	cout << endl << "dvel field" << endl;
-	displayField(N + 2, N + 2, psi);
-	cout << endl << "dvel field" << endl;
-	displayVectorField(N + 2, N + 2, du, dv);
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
+	cout << endl << "Final v field" << endl;
+	displayVectorField(N + 2, N + 2, u, v);
 	project(N, u, v, u0, v0);
+	cout << endl << "Final v field" << endl;
+	displayVectorField(N + 2, N + 2, u, v);
 }
 
 // Poisson Equation Laplace(Psi) = f(x);
