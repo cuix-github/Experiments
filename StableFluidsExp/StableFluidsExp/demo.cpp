@@ -124,7 +124,7 @@ static void pre_display(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// Make the pixel looks round.
-	// glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -173,9 +173,8 @@ static void draw_particles(float lifeSpan, float * u, float * v, float pointSize
 		if (ratio_vel <= 1.0f - lifeSpan) {
 			ratio_vel = 0.0f;
 			particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
-			particles[i].y = (VFXEpoch::RandomI(0, 20)) * world_scale;;
+			particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;;
 		}
-		clip(ratio_vel, 0.0f, 1.0f);
 		glColor3f(ratio_vel * particles[i].color.x, ratio_vel * particles[i].color.y, ratio_vel * particles[i].color.z);
 		glVertex2f(particles[i].x, particles[i].y);
 	}
@@ -300,7 +299,7 @@ static void idle_func(void)
 	int idxX = N / 2;
 	int idxY = 20;
 
-	v_prev[IX(idxX, idxY)] = force * 10.f;
+	v_prev[IX(idxX, idxY)] = force;
 	v_prev[IX(idxX - 2, idxY)] = force;
 	v_prev[IX(idxX - 1, idxY)] = force;
 	v_prev[IX(idxX + 1, idxY)] = force;
@@ -309,6 +308,22 @@ static void idle_func(void)
 	v_prev[IX(idxX - 4, idxY)] = force;
 	v_prev[IX(idxX + 3, idxY)] = force;
 	v_prev[IX(idxX + 4, idxY)] = force;
+	v_prev[IX(idxX + 5, idxY)] = force;
+	v_prev[IX(idxX + 6, idxY)] = force;
+	v_prev[IX(idxX - 5, idxY)] = force;
+	v_prev[IX(idxX - 6, idxY)] = force;
+	v_prev[IX(idxX, idxY + 10)] = force;
+	v_prev[IX(idxX, idxY + 15)] = force;
+	v_prev[IX(idxX, idxY + 20)] = force;
+	v_prev[IX(idxX, idxY + 30)] = force;
+	v_prev[IX(idxX - 2, idxY + 10)] = force;
+	v_prev[IX(idxX - 1, idxY + 15)] = force;
+	v_prev[IX(idxX + 1, idxY + 20)] = force;
+	v_prev[IX(idxX + 2, idxY + 30)] = force;
+	v_prev[IX(idxX - 3, idxY + 10)] = force;
+	v_prev[IX(idxX - 4, idxY + 15)] = force;
+	v_prev[IX(idxX + 3, idxY + 20)] = force;
+	v_prev[IX(idxX + 4, idxY + 30)] = force;
 
 	if (!pause){
 		IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
@@ -325,7 +340,7 @@ static void display_func(void)
 		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(0.5f, u, v, 5.0f);
+		draw_particles(0.5f, u, v, 1.0f);
 		post_display();
 		//stop_frame++;
 		//if (stop_frame == 100) pause = true;
@@ -363,9 +378,9 @@ int main(int argc, char ** argv)
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 100.0f;
+	force = 300.0f;
 	source = 70.0f;
-	numParticles = 30;
+	numParticles = 30000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;

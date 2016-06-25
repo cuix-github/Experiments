@@ -240,23 +240,24 @@ void IVOCKAdvance(int N,
 	zeros(N, du);
 	zeros(N, dv);
 
-	zeros(N, u0);
-	zeros(N, v0);
-	zeros(N, u);
-	zeros(N, v);
-	u0[IX(2, 2)] = 3.0f;
-	v0[IX(2, 2)] = 1.75f;
-	u0[IX(3, 2)] = 4.0f;
-	v0[IX(3, 2)] = 10.0f;
+	// Gravity
+	int size = (N + 2) * (N + 2);
+	float *g = (float*)malloc(size*sizeof(float));
+	zeros(N, g);
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			g[IX(i, j)] = -0.098f;
+		}
+	}
 
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);
+	add_source(N, v, g, dt);
 
-	//particles_advector(N, u, v, particles, num_particles, dt);
+	particles_advector(N, u, v, particles, num_particles, dt);
 
 	SWAP(u0, u);
 	SWAP(v0, v);
-	visc = 0.0f;
 	diffuse(N, 0, u, u0, visc, dt);
 	diffuse(N, 0, v, v0, visc, dt);
 	project(N, u, v, u0, v0);
@@ -271,11 +272,13 @@ void IVOCKAdvance(int N,
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
+	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 1.0f);
 	find_vector_potential_2D(N, du, dv, psi);
 	linear_combine_add(N, u, u, du);
 	linear_combine_add(N, v, v, dv);
 	project(N, u, v, u0, v0);
+
+	free(g);
 }
 
 // Poisson Equation Laplace(Psi) = f(x);
