@@ -54,10 +54,19 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 	{
 		for (int j = 1; j <= N; j++)
 		{
-			float du, dv;
-			du = 0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)]) * N;
-			dv = 0.5f * (v[IX(i, j + 1)] - v[IX(i, j - 1)]) * N;
+			//float du, dv;
+			//du = 0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)]) * N;
+			//dv = 0.5f * (v[IX(i, j + 1)] - v[IX(i, j - 1)]) * N;
+			//w[IX(i, j)] = dv - du;
+
+			float dv1, dv0, du1, du0, du, dv;
+			du1 = 0.5f * (u[IX(i, j)] + u[IX(i - 1, j)]);
+			du0 = 0.5f * (u[IX(i, j)] + u[IX(i + 1, j)]);
+			dv1 = 0.5f * (v[IX(i, j)] + v[IX(i, j + 1)]);
+			dv0 = 0.5f * (v[IX(i, j)] + v[IX(i, j - 1)]);
+			du = (du1 - du0) * N; dv = (dv1 - dv0) * N;
 			w[IX(i, j)] = dv - du;
+
 		}
 	}
 }
@@ -171,6 +180,11 @@ void computeBuoyancy(int N, float * v, float * d, float * ambientTemperature, fl
 		v[IX(i, j)] = v[IX(i, j)] - alpha * sampledDensity + beta * sampledTemperature;
 	END_FOR
 }
+void computeVortConf(int N, float * u, float * v, float dt)
+{
+
+}
+
 
 float interpolate(int N, float x, float y, float * field){
 	int i, j;

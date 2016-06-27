@@ -274,10 +274,10 @@ void IVOCKAdvance(int N,
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
+	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 1.0f);
 	find_vector_potential_2D(N, du, dv, psi);
-	//linear_combine_add(N, u, u, du);
-	//linear_combine_add(N, v, v, dv);
+	linear_combine_add(N, u, u, du);
+	linear_combine_add(N, v, v, dv);
 
 	free(g);
 }

@@ -265,7 +265,7 @@ void MACGrid::computeVorticityConfinement(double dt)
 		vortY(i,j,k) = (mU(i,j,k+1)-mU(i,j,k)) / theCellSize - (mW(i+1,j,k)-mW(i,j,k)) / theCellSize;
 		vortZ(i,j,k) = (mV(i+1,j,k)-mV(i,j,k)) / theCellSize - (mU(i,j+1,k)-mU(i,j,k)) / theCellSize;
 	}
-
+	
 	// compute vorticity confinement force at each center based on vorticity
 	GridData fconf_centerX = GridData(); fconf_centerX.data().resize(theDim[X]*theDim[Y]*theDim[Z]);
 	GridData fconf_centerY = GridData(); fconf_centerY.data().resize(theDim[X]*theDim[Y]*theDim[Z]);

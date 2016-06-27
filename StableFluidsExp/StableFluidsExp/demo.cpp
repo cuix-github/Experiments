@@ -309,7 +309,7 @@ static void idle_func(void)
 
 	if (!pause){
 		IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
-		computeBuoyancy(N, v, dens, t, 0.1f, 0.5f, dt);
+		computeBuoyancy(N, v, dens, t, 0.1f, 0.3f, dt);
 		project(N, u, v, u_prev, v_prev);
 		MoveScalarProperties(N, t, t0, u, v, 0.0f, 0.0f);
 		MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
@@ -365,8 +365,8 @@ int main(int argc, char ** argv)
 	visc = 0.0f;
 	force = 0.0f;
 	source = 70.0f;
-	temp = 5.0f;
-	numParticles = 50000;
+	temp = 500.0f;
+	numParticles = 10000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;
