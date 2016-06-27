@@ -161,6 +161,17 @@ void computeDivergence_unifrom(int N, float * u, float * v, float * div){
 	END_FOR
 }
 
+void computeBuoyancy(int N, float * v, float * d, float * ambientTemperature, float alpha, float beta, float dt)
+{
+	float sampledDensity, sampledTemperature;
+	int i, j;
+	FOR_EACH_CELL
+		sampledDensity = d[IX(i, j)];
+		sampledTemperature = ambientTemperature[IX(i, j)];
+		v[IX(i, j)] = v[IX(i, j)] - alpha * sampledDensity + beta * sampledTemperature;
+	END_FOR
+}
+
 float interpolate(int N, float x, float y, float * field){
 	int i, j;
 	float fx, fy;

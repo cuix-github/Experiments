@@ -217,7 +217,7 @@ add_force(int N, float dt, float * u, float * v, float * fx, float * fy){
 }
 
 void
-MoveDens(int N, float * x, float * x0, float * u, float * v, float diff, float dt){
+MoveScalarProperties(int N, float * x, float * x0, float * u, float * v, float diff, float dt){
 	add_source(N, x, x0, dt);
 	SWAP(x0, x); diffuse(N, 0, x, x0, diff, dt);
 	SWAP(x0, x); scalar_advector(N, x, x0, u, v, dt);
@@ -228,6 +228,7 @@ void IVOCKAdvance(int N,
 	float * fx, float * fy,
 	float * psi, float * du, float * dv, float * wn, float *dw, float * w_bar, float * w_star,
 	float * u, float * v, float * u0, float * v0,
+	float * t, float * t0,
 	float visc,
 	float dt){
 
@@ -253,6 +254,7 @@ void IVOCKAdvance(int N,
 	add_source(N, u, u0, dt);
 	add_source(N, v, v0, dt);
 	add_source(N, v, g, dt);
+	add_source(N, t, t0, dt);
 
 	particles_advector(N, u, v, particles, num_particles, dt);
 
@@ -272,11 +274,10 @@ void IVOCKAdvance(int N,
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 1.0f);
+	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 2.0f);
 	find_vector_potential_2D(N, du, dv, psi);
-	linear_combine_add(N, u, u, du);
-	linear_combine_add(N, v, v, dv);
-	project(N, u, v, u0, v0);
+	//linear_combine_add(N, u, u, du);
+	//linear_combine_add(N, v, v, dv);
 
 	free(g);
 }

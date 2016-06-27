@@ -11,6 +11,7 @@ static int nx;
 static int ny;
 static float dt, diff, visc;
 static float force, source;
+static float temp;
 static int dvel;
 
 static float * u, *v, *u_prev, *v_prev;
@@ -18,6 +19,7 @@ static float * fx, *fy;
 static float * psi, *wn, *dw, *w_bar, *w_star;
 static float * du, *dv;
 static float * dens, *dens_prev;
+static float * t, * t0;
 static Particle * particles;
 
 static int win_id;
@@ -48,6 +50,8 @@ static void free_data(void)
 	if (dens_prev) free(dens_prev);
 	if (fx) free(fx);
 	if (fy) free(fy);
+	if (t) free(t);
+	if (t0) free(t0);
 }
 
 static void clear_data(void)
@@ -60,7 +64,7 @@ static void clear_data(void)
 			dens[i] = dens_prev[i] =
 			psi[i] =
 			du[i] = dv[i] =
-			wn[i] = dw[i] = w_bar[i] = w_star[i] = 0.0f;
+			wn[i] = dw[i] = w_bar[i] = w_star[i] = t[i] = t0[i] = 0.0f;
 	}
 
 	float r, g, b;
@@ -93,13 +97,14 @@ static int allocate_data(void)
 	w_star = (float *)malloc(size*sizeof(float));
 	dens = (float *)malloc(size*sizeof(float));
 	dens_prev = (float *)malloc(size*sizeof(float));
+	t = (float *)malloc(size*sizeof(float));
+	t0 = (float *)malloc(size*sizeof(float));
 	particles = (Particle*)malloc(numParticles*sizeof(Particle));
-
 
 	if (!fx || !fy ||
 		!psi ||
 		!wn || !dw || !w_bar || !w_star ||
-		!u || !v || !du || !dv || !u_prev || !v_prev ||
+		!u || !v || !du || !dv || !u_prev || !v_prev || !t || !t0 ||
 		!dens || !dens_prev) {
 		fprintf(stderr, "cannot allocate data\n");
 		return (0);
@@ -300,34 +305,14 @@ static void idle_func(void)
 	int idxY = 20;
 
 	v_prev[IX(idxX, idxY)] = force;
-	v_prev[IX(idxX - 2, idxY)] = force;
-	v_prev[IX(idxX - 1, idxY)] = force;
-	v_prev[IX(idxX + 1, idxY)] = force;
-	v_prev[IX(idxX + 2, idxY)] = force;
-	v_prev[IX(idxX - 3, idxY)] = force;
-	v_prev[IX(idxX - 4, idxY)] = force;
-	v_prev[IX(idxX + 3, idxY)] = force;
-	v_prev[IX(idxX + 4, idxY)] = force;
-	v_prev[IX(idxX + 5, idxY)] = force;
-	v_prev[IX(idxX + 6, idxY)] = force;
-	v_prev[IX(idxX - 5, idxY)] = force;
-	v_prev[IX(idxX - 6, idxY)] = force;
-	v_prev[IX(idxX, idxY + 10)] = force;
-	v_prev[IX(idxX, idxY + 15)] = force;
-	v_prev[IX(idxX, idxY + 20)] = force;
-	v_prev[IX(idxX, idxY + 30)] = force;
-	v_prev[IX(idxX - 2, idxY + 10)] = force;
-	v_prev[IX(idxX - 1, idxY + 15)] = force;
-	v_prev[IX(idxX + 1, idxY + 20)] = force;
-	v_prev[IX(idxX + 2, idxY + 30)] = force;
-	v_prev[IX(idxX - 3, idxY + 10)] = force;
-	v_prev[IX(idxX - 4, idxY + 15)] = force;
-	v_prev[IX(idxX + 3, idxY + 20)] = force;
-	v_prev[IX(idxX + 4, idxY + 30)] = force;
+	t[IX(idxX, idxY)] = temp;
 
 	if (!pause){
-		IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, visc, dt);
-		MoveDens(N, dens, dens_prev, u, v, diff, dt);
+		IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
+		computeBuoyancy(N, v, dens, t, 0.1f, 0.5f, dt);
+		project(N, u, v, u_prev, v_prev);
+		MoveScalarProperties(N, t, t0, u, v, 0.0f, 0.0f);
+		MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
 	}
 	glutSetWindow(win_id);
 	glutPostRedisplay();
@@ -378,9 +363,10 @@ int main(int argc, char ** argv)
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 300.0f;
+	force = 0.0f;
 	source = 70.0f;
-	numParticles = 30000;
+	temp = 5.0f;
+	numParticles = 50000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;
