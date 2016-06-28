@@ -29,6 +29,7 @@ static int omx, omy, mx, my;
 static bool pause = false;
 static float streamline_length = 10.0f;
 static int stop_frame = 0;
+static int frame_counter = 0;
 static int numParticles = 0;
 float world_scale = 0;
 
@@ -69,13 +70,15 @@ static void clear_data(void)
 
 	float r, g, b;
 	for (int i = 0; i != numParticles; i++){
-		particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
-		particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;
-		r = 1.0f;
-		g = 1.0f;
-		b = 1.0f;
+		particles[i].x = (N / 2 + VFXEpoch::RandomI(-40, 40)) * world_scale;
+		particles[i].y = (VFXEpoch::RandomI(0, 30)) * world_scale;
+		r = VFXEpoch::RandomF(0.5, 0.7);
+		g = VFXEpoch::RandomF(0.6, 0.8);
+		b = VFXEpoch::RandomF(0.8, 1.0);
 		particles[i].color = vec3(r, g, b);
 	}
+
+	frame_counter = 0;
 }
 
 static int allocate_data(void)
@@ -111,9 +114,14 @@ static int allocate_data(void)
 	}
 
 	// Initialize particle start position
+	float r, g, b;
 	for (int i = 0; i != numParticles; i++){
-		particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
-		particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;
+		particles[i].x = (N / 2 + VFXEpoch::RandomI(-40, 40)) * world_scale;
+		particles[i].y = (VFXEpoch::RandomI(0, 30)) * world_scale;
+		r = VFXEpoch::RandomF(0.5, 0.7);
+		g = VFXEpoch::RandomF(0.6, 0.8);
+		b = VFXEpoch::RandomF(0.8, 1.0);
+		particles[i].color = vec3(r, g, b);
 	}
 
 	return (1);
@@ -129,7 +137,7 @@ static void pre_display(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// Make the pixel looks round.
-	glEnable(GL_POINT_SMOOTH);
+	//glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -169,18 +177,12 @@ static void draw_particles(float lifeSpan, float * u, float * v, float pointSize
 
 	glBegin(GL_POINTS);
 	for (int i = 0; i != numParticles; i++){
-		if (particles[i].x >= 1 || particles[i].x <= 0 ||
-			particles[i].y >= 1 || particles[i].y <= 0){
-			particles[i].x = (N / 2) * world_scale;
-			particles[i].y = 10 * world_scale;
+		if (particles[i].x < 0 || particles[i].x> 1 ||
+			particles[i].y < 0 || particles[i].y> 1){
+			particles[i].x = (N / 2 + VFXEpoch::RandomI(-40, 40)) * world_scale;
+			particles[i].y = (VFXEpoch::RandomI(0, 30)) * world_scale;
 		}
-		float ratio_vel = ::sqrt(::pow(particles[i].vel.x, 2) + ::pow(particles[i].vel.y, 2)) * 10.0f;
-		if (ratio_vel <= 1.0f - lifeSpan) {
-			ratio_vel = 0.0f;
-			particles[i].x = (N / 2 + VFXEpoch::RandomI(-70, 70)) * world_scale;
-			particles[i].y = (VFXEpoch::RandomI(0, 50)) * world_scale;;
-		}
-		glColor3f(ratio_vel * particles[i].color.x, ratio_vel * particles[i].color.y, ratio_vel * particles[i].color.z);
+		glColor3f(particles[i].color.x, particles[i].color.y, particles[i].color.z);
 		glVertex2f(particles[i].x, particles[i].y);
 	}
 	glEnd();
@@ -201,18 +203,14 @@ static void draw_scalar_field(float * field, int r, int g, int b)
 			y = (j - 0.5f)*h;
 
 			d00 = dens[IX(i, j)];
-			d01 = lerp(0.5f, dens[IX(i, j)], dens[IX(i, j + 1)]);
+			d01 = dens[IX(i, j + 1)];
 			d10 = dens[IX(i + 1, j)];
-			d11 = lerp(0.5f, dens[IX(i + 1, j)], dens[IX(i + 1, j + 1)]);
-			clip(d00, 0.0f, 1.0f);
-			clip(d01, 0.0f, 1.0f);
-			clip(d10, 0.0f, 1.0f);
-			clip(d11, 0.0f, 1.0f);
+			d11 = dens[IX(i + 1, j + 1)];
 
-			glColor3f(d00 * r, d00 * g, d00 * b); glVertex2f(x, y);
-			glColor3f(d10 * r, d10 * g, d10 * b); glVertex2f(x + h, y);
-			glColor3f(d11 * r, d11 * g, d11 * b); glVertex2f(x + h, y + h);
-			glColor3f(d01 * r, d01 * g, d01 * b); glVertex2f(x, y + h);
+			glColor3f(d00, d00, d00); glVertex2f(x, y);
+			glColor3f(d10, d10, d10); glVertex2f(x + h, y);
+			glColor3f(d11, d11, d11); glVertex2f(x + h, y + h);
+			glColor3f(d01, d01, d01); glVertex2f(x, y + h);
 		}
 	}
 
@@ -302,17 +300,22 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 20;
+	int idxY = 5;
 
 	v_prev[IX(idxX, idxY)] = force;
-	t[IX(idxX, idxY)] = temp;
+	t0[IX(idxX, idxY)] = temp;
+	dens_prev[IX(idxX, idxY)] = source;
 
 	if (!pause){
-		IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
-		computeBuoyancy(N, v, dens, t, 0.1f, 0.3f, dt);
-		project(N, u, v, u_prev, v_prev);
-		MoveScalarProperties(N, t, t0, u, v, 0.0f, 0.0f);
-		MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
+		if (frame_counter != stop_frame)
+		{
+			IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
+			computeBuoyancy(N, v, dens, t, 0.1f, 0.3f, dt);
+			project(N, u, v, u_prev, v_prev);
+			MoveScalarProperties(N, t, t0, u, v, 0.0f, dt);
+			MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
+			frame_counter++;
+		}
 	}
 	glutSetWindow(win_id);
 	glutPostRedisplay();
@@ -322,13 +325,12 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		//draw_scalar_field(dens, 0.3f, 0.6f, 0.8f);
+		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
+		//draw_scalar_field(t, 1.0f, 1.0f, 1.0f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
-		//draw_vector_field(du, dv, 1.0f, 1.0f, 0.5f, 0.2f);
-		draw_particles(0.5f, u, v, 1.0f);
+		//draw_vector_field(du, dv, 1.0f, 0.0f, 1.0f, 0.0f);
+		draw_particles(0.9f, u, v, 1.0f);
 		post_display();
-		//stop_frame++;
-		//if (stop_frame == 100) pause = true;
 	}
 }
 
@@ -364,9 +366,10 @@ int main(int argc, char ** argv)
 	diff = 0.0f;
 	visc = 0.0f;
 	force = 0.0f;
-	source = 70.0f;
-	temp = 500.0f;
-	numParticles = 10000;
+	source = 100.0f;
+	temp = 400.0f;
+	stop_frame = -1;
+	numParticles = 50000;
 	world_scale = 1.0 / N;
 	streamline_length = 1.0f;
 	cout << "Default values of the simualtion: " << endl;

@@ -26,12 +26,12 @@ set_boundaries(int N, int b, float * x){
 }
 
 void
-Gauss_Seidel(int N, int b, float * x, float * x0, float a, float c){
+Gauss_Seidel_solve(int N, int b, float * x, float * x0, float a, float c, int iterations){
 	int i, j, k;
 
 	double h = 1 / double(N + 1);
 
-	for (k = 0; k < 20; k++) {
+	for (k = 0; k < iterations; k++) {
 		FOR_EACH_CELL
 			x[IX(i, j)] = (x0[IX(i, j)] + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
@@ -42,30 +42,13 @@ Gauss_Seidel(int N, int b, float * x, float * x0, float a, float c){
 }
 
 void
-GSSolveStreamfunction(int N, int b, float * x, float * x0, float a, float c, int iter, float IVOCK_coef){
-	int i, j, k;
-
-	double h = 1 / double(N);
-
-	// Too many hard code inside
-	for (k = 0; k < iter; k++) {
-		FOR_EACH_CELL
-			x[IX(i, j)] = (x0[IX(i, j)] * h * h * IVOCK_coef + a *
-			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
-			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
-		END_FOR
-		set_boundaries(N, b, x);
-	}
-}
-
-void
-Jacobi_solve(int N, int b, float * x, float * x0, float a, float c){
+Jacobi_solve(int N, int b, float * x, float * x0, float a, float c, int iterations){
 	int i, j, k;
 	int size = (N + 2) * (N + 2);
 	float* aux = (float*)malloc(size*sizeof(float));
 	double h = 1 / (double)(N + 1);
 
-	for (k = 0; k < 30; k++)
+	for (k = 0; k < iterations; k++)
 	{
 		FOR_EACH_CELL
 			aux[IX(i, j)] = (x0[IX(i, j)] + a *
@@ -85,7 +68,7 @@ Jacobi_solve(int N, int b, float * x, float * x0, float a, float c){
 void
 diffuse(int N, int b, float * x, float * x0, float diff, float dt){
 	float a = dt*diff*N*N;
-	Gauss_Seidel(N, b, x, x0, a, 1 + 4 * a);
+	Gauss_Seidel_solve(N, b, x, x0, a, 1 + 4 * a, 30);
 }
 
 vec2
@@ -198,7 +181,7 @@ project(int N, float * u, float * v, float * p, float * div){
 
 	computeDivergence_unifrom(N, u, v, div);
 	scaler(N, div, -1.0f);
-	Jacobi_solve(N, 0, p, div, 1, 4);
+	Jacobi_solve(N, 0, p, div, 1, 4, 50);
 	FOR_EACH_CELL
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
 		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
@@ -231,6 +214,8 @@ void IVOCKAdvance(int N,
 	float * t, float * t0,
 	float visc,
 	float dt){
+
+	// Only for debug
 
 	//// IVOCK advection
 	zeros(N, wn);
@@ -274,11 +259,10 @@ void IVOCKAdvance(int N,
 	computeCurls_uniform(N, w_star, u, v);
 	linear_combine_sub(N, dw, w_bar, w_star);
 	scaler(N, dw, -1.0f);
-	GSSolveStreamfunction(N, 0, psi, dw, -1, -4, 30, 1.0f);
+	Jacobi_solve(N, 0, psi, dw, -1, -4, 50);
 	find_vector_potential_2D(N, du, dv, psi);
-	linear_combine_add(N, u, u, du);
-	linear_combine_add(N, v, v, dv);
-
+	//linear_combine_add(N, u, u, du);
+	//linear_combine_add(N, v, v, dv);
 	free(g);
 }
 

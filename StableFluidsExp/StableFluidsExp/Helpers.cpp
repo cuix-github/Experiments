@@ -50,6 +50,7 @@ void displayVectorField(int row, int col, float * u, float * v, float * u0, floa
 
 void computeCurls_uniform(int N, float * w, float * u, float * v)
 {
+	float h = 1 / N;
 	for (int i = 1; i <= N; i++)
 	{
 		for (int j = 1; j <= N; j++)
@@ -58,32 +59,40 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 			//du = 0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)]) * N;
 			//dv = 0.5f * (v[IX(i, j + 1)] - v[IX(i, j - 1)]) * N;
 			//w[IX(i, j)] = dv - du;
-
-			float dv1, dv0, du1, du0, du, dv;
-			du1 = 0.5f * (u[IX(i, j)] + u[IX(i - 1, j)]);
-			du0 = 0.5f * (u[IX(i, j)] + u[IX(i + 1, j)]);
-			dv1 = 0.5f * (v[IX(i, j)] + v[IX(i, j + 1)]);
-			dv0 = 0.5f * (v[IX(i, j)] + v[IX(i, j - 1)]);
-			du = (du1 - du0) * N; dv = (dv1 - dv0) * N;
-			w[IX(i, j)] = dv - du;
-
+	
+			// Stokes Theorem
+			float coef = 1 / (8 * (std::pow(h, 2)));
+			float du1 = h * (u[IX(i - 1, j - 1)] + 2 * u[IX(i, j - 1)] + u[IX(i + 1, j - 1)]);
+			float du0 = h * (u[IX(i + 1, j + 1)] + 2 * u[IX(i, j + 1)] + u[IX(i - 1, j + 1)]);
+			float dv1 = h * (v[IX(i + 1, j - 1)] + 2 * v[IX(i + 1, j)] + v[IX(i + 1, j + 1)]);
+			float dv0 = h * (v[IX(i - 1, j + 1)] + 2 * v[IX(i - 1, j)] + v[IX(i - 1, j - 1)]);
+			w[IX(i, j)] = coef * (du1 + dv1 - du0 - dv0);
 		}
 	}
-}
 
-void computeCurls_uniform_smoother(int N, float * w, float * u, float * v)
-{
-	for (int i = 1; i <= N; i++){
-		for (int j = 1; j <= N; j++){
-			float average_x_top = 0.5 * (u[IX(i, j)] + u[IX(i, j + 1)]);
-			float average_x_bottom = 0.5 * (u[IX(i + 1, j)] + u[IX(i, j + 1)]);
-			float average_y_left = 0.5 * (v[IX(i, j)] + v[IX(i + 1, j)]);
-			float average_y_right = 0.5 * (v[IX(i, j + 1)] + v[IX(i + 1, j + 1)]);
-			float du = average_x_bottom - average_x_top;
-			float dv = average_y_right - average_y_left;
-			w[IX(i, j)] = dv - du;
-		}
-	}
+	//// Least Square
+	//for (int i = 2; i <= N - 1; i++)
+	//{
+	//	for (int j = 2; j <= N - 1; j++)
+	//	{
+	//		float coef = 1 / (10 * std::pow(h, 2));
+	//		float du = 2 * u[IX(i, j + 2)] + u[IX(i, j + 1)] - u[IX(i, j - 1)] - 2 * u[IX(i, j - 2)];
+	//		float dv = 2 * v[IX(i + 2, j)] + v[IX(i + 1, j)] - v[IX(i - 1, j)] - 2 * v[IX(i - 2, j)];
+	//		w[IX(i, j)] = coef * dv - coef * du;
+	//	}
+	//}
+
+	// Richardson Extrapolation
+	//for (int i = 2; i <= N - 1; i++)
+	//{
+	//	for (int j = 2; j <= N - 1; j++)
+	//	{
+	//		float coef = 1 / (12 * N);
+	//		float du = -u[IX(i, j + 2)] + 8 * u[IX(i, j + 1)] - 8 * u[IX(i, j - 1)] - u[IX(i, j - 2)];
+	//		float dv = -v[IX(i + 2, j)] + 8 * v[IX(i + 1, j)] - 8 * v[IX(i - 1, j)] - v[IX(i - 2, j)];
+	//		w[IX(i, j)] = coef * dv - coef * du;
+	//	}
+	//}
 }
 
 void find_vector_potential_2D(int N, float * u, float * v, float * psi)
