@@ -1,6 +1,6 @@
 #include "Helpers.h"
 
-void displayField(int row, int col, float* field){
+void displayScalarField(int row, int col, float* field){
 	cout << std::setprecision(4) << setiosflags(ios::fixed);
 	for (int i = 0; i != row; i++){
 		for (int j = 0; j != col; j++){
@@ -19,15 +19,6 @@ float bilerp(float s, float t, float x0, float x1, float y0, float y1){
 	return lerp(t, lerp(s, x0, x1), lerp(s, y0, y1));
 }
 
-
-void displayField(int row, int col, float * field, float * fieldOrigin)
-{
-	cout << endl << "Current timestep field:" << endl;
-	displayField(row, col, field);
-	cout << endl << "Previous timestep field:" << endl;
-	displayField(row, col, fieldOrigin);
-}
-
 void displayVectorField(int row, int col, float* u, float* v){
 	cout << std::setprecision(4) << setiosflags(ios::fixed);
 	int N = row;
@@ -38,14 +29,6 @@ void displayVectorField(int row, int col, float* u, float* v){
 				cout << endl;
 		}
 	}
-}
-
-void displayVectorField(int row, int col, float * u, float * v, float * u0, float * v0)
-{
-	cout << endl << "Current timestep field:" << endl;
-	displayVectorField(row, col, u, v);
-	cout << endl << "Previous timepstep field:" << endl;
-	displayVectorField(row, col, u0, v0);
 }
 
 void computeCurls_uniform(int N, float * w, float * u, float * v)

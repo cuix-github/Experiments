@@ -19,10 +19,8 @@ using namespace std;
 #include <stdlib.h>
 #endif
 
-void displayField(int row, int col, float * field);
-void displayField(int row, int col, float * field, float * fieldOrigin);
+void displayScalarField(int row, int col, float * field);
 void displayVectorField(int row, int col, float * u, float * v);
-void displayVectorField(int row, int col, float * u, float * v, float * u0, float * v0);
 void zeros(int N, float * field);
 void scaler(int N, float *field, float factor);
 double relative_error(int N, float * curr, float * prev);
