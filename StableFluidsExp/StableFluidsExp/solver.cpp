@@ -1,9 +1,4 @@
-﻿#include "Helpers.h"
-
-#define IX(i,j) ((i)*(N+2)+(j))
-#define SWAP(x0,x) {float * tmp=x0;x0=x;x=tmp;}
-#define FOR_EACH_CELL for ( i=1 ; i<=N ; i++ ) { for ( j=1 ; j<=N ; j++ ) {
-#define END_FOR }}
+﻿#include "helpers.h"
 
 void
 add_source(int N, float * x, float * s, float dt){
@@ -27,38 +22,38 @@ set_boundaries(int N, int b, float * x){
 
 void
 Gauss_Seidel_solve(int N, int b, float * x, float * x0, float a, float c, int iterations){
-	int i, j, k;
+	int k;
 
 	double h = 1.0f / N;
 
 	for (k = 0; k < iterations; k++) {
-		FOR_EACH_CELL
+		LOOP_CELLS{
 			x[IX(i, j)] = (x0[IX(i, j)] + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
-		END_FOR
+		}
 		set_boundaries(N, b, x);
 	}
 }
 
 void
 Jacobi_solve(int N, int b, float * x, float * x0, float a, float c, int iterations){
-	int i, j, k;
+	int k;
 	int size = (N + 2) * (N + 2);
 	float* aux = (float*)malloc(size*sizeof(float));
 	double h = 1.0f / (N);
 
 	for (k = 0; k < iterations; k++)
 	{
-		FOR_EACH_CELL
-			aux[IX(i, j)] = (x0[IX(i, j)] * 1.0f / (h * h) + a *
+		LOOP_CELLS{
+			aux[IX(i, j)] = (x0[IX(i, j)] * (h * h) + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
-		END_FOR
+	}
 
-			FOR_EACH_CELL
+		LOOP_CELLS{
 			x[IX(i, j)] = aux[IX(i, j)];
-		END_FOR
+		}
 		set_boundaries(N, b, x);
 	}
 
@@ -109,11 +104,11 @@ vector_advector_rk2(int N, float * u, float * u0, float * v, float * v0, float *
 
 void
 scalar_advector(int N, float * d, float * d0, float * u, float * v, float dt){
-	int i, j, i0, j0, i1, j1;
+	int i0, j0, i1, j1;
 	float x, y, s1, t1, dt0;
 
 	dt0 = dt*N;
-	FOR_EACH_CELL
+	LOOP_CELLS {
 		x = i - dt0*u[IX(i, j)];
 		y = j - dt0*v[IX(i, j)];
 
@@ -135,17 +130,17 @@ scalar_advector(int N, float * d, float * d0, float * u, float * v, float dt){
 		float top_x_dir_lerp = lerp(s1, d0[IX(i0, j0)], d0[IX(i1, j0)]);
 		float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
 		d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
-	END_FOR
+	}
 }
 
 void
 vector_advector(int N, float * d, float * d0, float * k, float * k0, float * u, float * v, float dt){
-	int i, j, i0, j0, i1, j1;
+	int i0, j0, i1, j1;
 	float x, y, s1, t1, dt0;
 
 	// TODO: Modify this piece of code to archive 2nd Order RK
 	dt0 = dt*N;
-	FOR_EACH_CELL
+	LOOP_CELLS {
 		x = i - dt0*u[IX(i, j)];
 		y = j - dt0*v[IX(i, j)];
 
@@ -171,32 +166,22 @@ vector_advector(int N, float * d, float * d0, float * k, float * k0, float * u, 
 		k[IX(i, j)] = lerp(s1,
 			lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]),
 			lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
-	END_FOR
+	}
 }
 
 void
 project(int N, float * u, float * v, float * p, float * div){
-	int i, j, iter = 0;
 	zeros(N, p);
 
 	computeDivergence_unifrom(N, u, v, div);
 	scaler(N, div, -1.0f);
 	Gauss_Seidel_solve(N, 0, p, div, 1, 4, 50);
-	FOR_EACH_CELL
+	LOOP_CELLS{
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
 		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
-	END_FOR
+	}
 	set_boundaries(N, 0, u);
 	set_boundaries(N, 0, v);
-}
-
-void
-add_force(int N, float dt, float * u, float * v, float * fx, float * fy){
-	int i, j;
-	FOR_EACH_CELL
-		v[IX(i, j)] += dt * fy[IX(i, j)];
-	u[IX(i, j)] += dt * fx[IX(i, j)];
-	END_FOR
 }
 
 void

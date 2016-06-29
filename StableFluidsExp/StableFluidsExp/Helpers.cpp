@@ -1,4 +1,4 @@
-#include "Helpers.h"
+#include "helpers.h"
 
 void displayScalarField(int row, int col, float* field){
 	cout << std::setprecision(4) << setiosflags(ios::fixed);
@@ -37,12 +37,7 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 	for (int i = 1; i <= N; i++)
 	{
 		for (int j = 1; j <= N; j++)
-		{
-			//float du, dv;
-			//du = 0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)]) * N;
-			//dv = 0.5f * (v[IX(i, j + 1)] - v[IX(i, j - 1)]) * N;
-			//w[IX(i, j)] = dv - du;
-	
+		{	
 			// Stokes Theorem
 			float coef = 1.0f / (8 * (std::pow(h, 2)));
 			float du1 = h * (u[IX(i - 1, j - 1)] + 2 * u[IX(i, j - 1)] + u[IX(i + 1, j - 1)]);
@@ -134,47 +129,61 @@ void scaler(int N, float *field, float factor)
 	}
 }
 
-double relative_error(int N, float * curr, float * prev)
-{
-	double error = 0.0;
-	int n = 0;
-
-	for (int i = 1; i <= N; i++){
-		for (int j = 1; j <= N; j++){
-			if (curr[IX(i, j)] != 0){
-				if (curr[IX(i, j)] != prev[IX(i, j)])
-				{
-					error += std::abs(1 - prev[IX(i, j)] / curr[IX(i, j)]);
-					++n;
-				}
-			}
-		}
-	}
-
-	if (n != 0)
-		return error /= n;
-}
-
 void computeDivergence_unifrom(int N, float * u, float * v, float * div){
-	int i, j;
-	FOR_EACH_CELL
+	LOOP_CELLS{
 		div[IX(i, j)] = 0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
-	END_FOR
+	}
 }
 
 void computeBuoyancy(int N, float * v, float * d, float * ambientTemperature, float alpha, float beta, float dt)
 {
 	float sampledDensity, sampledTemperature;
-	int i, j;
-	FOR_EACH_CELL
+	LOOP_CELLS{
 		sampledDensity = d[IX(i, j)];
 		sampledTemperature = ambientTemperature[IX(i, j)];
 		v[IX(i, j)] = v[IX(i, j)] - alpha * sampledDensity + beta * sampledTemperature;
-	END_FOR
+	}
 }
-void computeVortConf(int N, float * u, float * v, float dt)
+void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps)
 {
+	float * vort = (float*)malloc((N + 2) * (N + 2) * sizeof(float));
+	float * fvortu = (float*)malloc((N + 2) * (N + 2) * sizeof(float));
+	float * fvortv = (float*)malloc((N + 2) * (N + 2) * sizeof(float));
+	if (!vort || !fvortu || !fvortv)
+		exit(0);
 
+	vec3 dir_vort = vec3(0.0f, 0.0f, 0.0f);
+	vec3 vorticity = vec3(0.0f, 0.0f, 0.0f);
+	
+	computeCurls_uniform(N, vort, u, v);
+
+	LOOP_CELLS {
+		float gradu, gradv, gradlen;
+		gradu = 0.5f * N * (u[IX(i + 1, j)] - u[IX(i - 1, j)]);
+		gradv = 0.5f * N * (v[IX(i, j + 1)] - v[IX(i, j - 1)]);
+		gradlen = std::sqrt(std::pow(gradu, 2) + std::pow(gradv, 2));
+		gradu *= (gradlen + 10e-20);
+		gradv *= (gradlen + 10e-20);
+		dir_vort.x = gradu;
+		dir_vort.y = gradv;
+		dir_vort.z = 0.0f;
+		vorticity.x = vorticity.y = 0.0f;
+		vorticity.z = vort[IX(i, j)];
+		vec3 fconf = vec3(0.0f, 0.0f, 0.0f);
+		fconf = cross(vorticity, dir_vort);
+		fconf.x *= (vort_conf_eps * (1.0f / N));
+		fconf.y *= (vort_conf_eps * (1.0f / N));
+		fconf.z *= (vort_conf_eps * (1.0f / N));
+		fvortu[IX(i, j)] = fconf.x;
+		fvortv[IX(i, j)] = fconf.y;
+	}
+
+	LOOP_CELLS {
+		u[IX(i, j)] += fvortu[IX(i, j)] * 0.01f;
+		v[IX(i, j)] += fvortv[IX(i, j)] * 0.01f;
+	}
+
+	free(vort);
 }
 
 
@@ -186,4 +195,12 @@ float interpolate(int N, float x, float y, float * field){
 	get_barycentric(y, j, fy, 0, N);
 
 	return bilerp(fx, fy, field[IX(i, j)], field[IX(i + 1, j)], field[IX(i, j + 1)], field[IX(i + 1, j + 1)]);
+}
+
+vec3 cross(vec3 v1, vec3 v2){
+	vec3 result = vec3(0.0f, 0.0f, 0.0f);
+	result.x = v1.y * v2.z - v1.z * v2.y;
+	result.y = v1.z * v2.x - v1.x * v2.z;
+	result.z = v1.x * v2.y - v1.y * v2.x;
+	return result;
 }

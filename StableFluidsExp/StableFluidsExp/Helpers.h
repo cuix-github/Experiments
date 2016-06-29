@@ -8,10 +8,11 @@
 
 using namespace std;
 
-#define IXCURL(i,j) ((i) * (N + 2) + (j))
-#define IX(i,j) ((i)*(N+2)+(j))
-#define FOR_EACH_CELL for ( i=1 ; i<=N ; i++ ) { for ( j=1 ; j<=N ; j++ ) {
-#define END_FOR }}
+//#define IX(i,j) ((i)*(N+2)+(j))
+#define IX(i,j) ((i)+(j)*(N+2))
+#define SWAP(x0,x) {float * tmp = x0; x0 = x; x = tmp;}
+#define LOOP_CELLS for (int i=1 ; i<=N ; i++ )\
+					for (int j=1 ; j<=N ; j++ )
 
 #ifdef __cplusplus__
 #include <cstdlib>
@@ -30,7 +31,7 @@ void linear_combine_add(int N, float * f_out, float * f, float * f0);
 void linear_combine_sub(int N, float * f_out, float * f, float * f0);
 void computeDivergence_unifrom(int N, float * u, float * v, float * div);
 void computeBuoyancy(int N, float * v, float * d, float * ambientTemperature, float alpha, float beta, float dt);
-void computeVortConf(int N, float * u, float * v, float dt);
+void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps);
 float lerp(float t, float x0, float x1);
 float bilerp(float t, float s, float x0, float x1, float y0, float y1);
 float interpolate(int N, float x, float y, float * field);
@@ -82,25 +83,34 @@ T clip(const T& n, const T& lower, const T& upper) {
 	return max(lower, min(n, upper));
 }
 
-typedef struct _vec2{
-	_vec2(float _x, float _y){
+struct vec2{
+	vec2(float _x, float _y){
 		x = _x; y = _y;
 	}
 
 	float x, y;
-}vec2;
+};
 
-typedef struct _vec3{
-	_vec3(float _x, float _y, float _z){
+struct vec3{
+	vec3(float _x, float _y, float _z){
 		x = _x; y = _y; z = _z;
 	}
 	float x, y, z;
-}vec3;
+
+	vec3& operator=(const vec3& src){
+		x = src.x;
+		y = src.y;
+		z = src.z;
+		return *this;
+	}
+};
 
 typedef struct {
 	float x, y;
 	vec2 vel;
 	vec3 color;
 }Particle;
+
+vec3 cross(vec3 v1, vec3 v2);
 
 #endif
