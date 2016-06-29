@@ -50,7 +50,7 @@ void displayVectorField(int row, int col, float * u, float * v, float * u0, floa
 
 void computeCurls_uniform(int N, float * w, float * u, float * v)
 {
-	float h = 1 / N;
+	float h = 1.0f / N;
 	for (int i = 1; i <= N; i++)
 	{
 		for (int j = 1; j <= N; j++)
@@ -61,7 +61,7 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 			//w[IX(i, j)] = dv - du;
 	
 			// Stokes Theorem
-			float coef = 1 / (8 * (std::pow(h, 2)));
+			float coef = 1.0f / (8 * (std::pow(h, 2)));
 			float du1 = h * (u[IX(i - 1, j - 1)] + 2 * u[IX(i, j - 1)] + u[IX(i + 1, j - 1)]);
 			float du0 = h * (u[IX(i + 1, j + 1)] + 2 * u[IX(i, j + 1)] + u[IX(i - 1, j + 1)]);
 			float dv1 = h * (v[IX(i + 1, j - 1)] + 2 * v[IX(i + 1, j)] + v[IX(i + 1, j + 1)]);

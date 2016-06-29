@@ -29,7 +29,7 @@ void
 Gauss_Seidel_solve(int N, int b, float * x, float * x0, float a, float c, int iterations){
 	int i, j, k;
 
-	double h = 1 / double(N + 1);
+	double h = 1.0f / N;
 
 	for (k = 0; k < iterations; k++) {
 		FOR_EACH_CELL
@@ -46,12 +46,12 @@ Jacobi_solve(int N, int b, float * x, float * x0, float a, float c, int iteratio
 	int i, j, k;
 	int size = (N + 2) * (N + 2);
 	float* aux = (float*)malloc(size*sizeof(float));
-	double h = 1 / (double)(N + 1);
+	double h = 1.0f / (N);
 
 	for (k = 0; k < iterations; k++)
 	{
 		FOR_EACH_CELL
-			aux[IX(i, j)] = (x0[IX(i, j)] + a *
+			aux[IX(i, j)] = (x0[IX(i, j)] * h * h + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
 		END_FOR
@@ -254,6 +254,8 @@ void IVOCKAdvance(int N,
 	SWAP(v0, v);
 
 	computeCurls_uniform(N, wn, u0, v0);
+	cout << endl << "wn field" << endl;
+	displayField(N + 2, N + 2, wn);
 	scalar_advector(N, w_bar, wn, u0, v0, dt);
 	vector_advector(N, u, u0, v, v0, u0, v0, dt);
 	computeCurls_uniform(N, w_star, u, v);
@@ -261,8 +263,8 @@ void IVOCKAdvance(int N,
 	scaler(N, dw, -1.0f);
 	Jacobi_solve(N, 0, psi, dw, -1, -4, 50);
 	find_vector_potential_2D(N, du, dv, psi);
-	//linear_combine_add(N, u, u, du);
-	//linear_combine_add(N, v, v, dv);
+	linear_combine_add(N, u, u, du);
+	linear_combine_add(N, v, v, dv);
 	free(g);
 }
 
