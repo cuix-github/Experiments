@@ -192,8 +192,8 @@ void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps)
 	}
 
 	LOOP_CELLS {
-		u[IX(i, j)] += (fvortu[IX(i, j)] + fvortu[IX(i - 1, j)]) * 0.5f;
-		v[IX(i, j)] += (fvortv[IX(i, j)] + fvortv[IX(i, j - 1)]) * 0.5f;
+		u[IX(i, j)] += dt * (fvortu[IX(i, j)] + fvortu[IX(i - 1, j)]) * 0.5f;
+		v[IX(i, j)] += dt * (fvortv[IX(i, j)] + fvortv[IX(i, j - 1)]) * 0.5f;
 	}
 
 	free(vort);

@@ -136,7 +136,7 @@ static void pre_display(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// Make the pixel looks round.
-	// glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -329,9 +329,9 @@ static void display_func(void)
 		pre_display();
 		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_scalar_field(t, 1.0f, 1.0f, 1.0f);
-		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
+		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 0.0f, 1.0f, 0.0f);
-		draw_particles(u, v, 1.0f);
+		//draw_particles(u, v, 1.0f);
 		post_display();
 	}
 }
@@ -363,17 +363,17 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 192;
+	N = 128;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
 	force = 100.0f;
 	source = 0.0f;
-	temp = 800.0f;
-	stop_frame = -1;
-	numParticles = 20000;
+	temp = 400.0f;
+	stop_frame = 90;
+	numParticles = 10000;
 	world_scale = 1.0 / N;
-	vort_conf_coef = 0.55f;
+	vort_conf_coef = 0.85f;
 	streamline_length = 5.0f;
 	cout << "Default values of the simualtion: " << endl;
 	cout << "Dim = " << N << " x " << N << endl;

@@ -217,7 +217,7 @@ void IVOCKAdvance(int N,
 	zeros(N, g);
 	for (int i = 1; i <= N; i++){
 		for (int j = 1; j <= N; j++){
-			g[IX(i, j)] = -0.098f;
+			g[IX(i, j)] = -9.8 * dt;
 		}
 	}
 
