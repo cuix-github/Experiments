@@ -1,16 +1,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <glut.h>
-#include "Helpers.h"
+#include "helpers.h"
 #include "solver.h"
-
-#define IX(i,j) ((i) * (N + 2) + (j))
 
 static int N;
 static int nx;
 static int ny;
 static float dt, diff, visc;
 static float force, source;
+static float vort_conf_coef;
 static float temp;
 static int dvel;
 
@@ -137,7 +136,7 @@ static void pre_display(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// Make the pixel looks round.
-	glEnable(GL_POINT_SMOOTH);
+	// glEnable(GL_POINT_SMOOTH);
 }
 
 static void post_display(void)
@@ -163,8 +162,8 @@ static void draw_vector_field(float * u, float * v, float lineWidth, float r, fl
 			y = (j - 0.5f)*h;
 
 			glVertex2f(x, y);
-			glVertex2f(x + u[IX(i, j)] * streamline_length / N,
-				y + v[IX(i, j)] * streamline_length / N);
+			glVertex2f(x + u[j * (N + 2) + i] * streamline_length / N,
+				y + v[j * (N + 2) + i] * streamline_length / N);
 		}
 	}
 
@@ -299,8 +298,8 @@ static void reshape_func(int width, int height)
 static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
-	int idxY = N / 2;
-	int idxX = 5;
+	int idxX = N / 2;
+	int idxY = 3;
 
 	v_prev[IX(idxX, idxY)] = force;
 	t0[IX(idxX, idxY)] = temp;
@@ -313,7 +312,7 @@ static void idle_func(void)
 			computeBuoyancy(N, v, dens, t, 0.1f, 0.3f, dt);
 			
 			// TODO: Fix bugs
-			//computeVortConf(N, u, v, dt, 0.15f);
+			computeVortConf(N, u, v, dt, vort_conf_coef);
 			project(N, u, v, u_prev, v_prev);
 			MoveScalarProperties(N, t, t0, u, v, 0.0f, dt);
 			MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
@@ -364,17 +363,18 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 128;
+	N = 192;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 0.0f;
+	force = 100.0f;
 	source = 0.0f;
-	temp = 500.0f;
+	temp = 800.0f;
 	stop_frame = -1;
-	numParticles = 10000;
+	numParticles = 20000;
 	world_scale = 1.0 / N;
-	streamline_length = 1.0f;
+	vort_conf_coef = 0.55f;
+	streamline_length = 5.0f;
 	cout << "Default values of the simualtion: " << endl;
 	cout << "Dim = " << N << " x " << N << endl;
 	cout << "Time step = " << dt << endl;
@@ -382,6 +382,7 @@ int main(int argc, char ** argv)
 	cout << "Viscosity = " << visc << endl;
 	cout << "Force = " << force << endl;
 	cout << "Source = " << source << endl;
+	cout << "Vorticity Control coefficient = " << vort_conf_coef << endl;
 	cout << "Number of Particles = " << numParticles << endl;
 
 	if (!allocate_data()) exit(1);

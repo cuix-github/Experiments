@@ -152,18 +152,23 @@ void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps)
 	if (!vort || !fvortu || !fvortv)
 		exit(0);
 
+	zeros(N, vort);
+	zeros(N, fvortu);
+	zeros(N, fvortv);
+
 	vec3 dir_vort = vec3(0.0f, 0.0f, 0.0f);
 	vec3 vorticity = vec3(0.0f, 0.0f, 0.0f);
 	
+	// Get curls
 	computeCurls_uniform(N, vort, u, v);
 
 	LOOP_CELLS {
 		float gradu, gradv, gradlen;
-		gradu = 0.5f * N * (u[IX(i + 1, j)] - u[IX(i - 1, j)]);
-		gradv = 0.5f * N * (v[IX(i, j + 1)] - v[IX(i, j - 1)]);
+		gradu = 0.5f * N * (vort[IX(i + 1, j)] - vort[IX(i - 1, j)]);
+		gradv = 0.5f * N * (vort[IX(i, j + 1)] - vort[IX(i, j - 1)]);
 		gradlen = std::sqrt(std::pow(gradu, 2) + std::pow(gradv, 2));
-		gradu *= (gradlen + 10e-20);
-		gradv *= (gradlen + 10e-20);
+		gradu *= 1.0f / (gradlen + 10e-20);
+		gradv *= 1.0f / (gradlen + 10e-20);
 		dir_vort.x = gradu;
 		dir_vort.y = gradv;
 		dir_vort.z = 0.0f;
@@ -174,13 +179,21 @@ void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps)
 		fconf.x *= (vort_conf_eps * (1.0f / N));
 		fconf.y *= (vort_conf_eps * (1.0f / N));
 		fconf.z *= (vort_conf_eps * (1.0f / N));
+		
+		if (fconf.z > 0 || fconf.z < 0)
+		{
+			cout << endl << "Vorticity confinement calculation errors" << endl;
+			system("Pause");
+			exit(0);
+		}
+
 		fvortu[IX(i, j)] = fconf.x;
 		fvortv[IX(i, j)] = fconf.y;
 	}
 
 	LOOP_CELLS {
-		u[IX(i, j)] += fvortu[IX(i, j)] * 0.01f;
-		v[IX(i, j)] += fvortv[IX(i, j)] * 0.01f;
+		u[IX(i, j)] += (fvortu[IX(i, j)] + fvortu[IX(i - 1, j)]) * 0.5f;
+		v[IX(i, j)] += (fvortv[IX(i, j)] + fvortv[IX(i, j - 1)]) * 0.5f;
 	}
 
 	free(vort);

@@ -8,7 +8,6 @@
 
 using namespace std;
 
-//#define IX(i,j) ((i)*(N+2)+(j))
 #define IX(i,j) ((i)+(j)*(N+2))
 #define SWAP(x0,x) {float * tmp = x0; x0 = x; x = tmp;}
 #define LOOP_CELLS for (int i=1 ; i<=N ; i++ )\
