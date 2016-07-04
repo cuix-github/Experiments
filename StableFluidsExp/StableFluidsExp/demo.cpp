@@ -303,6 +303,10 @@ static void idle_func(void)
 
 	v_prev[IX(idxX, idxY)] = force;
 	t0[IX(idxX, idxY)] = temp;
+	t0[IX(idxX + 1, idxY)] = temp;
+	t0[IX(idxX - 1, idxY)] = temp;
+	t0[IX(idxX + 2, idxY)] = temp;
+	t0[IX(idxX - 2, idxY)] = temp;
 	dens_prev[IX(idxX, idxY)] = source;
 
 	if (!pause){
@@ -363,17 +367,17 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 128;
+	N = 192;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
 	force = 100.0f;
-	source = 0.0f;
-	temp = 400.0f;
-	stop_frame = 90;
+	source = 100.0f;
+	temp = 50.0f;
+	stop_frame = -1;
 	numParticles = 10000;
 	world_scale = 1.0 / N;
-	vort_conf_coef = 0.85f;
+	vort_conf_coef = 0.15f;
 	streamline_length = 5.0f;
 	cout << "Default values of the simualtion: " << endl;
 	cout << "Dim = " << N << " x " << N << endl;

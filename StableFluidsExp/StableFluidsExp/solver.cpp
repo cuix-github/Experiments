@@ -174,14 +174,16 @@ project(int N, float * u, float * v, float * p, float * div){
 	zeros(N, p);
 
 	computeDivergence_unifrom(N, u, v, div);
+	set_boundaries(N, 0, div);
+	set_boundaries(N, 0, p);
 	scaler(N, div, -1.0f);
 	Gauss_Seidel_solve(N, 0, p, div, 1, 4, 50);
 	LOOP_CELLS{
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
 		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	}
-	set_boundaries(N, 0, u);
-	set_boundaries(N, 0, v);
+	set_boundaries(N, 1, u);
+	set_boundaries(N, 2, v);
 }
 
 void
@@ -238,14 +240,16 @@ void IVOCKAdvance(int N,
 	SWAP(u0, u);
 	SWAP(v0, v);
 
-	computeCurls_uniform(N, wn, u0, v0);
-	scalar_advector(N, w_bar, wn, u0, v0, dt);
+	//computeCurls_uniform(N, wn, u0, v0);
+	//scalar_advector(N, w_bar, wn, u0, v0, dt);
 	vector_advector(N, u, u0, v, v0, u0, v0, dt);
-	computeCurls_uniform(N, w_star, u, v);
-	linear_combine_sub(N, dw, w_bar, w_star);
-	scaler(N, dw, -1.0f);
-	Jacobi_solve(N, 0, psi, dw, -1, -4, 50);
-	find_vector_potential_2D(N, du, dv, psi);
+	set_boundaries(N, 0, u);
+	set_boundaries(N, 0, v);
+	//computeCurls_uniform(N, w_star, u, v);
+	//linear_combine_sub(N, dw, w_bar, w_star);
+	//scaler(N, dw, -1.0f);
+	//Jacobi_solve(N, 0, psi, dw, -1, -4, 50);
+	//find_vector_potential_2D(N, du, dv, psi);
 	//linear_combine_add(N, u, u, du);
 	//linear_combine_add(N, v, v, dv);
 	free(g);

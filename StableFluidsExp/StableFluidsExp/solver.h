@@ -18,4 +18,7 @@ IVOCKAdvance(int N,
 void
 project(int N, float * u, float * v, float * p, float * div);
 
+void
+set_boundaries(int N, int b, float * x);
+
 #endif _SOLVER_H_
