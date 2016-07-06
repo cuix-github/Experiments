@@ -131,6 +131,7 @@ scalar_advector(int N, float * d, float * d0, float * u, float * v, float dt){
 		float bottom_x_dir_lerp = lerp(s1, d0[IX(i0, j1)], d0[IX(i1, j1)]);
 		d[IX(i, j)] = lerp(t1, top_x_dir_lerp, bottom_x_dir_lerp);
 	}
+	set_boundaries(N, 0, d);
 }
 
 void
@@ -167,22 +168,24 @@ vector_advector(int N, float * d, float * d0, float * k, float * k0, float * u, 
 			lerp(t1, k0[IX(i0, j0)], k0[IX(i0, j1)]),
 			lerp(t1, k0[IX(i1, j0)], k0[IX(i1, j1)]));
 	}
+	set_boundaries(N, 0, d);
+	set_boundaries(N, 0, k);
 }
 
 void
 project(int N, float * u, float * v, float * p, float * div){
-	zeros(N, p);
 	computeDivergence_unifrom(N, u, v, div);
 	set_boundaries(N, 0, div);
 	set_boundaries(N, 0, p);
+	zeros(N, p);
 	scaler(N, div, -1.0f);
-	Gauss_Seidel_solve(N, 0, p, div, 1, 4, 50);
+	Gauss_Seidel_solve(N, 0, p, div, 1, 4, 30);
 	LOOP_CELLS{
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
 		v[IX(i, j)] -= 0.5f*N*(p[IX(i, j + 1)] - p[IX(i, j - 1)]);
 	}
-	set_boundaries(N, 1, u);
-	set_boundaries(N, 2, v);
+	set_boundaries(N, 0, u);
+	set_boundaries(N, 0, v);
 }
 
 void
@@ -211,6 +214,8 @@ void IVOCKAdvance(int N,
 	zeros(N, psi);
 	zeros(N, du);
 	zeros(N, dv);
+	zeros(N, u0);
+	zeros(N, v0);
 
 	// Gravity
 	int size = (N + 2) * (N + 2);
@@ -225,7 +230,6 @@ void IVOCKAdvance(int N,
 	add_source(N, u, u0, dt);
 	add_source(N, v0, g, dt);
 	add_source(N, v, v0, dt);
-	add_source(N, t, t0, dt);
 
 	particles_advector(N, u, v, particles, num_particles, dt);
 

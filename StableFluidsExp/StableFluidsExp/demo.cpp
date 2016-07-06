@@ -299,7 +299,7 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 3;
+	int idxY = 5;
 
 	v_prev[IX(idxX, idxY)] = force;
 	t0[IX(idxX, idxY)] = temp;
@@ -313,14 +313,18 @@ static void idle_func(void)
 		if (frame_counter != stop_frame)
 		{
 			IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
-			computeBuoyancy(N, v, dens, t, 0.1f, 0.3f, dt);
+			computeBuoyancy(N, v, dens, t, 0.1f, 0.4f, dt);
 			
 			// TODO: Fix bugs
-			computeVortConf(N, u, v, dt, vort_conf_coef);
+			// computeVortConf(N, u, v, dt, vort_conf_coef);
 			project(N, u, v, u_prev, v_prev);
-			MoveScalarProperties(N, t, t0, u, v, 0.0f, dt);
+			MoveScalarProperties(N, t, t0, u, v, diff, dt);
 			MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
 			frame_counter++;
+		}
+		else
+		{
+			clear_data();
 		}
 	}
 	glutSetWindow(win_id);
@@ -333,9 +337,9 @@ static void display_func(void)
 		pre_display();
 		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_scalar_field(t, 1.0f, 1.0f, 1.0f);
-		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
+		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 0.0f, 1.0f, 0.0f);
-		//draw_particles(u, v, 1.0f);
+		draw_particles(u, v, 2.0f);
 		post_display();
 	}
 }
@@ -347,7 +351,7 @@ static void open_glut_window(void)
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - win_x) / 2,
 		(glutGet(GLUT_SCREEN_HEIGHT) - win_y) / 2);
 	glutInitWindowSize(win_x, win_y);
-	win_id = glutCreateWindow("Smoke");
+	win_id = glutCreateWindow("Smoke Sim");
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -367,14 +371,14 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 192;
+	N = 144;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
-	force = 100.0f;
-	source = 100.0f;
-	temp = 50.0f;
-	stop_frame = -1;
+	force = 0.0f;
+	source = 10.0f;
+	temp = 400.0f;
+	stop_frame = 160;
 	numParticles = 10000;
 	world_scale = 1.0 / N;
 	vort_conf_coef = 0.55f;
