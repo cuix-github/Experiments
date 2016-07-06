@@ -377,7 +377,7 @@ int main(int argc, char ** argv)
 	stop_frame = -1;
 	numParticles = 10000;
 	world_scale = 1.0 / N;
-	vort_conf_coef = 0.15f;
+	vort_conf_coef = 0.55f;
 	streamline_length = 5.0f;
 	cout << "Default values of the simualtion: " << endl;
 	cout << "Dim = " << N << " x " << N << endl;
