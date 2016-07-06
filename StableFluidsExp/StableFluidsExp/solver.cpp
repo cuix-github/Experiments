@@ -172,7 +172,6 @@ vector_advector(int N, float * d, float * d0, float * k, float * k0, float * u, 
 void
 project(int N, float * u, float * v, float * p, float * div){
 	zeros(N, p);
-
 	computeDivergence_unifrom(N, u, v, div);
 	set_boundaries(N, 0, div);
 	set_boundaries(N, 0, p);
@@ -219,13 +218,13 @@ void IVOCKAdvance(int N,
 	zeros(N, g);
 	for (int i = 1; i <= N; i++){
 		for (int j = 1; j <= N; j++){
-			g[IX(i, j)] = -9.8 * dt;
+			g[IX(i, j)] = -9.8;
 		}
 	}
 
 	add_source(N, u, u0, dt);
+	add_source(N, v0, g, dt);
 	add_source(N, v, v0, dt);
-	add_source(N, v, g, dt);
 	add_source(N, t, t0, dt);
 
 	particles_advector(N, u, v, particles, num_particles, dt);
