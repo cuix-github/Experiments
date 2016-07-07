@@ -316,7 +316,7 @@ static void idle_func(void)
 			computeBuoyancy(N, v, dens, t, 0.1f, 0.4f, dt);
 			
 			// TODO: Fix bugs
-			// computeVortConf(N, u, v, dt, vort_conf_coef);
+			computeVortConf(N, u, v, dt, vort_conf_coef);
 			project(N, u, v, u_prev, v_prev);
 			MoveScalarProperties(N, t, t0, u, v, diff, dt);
 			MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
@@ -339,7 +339,7 @@ static void display_func(void)
 		//draw_scalar_field(t, 1.0f, 1.0f, 1.0f);
 		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 0.0f, 1.0f, 0.0f);
-		draw_particles(u, v, 2.0f);
+		draw_particles(u, v, 1.0f);
 		post_display();
 	}
 }
@@ -371,7 +371,7 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 144;
+	N = 192;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
