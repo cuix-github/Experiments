@@ -49,7 +49,7 @@ Jacobi_solve(int N, int b, float * x, float * x0, float a, float c, int iteratio
 			aux[IX(i, j)] = (x0[IX(i, j)] * (h * h) + a *
 			(x[IX(i - 1, j)] + x[IX(i + 1, j)] +
 			x[IX(i, j - 1)] + x[IX(i, j + 1)])) / c;
-	}
+		}
 
 		LOOP_CELLS{
 			x[IX(i, j)] = aux[IX(i, j)];
@@ -243,18 +243,17 @@ void IVOCKAdvance(int N,
 	SWAP(u0, u);
 	SWAP(v0, v);
 
-	//computeCurls_uniform(N, wn, u0, v0);
-	//scalar_advector(N, w_bar, wn, u0, v0, dt);
+	computeCurls_uniform(N, wn, u0, v0);
+	scalar_advector(N, w_bar, wn, u0, v0, dt);
 	vector_advector(N, u, u0, v, v0, u0, v0, dt);
-	set_boundaries(N, 0, u);
-	set_boundaries(N, 0, v);
-	//computeCurls_uniform(N, w_star, u, v);
-	//linear_combine_sub(N, dw, w_bar, w_star);
-	//scaler(N, dw, -1.0f);
-	//Jacobi_solve(N, 0, psi, dw, -1, -4, 50);
-	//find_vector_potential_2D(N, du, dv, psi);
-	//linear_combine_add(N, u, u, du);
-	//linear_combine_add(N, v, v, dv);
+	computeCurls_uniform(N, w_star, u, v);
+	linear_combine_sub(N, dw, w_bar, w_star);
+	set_boundaries(N, 0, dw);
+	scaler(N, dw, -1.0f);
+	Jacobi_solve(N, 0, psi, dw, 1, 4, 30);
+	find_vector_potential_2D(N, du, dv, psi);
+	linear_combine_add(N, u, u, du);
+	linear_combine_add(N, v, v, dv);
 	free(g);
 }
 

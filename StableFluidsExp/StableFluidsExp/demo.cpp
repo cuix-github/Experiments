@@ -299,7 +299,7 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 5;
+	int idxY = 10;
 
 	v_prev[IX(idxX, idxY)] = force;
 	t0[IX(idxX, idxY)] = temp;
@@ -316,7 +316,7 @@ static void idle_func(void)
 			computeBuoyancy(N, v, dens, t, 0.1f, 0.4f, dt);
 			
 			// TODO: Fix bugs
-			computeVortConf(N, u, v, dt, vort_conf_coef);
+			//computeVortConf(N, u, v, dt, vort_conf_coef);
 			project(N, u, v, u_prev, v_prev);
 			MoveScalarProperties(N, t, t0, u, v, diff, dt);
 			MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
@@ -377,11 +377,11 @@ int main(int argc, char ** argv)
 	visc = 0.0f;
 	force = 0.0f;
 	source = 10.0f;
-	temp = 400.0f;
+	temp = 500.0f;
 	stop_frame = 160;
 	numParticles = 10000;
 	world_scale = 1.0 / N;
-	vort_conf_coef = 0.55f;
+	vort_conf_coef = 0.1f;
 	streamline_length = 5.0f;
 	cout << "Default values of the simualtion: " << endl;
 	cout << "Dim = " << N << " x " << N << endl;

@@ -49,16 +49,16 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 	//}
 
 	//// Least Square
-	//for (int i = 2; i <= N - 1; i++)
-	//{
-	//	for (int j = 2; j <= N - 1; j++)
-	//	{
-	//		float coef = 1 / (10 * h);
-	//		float du = 2 * u[IX(i, j + 2)] + u[IX(i, j + 1)] - u[IX(i, j - 1)] - 2 * u[IX(i, j - 2)];
-	//		float dv = 2 * v[IX(i + 2, j)] + v[IX(i + 1, j)] - v[IX(i - 1, j)] - 2 * v[IX(i - 2, j)];
-	//		w[IX(i, j)] = coef * dv - coef * du;
-	//	}
-	//}
+	// for (int i = 2; i <= N - 1; i++)
+	// {
+	// 	for (int j = 2; j <= N - 1; j++)
+	// 	{
+	// 		float coef = 1 / (10 * h);
+	// 		float du = 2 * u[IX(i, j + 2)] + u[IX(i, j + 1)] - u[IX(i, j - 1)] - 2 * u[IX(i, j - 2)];
+	// 		float dv = 2 * v[IX(i + 2, j)] + v[IX(i + 1, j)] - v[IX(i - 1, j)] - 2 * v[IX(i - 2, j)];
+	// 		w[IX(i, j)] = coef * dv - coef * du;
+	// 	}
+	// }
 
 	// Richardson Extrapolation
 	for (int i = 2; i <= N - 1; i++)
@@ -66,8 +66,8 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 		for (int j = 2; j <= N - 1; j++)
 		{
 			float coef = 1 / (12 * h);
-			float du = -v[IX(i, j + 2)] + 8 * v[IX(i, j + 1)] - 8 * v[IX(i, j - 1)] - v[IX(i, j - 2)];
-			float dv = -u[IX(i + 2, j)] + 8 * u[IX(i + 1, j)] - 8 * u[IX(i - 1, j)] - u[IX(i - 2, j)];
+			float du = -v[IX(i, j + 2)] + 8 * v[IX(i, j + 1)] - 8 * v[IX(i, j - 1)] + v[IX(i, j - 2)];
+			float dv = -u[IX(i + 2, j)] + 8 * u[IX(i + 1, j)] - 8 * u[IX(i - 1, j)] + u[IX(i - 2, j)];
 			w[IX(i, j)] = coef * dv - coef * du;
 		}
 	}
