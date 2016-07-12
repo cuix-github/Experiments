@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <glew.h>
+#include <GL/glew.h>
 #include <glut.h>
 #include "CUDA_Helpers\cutil.h"
 #include <cuda.h>
@@ -30,7 +30,6 @@
 #include <cuda_gl_interop.h>
 
 #pragma comment(lib, "glew32.lib")
-#pragma comment(lib, "glew32s.lib")
 
 #define TILE_I 16
 #define TILE_J 8
@@ -134,7 +133,7 @@ int main(int argc, char **argv)
     // hard code them for the demo:
     ni= 256;
     nj= 144;
-    vxin=0.04;
+    vxin=0.06;
     roout=1.0;
     tau=0.51;
     // End of parameter list

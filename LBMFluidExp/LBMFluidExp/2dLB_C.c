@@ -85,8 +85,8 @@ int main(int argc, char **argv)
     // hard code them for the demo:
     ni=256;
     nj=144;
-    vxin=0.1;
-    roout=10.0;
+    vxin=0.04;
+    roout=1.0;
     tau=0.51;
     // End of parameter list
 

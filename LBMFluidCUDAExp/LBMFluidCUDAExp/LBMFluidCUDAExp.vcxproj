@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include\GL;$(IncludePath)</IncludePath>
+    <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include;$(IncludePath)</IncludePath>
     <ExecutablePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Debug\Win32;C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Debug MX\Win32;$(ExecutablePath)</ExecutablePath>
     <LibraryPath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Debug\Win32;C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Debug MX\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -79,9 +79,9 @@
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include\GL;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Release\Win32;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Release\Win32;C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Release MX\Win32;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Release\Win32;C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Release MX\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include\GL;$(IncludePath)</IncludePath>
