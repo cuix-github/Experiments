@@ -81,9 +81,13 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>C:\R&amp;D\Tools\Glew\include\GL;$(IncludePath)</IncludePath>
     <LibraryPath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Release\Win32;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Release\Win32;C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Release MX\Win32;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <ExecutablePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Release\x64;C:\R&amp;D\Tools\Glew_build\glew-1.13.0\bin\Release MX\x64;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Release\x64;C:\R&amp;D\Tools\Glew_build\glew-1.13.0\lib\Release MX\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

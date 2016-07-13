@@ -131,9 +131,9 @@ int main(int argc, char **argv)
 
     // The following parameters are usually read from a file, but
     // hard code them for the demo:
-    ni= 256;
-    nj= 144;
-    vxin=0.06;
+    ni= 1024;
+    nj= 576;
+    vxin= 0.04f;
     roout=1.0;
     tau=0.51;
     // End of parameter list
