@@ -5,7 +5,7 @@ using namespace std;
 using namespace cpt;
 
 double accuracy = 0.001;        // desired relative accuracy in solution
-int L = 64;                     // number of interior points in each dimension
+int L = 4;                     // number of interior points in each dimension
 int n_smooth = 5;               // number of pre and post smoothing iterations
 
 Matrix<double, 2> psi(L + 2, L + 2), // solution to be found
@@ -33,6 +33,15 @@ void initialize()
 	double q = 10;              // point charge
 	int i = L / 2;              // center of lattice
 	rho[i][i] = q / (h * h);    // charge density
+
+	for (int i = 1; i <= L; i++)
+	{
+		for (int j = 1; j <= L; j++)
+			rho[i][j] = 0.0f;
+	}
+
+	rho[3][3] = 0.05f;
+	rho[3][4] = 1.2f;
 
 	steps = 0;
 }
@@ -133,44 +142,42 @@ double relative_error()
 
 int main()
 {
-	cout << " Multigrid solution of Poisson's equation\n"
-		<< " ----------------------------------------\n";
-	cout << " Enter number of interior points in x or y: ";
-	cin >> L;
-	cout << " Enter desired accuracy in the solution: ";
-	cin >> accuracy;
-	cout << " Enter number of smoothing iterations: ";
-	cin >> n_smooth;
+	Matrix<double, 2> pressure(L + 2, L + 2);
+	Matrix<double, 2> div(L + 2, L + 2);
+	float h = 1.0f / L;
 
-	initialize();
-	clock_t t0 = clock();
-	while (true) {
-		for (int i = 0; i < L + 2; i++)
-		for (int j = 0; j < L + 2; j++)
-			psi_new[i][j] = psi[i][j];
-		two_grid(h, psi, rho);
-		++steps;
-		double error = relative_error();
-		cout << " Step No. " << steps << "\tError = " << error << endl;
-		if (steps > 1 && error < accuracy)
-			break;
-	}
-	clock_t t1 = clock();
-	cout << " CPU time = " << double(t1 - t0) / CLOCKS_PER_SEC
-		<< " sec" << endl;
-
-	// write potential to file
-	ofstream file("poisson_mg.data");
-	for (int i = 0; i < L + 2; i++) {
-		double x = i * h;
-		for (int j = 0; j < L + 2; j++) {
-			double y = j * h;
-			file << x << '\t' << y << '\t' << psi[i][j] << '\n';
+	for (int i = 0; i != L + 2; i++){
+		for (int j = 0; j != L + 2; j++){
+			pressure[i][j] = div[i][j] = 0.0f;
 		}
-		file << '\n';
 	}
-	file.close();
-	cout << " Potential in file poisson_mg.data" << endl;
+
+	div[3][3] = 0.05f;
+	div[3][4] = 1.2f;
+
+	cout << std::setprecision(4) << setiosflags(ios::fixed);
+	cout << "div field" << endl;
+	for (int i = 1; i <= L; i++){
+		for (int j = 1; j <= L; j++){
+			cout << div[i][j] << ", ";
+			if (j == L)
+				cout << endl;
+		}
+	}
+
+	cout << "Multigrid solve" << endl;
+	two_grid(h, pressure, div);
+
+	cout << "pressure field" << endl;
+	for (int i = 1; i <= L; i++){
+		for (int j = 1; j <= L; j++){
+			cout << pressure[i][j] << ", ";
+			if (j == L)
+				cout << endl;
+		}
+	}
+
+	cout << "pressure solved" << endl;
 
 	system("Pause");
 	return 0;
