@@ -199,6 +199,16 @@ void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps)
 	free(vort);
 }
 
+void computerLaplace(int N, float * tar, float * src)
+{
+	LOOP_CELLS
+	{
+		tar[IX(i, j)] = src[IX(i + 1, j)] + src[IX(i - 1, j)] + 
+						src[IX(i, j + 1)] + src[IX(i, j - 1)] - 
+						4 * src[IX(i, j)];
+	}
+}
+
 
 float interpolate(int N, float x, float y, float * field){
 	int i, j;

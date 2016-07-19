@@ -31,6 +31,7 @@ void linear_combine_sub(int N, float * f_out, float * f, float * f0);
 void computeDivergence_unifrom(int N, float * u, float * v, float * div);
 void computeBuoyancy(int N, float * v, float * d, float * ambientTemperature, float alpha, float beta, float dt);
 void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps);
+void computeLaplace(int N, float * tar, float * src);
 float lerp(float t, float x0, float x1);
 float bilerp(float t, float s, float x0, float x1, float y0, float y1);
 float interpolate(int N, float x, float y, float * field);

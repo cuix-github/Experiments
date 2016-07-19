@@ -1,6 +1,7 @@
-#include "../cpt/cptstd.hpp"
-#include "../cpt/matrix.hpp"
-#include "Helpers.h"
+#include <iostream>
+#include "cptstd.hpp"
+#include "matrix.hpp"
+using namespace std;
 using namespace cpt;
 
 double accuracy = 0.001;        // desired relative accuracy in solution
