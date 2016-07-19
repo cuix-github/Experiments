@@ -199,7 +199,7 @@ void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps)
 	free(vort);
 }
 
-void computerLaplace(int N, float * tar, float * src)
+void computeLaplace(int N, float * tar, float * src)
 {
 	LOOP_CELLS
 	{

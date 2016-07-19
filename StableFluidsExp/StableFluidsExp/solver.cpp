@@ -61,46 +61,8 @@ Jacobi_solve(int N, int b, float * x, float * x0, float a, float c, int iteratio
 }
 
 void
-Multigrid_solve(int N, int b, float * x, float * x0, int nSmooth)
+Multigrid_solve(int N, float * x, float * x0, int nSmooth)
 {
-	int L = N, L2 = N / 2;
-	if (L == 1){
-		x[IX(1, 1)] = 0.25f * (x[IX(0, 1)] + x[IX(1, 0)] + x[IX(1, 2)] + x[IX(2, 1)] + x0[IX(1, 1)]);
-		return;
-	}
-
-	for (int i = 1; i != nSmooth; i++){
-		Gauss_Seidel_solve(L, b, x, x0, 1, 4, 30);
-	}
-
-	float *r = (float*)malloc((L + 2) * (L + 2) * sizeof(float));
-	float *R = (float*)malloc((L2 + 2) * (L2 + 2) * sizeof(float));
-	float *laplace = (float*)malloc((L + 2) * (L + 2) * sizeof(float));
-
-	if (!r || !R || !laplace)
-		return;
-
-	computeLaplace(L, laplace, x);
-	linear_combine_add(L, r, x0, laplace);
-
-	for (int i = 1; i <= L2; i++){
-		int m = 2 * i - 1;
-		for (int j = 1; j <= L2; j++){
-			int n = 2 * j - 1;
-			R[IX(i, j)] = 0.25f * (r[IX(i, j)] + r[IX(i + 1, j)] + r[IX(i, j + 1)] + r[IX(i + 1, j + 1)]);
-		}
-	}
-
-	// TODO:
-	// 1. Initialize correction V on coarse grid to zero
-	// 2. Call twoGrid recursively
-	// 3. Prolongate V to fine grid using simple injection
-	// 4. Correct x
-	// 5. Do a few post-smoothing linear solve
-
-	free(laplace);
-	free(r);
-	free(R);
 }
 
 void
@@ -222,6 +184,7 @@ project(int N, float * u, float * v, float * p, float * div){
 	set_boundaries(N, 0, p);
 	zeros(N, p);
 	scaler(N, div, -1.0f);
+	//Multigrid_solve(N, p, div, 10);
 	Gauss_Seidel_solve(N, 0, p, div, 1, 4, 30);
 	LOOP_CELLS{
 		u[IX(i, j)] -= 0.5f*N*(p[IX(i + 1, j)] - p[IX(i - 1, j)]);
