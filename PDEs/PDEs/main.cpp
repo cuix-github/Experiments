@@ -4,15 +4,15 @@
 using namespace std;
 using namespace cpt;
 
-double accuracy = 0.001;        // desired relative accuracy in solution
+float accuracy = 0.001;        // desired relative accuracy in solution
 int L = 4;                     // number of interior points in each dimension
 int n_smooth = 5;               // number of pre and post smoothing iterations
 
-Matrix<double, 2> psi(L + 2, L + 2), // solution to be found
+Matrix<float, 2> psi(L + 2, L + 2), // solution to be found
 psi_new(L + 2, L + 2),          // approximate solution after 1 iteration
 rho(L + 2, L + 2);              // given source function
 
-double h = 1.0 / (L + 1);         // step size
+float h = 1.0 / (L + 1);         // step size
 int steps;                      // number of iteration steps
 
 void initialize()
@@ -27,10 +27,10 @@ void initialize()
 	}
 
 	// create (L+2)x(L+2) matrices and zero them
-	psi = psi_new = rho = Matrix<double, 2>(L + 2, L + 2);
+	psi = psi_new = rho = Matrix<float, 2>(L + 2, L + 2);
 
-	h = 1 / double(L + 1);      // assume physical size in x and y = 1
-	double q = 10;              // point charge
+	h = 1 / float(L + 1);      // assume physical size in x and y = 1
+	float q = 10;              // point charge
 	int i = L / 2;              // center of lattice
 	rho[i][i] = q / (h * h);    // charge density
 
@@ -46,7 +46,7 @@ void initialize()
 	steps = 0;
 }
 
-void Gauss_Seidel(double h, Matrix<double, 2>& u, const Matrix<double, 2>& f)
+void Gauss_Seidel(float h, Matrix<float, 2>& u, const Matrix<float, 2>& f)
 {
 	int L = u.dim1() - 2;
 
@@ -60,7 +60,7 @@ void Gauss_Seidel(double h, Matrix<double, 2>& u, const Matrix<double, 2>& f)
 		h * h * f[i][j]);
 }
 
-void two_grid(double h, Matrix<double, 2>& u, Matrix<double, 2>& f)
+void two_grid(float h, Matrix<float, 2>& u, Matrix<float, 2>& f)
 {
 	// solve exactly if there is only one interior point
 	int L = u.dim1() - 2;
@@ -75,7 +75,7 @@ void two_grid(double h, Matrix<double, 2>& u, Matrix<double, 2>& f)
 		Gauss_Seidel(h, u, f);
 
 	// find the residual
-	Matrix<double, 2> r(L + 2, L + 2);
+	Matrix<float, 2> r(L + 2, L + 2);
 	for (int i = 1; i <= L; i++)
 	for (int j = 1; j <= L; j++)
 		r[i][j] = f[i][j] +
@@ -84,7 +84,7 @@ void two_grid(double h, Matrix<double, 2>& u, Matrix<double, 2>& f)
 
 	// restrict residual to coarser grid
 	int L2 = L / 2;
-	Matrix<double, 2> R(L2 + 2, L2 + 2);
+	Matrix<float, 2> R(L2 + 2, L2 + 2);
 	for (int I = 1; I <= L2; I++) {
 		int i = 2 * I - 1;
 		for (int J = 1; J <= L2; J++) {
@@ -95,14 +95,15 @@ void two_grid(double h, Matrix<double, 2>& u, Matrix<double, 2>& f)
 	}
 
 	// initialize correction V on coarse grid to zero
-	Matrix<double, 2> V(L2 + 2, L2 + 2);
+	Matrix<float, 2> V(L2 + 2, L2 + 2);
 
 	// call twoGrid recursively
-	double H = 2 * h;
+	float H = 2 * h;
+
 	two_grid(H, V, R);
 
 	// prolongate V to fine grid using simple injection
-	Matrix<double, 2> v(L + 2, L + 2);
+	Matrix<float, 2> v(L + 2, L + 2);
 	for (int I = 1; I <= L2; I++) {
 		int i = 2 * I - 1;
 		for (int J = 1; J <= L2; J++) {
@@ -121,9 +122,9 @@ void two_grid(double h, Matrix<double, 2>& u, Matrix<double, 2>& f)
 		Gauss_Seidel(h, u, f);
 }
 
-double relative_error()
+float relative_error()
 {
-	double error = 0;           // average relative error per lattice point
+	float error = 0;           // average relative error per lattice point
 	int n = 0;                  // number of non-zero differences
 
 	for (int i = 1; i <= L; i++)
@@ -142,9 +143,9 @@ double relative_error()
 
 int main()
 {
-	Matrix<double, 2> pressure(L + 2, L + 2);
-	Matrix<double, 2> div(L + 2, L + 2);
-	float h = 1.0f / L;
+	Matrix<float, 2> pressure(L + 2, L + 2);
+	Matrix<float, 2> div(L + 2, L + 2);
+	float h = 1.0f / (L + 1);
 
 	for (int i = 0; i != L + 2; i++){
 		for (int j = 0; j != L + 2; j++){
@@ -157,10 +158,10 @@ int main()
 
 	cout << std::setprecision(4) << setiosflags(ios::fixed);
 	cout << "div field" << endl;
-	for (int i = 1; i <= L; i++){
-		for (int j = 1; j <= L; j++){
+	for (int i = 0; i < L + 2; i++){
+		for (int j = 0; j < L + 2; j++){
 			cout << div[i][j] << ", ";
-			if (j == L)
+			if (j == L + 1)
 				cout << endl;
 		}
 	}
@@ -169,10 +170,10 @@ int main()
 	two_grid(h, pressure, div);
 
 	cout << "pressure field" << endl;
-	for (int i = 1; i <= L; i++){
-		for (int j = 1; j <= L; j++){
+	for (int i = 0; i < L + 2; i++){
+		for (int j = 0; j < L + 2; j++){
 			cout << pressure[i][j] << ", ";
-			if (j == L)
+			if (j == L + 1)
 				cout << endl;
 		}
 	}
