@@ -46,6 +46,20 @@ void initialize()
 	steps = 0;
 }
 
+void Gauss_Seidel_I(Matrix<float, 2>& u, const Matrix<float, 2>& f, int iterations)
+{
+	// copy V to V_new
+	// u = f;
+
+	// Gauss-Seidel update in place
+	for (int k = 0; k != iterations; k++)
+	for (int i = 1; i <= L; i++)
+	for (int j = 1; j <= L; j++)
+		u[i][j] = 0.25 * (u[i - 1][j] + u[i + 1][j] +
+		u[i][j - 1] + u[i][j + 1] +
+		f[i][j]);
+}
+
 void Gauss_Seidel(float h, Matrix<float, 2>& u, const Matrix<float, 2>& f)
 {
 	int L = u.dim1() - 2;
@@ -57,7 +71,7 @@ void Gauss_Seidel(float h, Matrix<float, 2>& u, const Matrix<float, 2>& f)
 	if ((i + j) % 2 == color)
 		u[i][j] = 0.25 * (u[i - 1][j] + u[i + 1][j] +
 		u[i][j - 1] + u[i][j + 1] +
-		h * h * f[i][j]);
+		f[i][j]);
 }
 
 void two_grid(float h, Matrix<float, 2>& u, Matrix<float, 2>& f)
@@ -66,7 +80,7 @@ void two_grid(float h, Matrix<float, 2>& u, Matrix<float, 2>& f)
 	int L = u.dim1() - 2;
 	if (L == 1) {
 		u[1][1] = 0.25 * (u[0][1] + u[2][1] + u[1][0] + u[1][2] +
-			h * h * f[1][1]);
+			f[1][1]);
 		return;
 	}
 
@@ -80,7 +94,7 @@ void two_grid(float h, Matrix<float, 2>& u, Matrix<float, 2>& f)
 	for (int j = 1; j <= L; j++)
 		r[i][j] = f[i][j] +
 		(u[i + 1][j] + u[i - 1][j] +
-		u[i][j + 1] + u[i][j - 1] - 4 * u[i][j]) / (h * h);
+		u[i][j + 1] + u[i][j - 1] - 4 * u[i][j]);
 
 	// restrict residual to coarser grid
 	int L2 = L / 2;
@@ -144,12 +158,13 @@ float relative_error()
 int main()
 {
 	Matrix<float, 2> pressure(L + 2, L + 2);
+	Matrix<float, 2> pressure_gs_results(L + 2, L + 2);
 	Matrix<float, 2> div(L + 2, L + 2);
 	float h = 1.0f / (L + 1);
 
 	for (int i = 0; i != L + 2; i++){
 		for (int j = 0; j != L + 2; j++){
-			pressure[i][j] = div[i][j] = 0.0f;
+			pressure[i][j] = div[i][j] = pressure_gs_results[i][j] = 0.0f;
 		}
 	}
 
@@ -169,10 +184,22 @@ int main()
 	cout << "Multigrid solve" << endl;
 	two_grid(h, pressure, div);
 
+	cout << "GS solve" << endl;
+	Gauss_Seidel_I(pressure_gs_results, div, 30);
+
 	cout << "pressure field" << endl;
 	for (int i = 0; i < L + 2; i++){
 		for (int j = 0; j < L + 2; j++){
 			cout << pressure[i][j] << ", ";
+			if (j == L + 1)
+				cout << endl;
+		}
+	}
+
+	cout << "pressure field from GS solve" << endl;
+	for (int i = 0; i < L + 2; i++){
+		for (int j = 0; j < L + 2; j++){
+			cout << pressure_gs_results[i][j] << ", ";
 			if (j == L + 1)
 				cout << endl;
 		}
