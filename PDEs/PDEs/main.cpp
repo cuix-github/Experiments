@@ -6,7 +6,7 @@ using namespace cpt;
 
 float accuracy = 0.001;        // desired relative accuracy in solution
 int L = 4;                     // number of interior points in each dimension
-int n_smooth = 5;               // number of pre and post smoothing iterations
+int n_smooth = 20;               // number of pre and post smoothing iterations
 
 Matrix<float, 2> psi(L + 2, L + 2), // solution to be found
 psi_new(L + 2, L + 2),          // approximate solution after 1 iteration
