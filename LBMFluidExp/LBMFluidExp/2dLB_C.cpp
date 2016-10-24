@@ -86,9 +86,9 @@ int main(int argc, char **argv)
 
     // The following parameters are usually read from a file, but
     // hard code them for the demo:
-    ni=8;
-    nj=8;
-    vxin=0.04;
+    ni=128;
+    nj=128;
+    vxin=0.08;
     roout=1.0;
     tau=0.51;
     // End of parameter list
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
     //
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(ni, nj);      // Window of ni x nj pixels
+    glutInitWindowSize(1280, 720);      // Window of ni x nj pixels
     glutInitWindowPosition(50, 50);  // position
     glutCreateWindow("2D LBM");       // title
 
