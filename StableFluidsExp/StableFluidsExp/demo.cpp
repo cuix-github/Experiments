@@ -1,8 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
 #include <glut.h>
 #include "helpers.h"
 #include "solver.h"
+
+using namespace std;
 
 static int N;
 static int nx;
@@ -32,6 +35,9 @@ static int frame_counter = 0;
 static int numParticles = 0;
 float world_scale = 0;
 
+// LBM Solver
+static float *f0, *f1, *f2, *f3, *f4, *f5, *f6, *f7, *f8;
+
 static void free_data(void)
 {
 	if (particles) free(particles);
@@ -52,6 +58,20 @@ static void free_data(void)
 	if (fy) free(fy);
 	if (t) free(t);
 	if (t0) free(t0);
+
+	if (f0) free(f0);
+	if (f1) free(f1);
+	if (f2) free(f2);
+	if (f3) free(f3);
+	if (f4) free(f4);
+	if (f5) free(f5);
+	if (f6) free(f6);
+	if (f7) free(f7);
+	if (f8) free(f8);
+}
+
+void initLBM(void){
+	// TODO: Initial state.
 }
 
 static void clear_data(void)
@@ -60,11 +80,11 @@ static void clear_data(void)
 
 	for (i = 0; i<size; i++) {
 		fx[i] = fy[i] =
-			u[i] = v[i] = u_prev[i] = v_prev[i] =
-			dens[i] = dens_prev[i] =
-			psi[i] =
-			du[i] = dv[i] =
-			wn[i] = dw[i] = w_bar[i] = w_star[i] = t[i] = t0[i] = 0.0f;
+		u[i] = v[i] = u_prev[i] = v_prev[i] =
+		dens[i] = dens_prev[i] =
+		psi[i] =
+		du[i] = dv[i] =
+		wn[i] = dw[i] = w_bar[i] = w_star[i] = t[i] = t0[i] = 0.0f;
 	}
 
 	float r, g, b;
@@ -78,6 +98,7 @@ static void clear_data(void)
 	}
 
 	frame_counter = 0;
+	initLBM();
 }
 
 static int allocate_data(void)
@@ -102,6 +123,26 @@ static int allocate_data(void)
 	t = (float *)malloc(size*sizeof(float));
 	t0 = (float *)malloc(size*sizeof(float));
 	particles = (Particle*)malloc(numParticles*sizeof(Particle));
+
+	f0 = (float*)malloc(size * sizeof(float));
+	f1 = (float*)malloc(size * sizeof(float));
+	f2 = (float*)malloc(size * sizeof(float));
+	f3 = (float*)malloc(size * sizeof(float));
+	f4 = (float*)malloc(size * sizeof(float));
+	f5 = (float*)malloc(size * sizeof(float));
+	f6 = (float*)malloc(size * sizeof(float));
+	f7 = (float*)malloc(size * sizeof(float));
+	f8 = (float*)malloc(size * sizeof(float));
+
+	zeros(N, f0);
+	zeros(N, f1);
+	zeros(N, f2);
+	zeros(N, f3);
+	zeros(N, f4);
+	zeros(N, f5);
+	zeros(N, f6);
+	zeros(N, f7);
+	zeros(N, f8);
 
 	if (!fx || !fy ||
 		!psi ||
@@ -299,7 +340,7 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 10;
+	int idxY = 3;
 
 	v_prev[IX(idxX, idxY)] = force;
 	t0[IX(idxX, idxY)] = temp;
@@ -312,14 +353,18 @@ static void idle_func(void)
 	if (!pause){
 		if (frame_counter != stop_frame)
 		{
-			IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
 			computeBuoyancy(N, v, dens, t, 0.1f, 0.4f, dt);
 			
-			// TODO: Fix bugs
-			//computeVortConf(N, u, v, dt, vort_conf_coef);
-			project(N, u, v, u_prev, v_prev);
 			MoveScalarProperties(N, t, t0, u, v, diff, dt);
 			MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
+
+			IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
+
+			//LBMAdvance(f0, f1, f2, f3, f4, f5, f6, f7, f8, N, 0.51, u, v, particles, numParticles, dt);
+			
+			// TODO: Fix bugs
+			// computeVortConf(N, u, v, dt, vort_conf_coef);
+			project(N, u, v, u_prev, v_prev);
 			frame_counter++;
 		}
 		else
@@ -337,9 +382,9 @@ static void display_func(void)
 		pre_display();
 		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_scalar_field(t, 1.0f, 1.0f, 1.0f);
-		//draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
+		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 0.0f, 1.0f, 0.0f);
-		draw_particles(u, v, 1.0f);
+		//draw_particles(u, v, 1.0f);
 		post_display();
 	}
 }
@@ -353,13 +398,7 @@ static void open_glut_window(void)
 	glutInitWindowSize(win_x, win_y);
 	win_id = glutCreateWindow("Smoke Sim");
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glutSwapBuffers();
-	glClear(GL_COLOR_BUFFER_BIT);
-	glutSwapBuffers();
-
-	pre_display();
+	//pre_display();
 
 	glutKeyboardFunc(key_func);
 	glutMouseFunc(mouse_func);
@@ -371,17 +410,17 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 192;
+	N = 64;
 	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
 	force = 0.0f;
 	source = 10.0f;
 	temp = 500.0f;
-	stop_frame = 160;
+	stop_frame = -1;
 	numParticles = 10000;
 	world_scale = 1.0 / N;
-	vort_conf_coef = 0.1f;
+	vort_conf_coef = 0.f;
 	streamline_length = 5.0f;
 	cout << "Default values of the simualtion: " << endl;
 	cout << "Dim = " << N << " x " << N << endl;
@@ -394,6 +433,7 @@ int main(int argc, char ** argv)
 	cout << "Number of Particles = " << numParticles << endl;
 
 	if (!allocate_data()) exit(1);
+
 	clear_data();
 
 	win_x = 640;

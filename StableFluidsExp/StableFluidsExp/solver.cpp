@@ -263,6 +263,125 @@ void IVOCKAdvance(int N,
 	free(g);
 }
 
+void add_gravity(int N, float dt, float grav, float * field){
+	// Gravity
+	int size = (N + 2) * (N + 2);
+	float *g = (float*)malloc(size*sizeof(float));
+	zeros(N, g);
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			g[IX(i, j)] = grav;
+		}
+	}
+	add_source(N, field, g, dt);
+	if (g) free(g);
+}
+
+void stream(float * f1, float * f2, float * f3, float * f4, 
+			float * f5, float * f6, float * f7, float * f8,
+			int N){
+
+	int size = (N + 2) * (N + 2);
+	float * tmpf1 = (float*)malloc(size * sizeof(float));
+	float * tmpf2 = (float*)malloc(size * sizeof(float));
+	float * tmpf3 = (float*)malloc(size * sizeof(float));
+	float * tmpf4 = (float*)malloc(size * sizeof(float));
+	float * tmpf5 = (float*)malloc(size * sizeof(float));
+	float * tmpf6 = (float*)malloc(size * sizeof(float));
+	float * tmpf7 = (float*)malloc(size * sizeof(float));
+	float * tmpf8 = (float*)malloc(size * sizeof(float));
+
+	LOOP_CELLS{
+		tmpf1[IX(i, j)] = f1[IX(i - 1, j)];
+		tmpf2[IX(i, j)] = f2[IX(i, j + 1)];
+		tmpf3[IX(i, j)] = f3[IX(i + 1, j)];
+		tmpf4[IX(i, j)] = f4[IX(i, j - 1)];
+		tmpf5[IX(i, j)] = f5[IX(i - 1, j + 1)];
+		tmpf6[IX(i, j)] = f6[IX(i + 1, j + 1)];
+		tmpf7[IX(i, j)] = f7[IX(i + 1, j - 1)];
+		tmpf8[IX(i, j)] = f8[IX(i - 1, j - 1)];
+	}
+
+	LOOP_CELLS{
+		f1[IX(i, j)] = tmpf1[IX(i, j)];
+		f2[IX(i, j)] = tmpf2[IX(i, j)];
+		f3[IX(i, j)] = tmpf3[IX(i, j)];
+		f4[IX(i, j)] = tmpf4[IX(i, j)];
+		f5[IX(i, j)] = tmpf5[IX(i, j)];
+		f6[IX(i, j)] = tmpf6[IX(i, j)];
+		f7[IX(i, j)] = tmpf7[IX(i, j)];
+		f8[IX(i, j)] = tmpf8[IX(i, j)];
+	}
+
+	if (tmpf1) free(tmpf1);
+	if (tmpf2) free(tmpf2);
+	if (tmpf3) free(tmpf3);
+	if (tmpf4) free(tmpf4);
+	if (tmpf5) free(tmpf5);
+	if (tmpf6) free(tmpf6);
+	if (tmpf7) free(tmpf7);
+	if (tmpf8) free(tmpf8);
+}
+
+void collision(float * f0,
+			   float * f1, float * f2, float * f3, float * f4,
+			   float * f5, float * f6, float * f7, float * f8,
+			   int N, float tau, float * out_u, float * out_v){
+
+	assert(out_u != NULL && out_v != NULL);
+	
+	float rho, rho_u, rho_v, _u, _v;
+	float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8;
+
+	LOOP_CELLS{
+		rho = f0[IX(i, j)] + 
+			  f1[IX(i, j)] + f2[IX(i, j)] + f3[IX(i, j)] + f4[IX(i, j)] +
+			  f5[IX(i, j)] + f6[IX(i, j)] + f7[IX(i, j)] + f8[IX(i, j)];
+
+		rho_u = f1[IX(i, j)] - f3[IX(i, j)] + f5[IX(i, j)] - f6[IX(i, j)] - f7[IX(i, j)] + f8[IX(i, j)];
+		rho_v = f2[IX(i, j)] - f4[IX(i, j)] + f5[IX(i, j)] + f6[IX(i, j)] - f7[IX(i, j)] - f8[IX(i, j)];
+		
+		if (rho != 0.0f){
+			_u = rho_u / rho;
+			_v = rho_v / rho;
+
+			out_u[IX(i, j)] = _u;
+			out_v[IX(i, j)] = _v;
+
+			float coef_vel = 1.5 * (pow(_u, 2) + pow(_v, 2));
+			eq0 = rho * (4.f / 9.f) * (1.f - coef_vel);
+			eq1 = rho * (1.f / 9.f) * (1.f + 3.f * _u + 4.5f * pow(_u, 2) - coef_vel);
+			eq2 = rho * (1.f / 9.f) * (1.f + 3.f * _v + 4.5f * pow(_v, 2) - coef_vel);
+			eq3 = rho * (1.f / 9.f) * (1.f - 3.f * _u + 4.5f * pow(_u, 2) - coef_vel);
+			eq4 = rho * (1.f / 9.f) * (1.f - 3.f * _v + 4.5f * pow(_v, 2) - coef_vel);
+			eq5 = rho * (1.f / 36.f) * (1.f + 3.f * (_u + _v) + 4.5f * pow(_u + _v, 2) - coef_vel);
+			eq6 = rho * (1.f / 36.f) * (1.f + 3.f * (-_u + _v) + 4.5f * pow(-_u + _v, 2) - coef_vel);
+			eq7 = rho * (1.f / 36.f) * (1.f + 3.f * (-_u - _v) + 4.5f * pow(-_u - _v, 2) - coef_vel);
+			eq8 = rho * (1.f / 36.f) * (1.f + 3.f * (_u - _v) + 4.5f * pow(_u - _v, 2) - coef_vel);
+
+			f0[IX(i, j)] = (1.0f - 1.f / tau) * f0[IX(i, j)] + (1.f / tau) * eq0;
+			f1[IX(i, j)] = (1.0f - 1.f / tau) * f1[IX(i, j)] + (1.f / tau) * eq1;
+			f2[IX(i, j)] = (1.0f - 1.f / tau) * f2[IX(i, j)] + (1.f / tau) * eq2;
+			f3[IX(i, j)] = (1.0f - 1.f / tau) * f3[IX(i, j)] + (1.f / tau) * eq3;
+			f4[IX(i, j)] = (1.0f - 1.f / tau) * f4[IX(i, j)] + (1.f / tau) * eq4;
+			f5[IX(i, j)] = (1.0f - 1.f / tau) * f5[IX(i, j)] + (1.f / tau) * eq5;
+			f6[IX(i, j)] = (1.0f - 1.f / tau) * f6[IX(i, j)] + (1.f / tau) * eq6;
+			f7[IX(i, j)] = (1.0f - 1.f / tau) * f7[IX(i, j)] + (1.f / tau) * eq7;
+			f8[IX(i, j)] = (1.0f - 1.f / tau) * f8[IX(i, j)] + (1.f / tau) * eq8;
+		}
+	}
+}
+
+void LBMAdvance(float * f0,
+			    float * f1, float * f2, float * f3, float * f4,
+			    float * f5, float * f6, float * f7, float * f8,
+			    int N, float tau, float * out_u, float * out_v,
+				Particle* particles, int num_particles, float dt){
+	particles_advector(N, out_u, out_v, particles, num_particles, dt);
+	stream(f1, f2, f3, f4, f5, f6, f7, f8, N);
+	collision(f0, f1, f2, f3, f4, f5, f6, f7, f8, N, tau, out_u, out_v);
+}
+
 // Poisson Equation Laplace(Psi) = f(x);
 // Ex.1
 // 5x5 with interior field 3x3 and outter boundaries
