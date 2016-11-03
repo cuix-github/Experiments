@@ -71,7 +71,42 @@ static void free_data(void)
 }
 
 void initLBM(void){
-	// TODO: Initial state.
+	int totpoints = (N + 2) * (N + 2);
+	float faceq1 = 4.f / 9.f;
+	float faceq2 = 1.f / 9.f;
+	float faceq3 = 1.f / 36.f;
+	float roout = 0.25f;
+	float vxin = 0.1f;
+	int emit_pos_idx = IX(N / 2, 20);
+
+	float h = 1 / N;
+	float c = h / dt;
+	float c2 = pow(c, 2);
+
+	for (int i = 0; i<totpoints; i++) {
+		if (i == emit_pos_idx){
+			//f0[i] = faceq1 * roout * (1.f - 1.5f*vxin*vxin);
+			//f1[i] = faceq2 * roout * (1.f - 1.5f*vxin*vxin);
+			f2[i] = faceq2 * roout * (1.f + 3.f*vxin / c + 4.5f*vxin*vxin / c2 - 1.5f*vxin*vxin / c2);
+			//f3[i] = faceq2 * roout * (1.f - 1.5f*vxin*vxin);
+			//f4[i] = faceq2 * roout *  (1.f - 3.f*vxin + 4.5f*vxin*vxin - 1.5f*vxin*vxin);
+			f5[i] = faceq3 * roout * (1.f + 3.f*vxin / c + 4.5f*vxin*vxin / c2 - 1.5f*vxin*vxin / c2);
+			f6[i] = faceq3 * roout * (1.f + 3.f*vxin / c + 4.5f*vxin*vxin / c2 - 1.5f*vxin*vxin / c2);
+			//f7[i] = faceq3 * roout * (1.f - 3.f*vxin + 4.5f*vxin*vxin - 1.5f*vxin*vxin);
+			//f8[i] = faceq3 * roout * (1.f - 3.f*vxin + 4.5f*vxin*vxin - 1.5f*vxin*vxin);
+		}
+		else{
+			f0[i] = faceq1 * roout * (1.f);
+			f1[i] = faceq2 * roout * (1.f);
+			f2[i] = faceq2 * roout * (1.f);
+			f3[i] = faceq2 * roout * (1.f);
+			f4[i] = faceq2 * roout * (1.f);
+			f5[i] = faceq3 * roout * (1.f);
+			f6[i] = faceq3 * roout * (1.f);
+			f7[i] = faceq3 * roout * (1.f);
+			f8[i] = faceq3 * roout * (1.f);
+		}
+	}
 }
 
 static void clear_data(void)
@@ -353,19 +388,19 @@ static void idle_func(void)
 	if (!pause){
 		if (frame_counter != stop_frame)
 		{
-			computeBuoyancy(N, v, dens, t, 0.1f, 0.4f, dt);
-			
-			MoveScalarProperties(N, t, t0, u, v, diff, dt);
+			//computeBuoyancy(N, v, dens, t, 0.1f, 0.4f, dt);
+			//
+			//MoveScalarProperties(N, t, t0, u, v, diff, dt);
 			MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
-
-			IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
-
-			//LBMAdvance(f0, f1, f2, f3, f4, f5, f6, f7, f8, N, 0.51, u, v, particles, numParticles, dt);
-			
-			// TODO: Fix bugs
-			// computeVortConf(N, u, v, dt, vort_conf_coef);
-			project(N, u, v, u_prev, v_prev);
-			frame_counter++;
+			//
+			//IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
+			//
+			LBMAdvance(f0, f1, f2, f3, f4, f5, f6, f7, f8, N, 0.51, u, v, particles, numParticles, dt);
+			//
+			//// TODO: Fix bugs
+			//computeVortConf(N, u, v, dt, vort_conf_coef);
+			//project(N, u, v, u_prev, v_prev);
+			//frame_counter++;
 		}
 		else
 		{
@@ -380,11 +415,23 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
+		draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_scalar_field(t, 1.0f, 1.0f, 1.0f);
 		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 0.0f, 1.0f, 0.0f);
 		//draw_particles(u, v, 1.0f);
+		post_display();
+	}
+
+	else
+	{
+		// Just for testing.
+		pre_display();
+		glPointSize(10.0f);
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glBegin(GL_POINTS);
+		glVertex2f(0.5f, 0.5f);
+		glEnd();
 		post_display();
 	}
 }
@@ -411,7 +458,7 @@ static void open_glut_window(void)
 int main(int argc, char ** argv)
 {
 	N = 64;
-	dt = 0.01f;
+	dt = 0.1f;
 	diff = 0.0f;
 	visc = 0.0f;
 	force = 0.0f;
@@ -420,8 +467,8 @@ int main(int argc, char ** argv)
 	stop_frame = -1;
 	numParticles = 10000;
 	world_scale = 1.0 / N;
-	vort_conf_coef = 0.f;
-	streamline_length = 5.0f;
+	vort_conf_coef = 0.55f;
+	streamline_length = 50.0f;
 	cout << "Default values of the simualtion: " << endl;
 	cout << "Dim = " << N << " x " << N << endl;
 	cout << "Time step = " << dt << endl;

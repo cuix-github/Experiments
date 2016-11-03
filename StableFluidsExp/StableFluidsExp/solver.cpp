@@ -326,12 +326,15 @@ void stream(float * f1, float * f2, float * f3, float * f4,
 void collision(float * f0,
 			   float * f1, float * f2, float * f3, float * f4,
 			   float * f5, float * f6, float * f7, float * f8,
-			   int N, float tau, float * out_u, float * out_v){
+			   int N, float tau, float * out_u, float * out_v, float dt){
 
 	assert(out_u != NULL && out_v != NULL);
 	
 	float rho, rho_u, rho_v, _u, _v;
 	float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8;
+	float h = 1 / N;
+	float c = h / dt;
+	float c2 = pow(c, 2);
 
 	LOOP_CELLS{
 		rho = f0[IX(i, j)] + 
@@ -354,11 +357,11 @@ void collision(float * f0,
 			eq2 = rho * (1.f / 9.f) * (1.f + 3.f * _v + 4.5f * pow(_v, 2) - coef_vel);
 			eq3 = rho * (1.f / 9.f) * (1.f - 3.f * _u + 4.5f * pow(_u, 2) - coef_vel);
 			eq4 = rho * (1.f / 9.f) * (1.f - 3.f * _v + 4.5f * pow(_v, 2) - coef_vel);
-			eq5 = rho * (1.f / 36.f) * (1.f + 3.f * (_u + _v) + 4.5f * pow(_u + _v, 2) - coef_vel);
+			eq5 = rho * (1.f / 36.f) * (1.f + 3.f * ( _u + _v) + 4.5f * pow( _u + _v, 2) - coef_vel);
 			eq6 = rho * (1.f / 36.f) * (1.f + 3.f * (-_u + _v) + 4.5f * pow(-_u + _v, 2) - coef_vel);
 			eq7 = rho * (1.f / 36.f) * (1.f + 3.f * (-_u - _v) + 4.5f * pow(-_u - _v, 2) - coef_vel);
-			eq8 = rho * (1.f / 36.f) * (1.f + 3.f * (_u - _v) + 4.5f * pow(_u - _v, 2) - coef_vel);
-
+			eq8 = rho * (1.f / 36.f) * (1.f + 3.f * ( _u - _v) + 4.5f * pow( _u - _v, 2) - coef_vel);
+			  
 			f0[IX(i, j)] = (1.0f - 1.f / tau) * f0[IX(i, j)] + (1.f / tau) * eq0;
 			f1[IX(i, j)] = (1.0f - 1.f / tau) * f1[IX(i, j)] + (1.f / tau) * eq1;
 			f2[IX(i, j)] = (1.0f - 1.f / tau) * f2[IX(i, j)] + (1.f / tau) * eq2;
@@ -372,14 +375,67 @@ void collision(float * f0,
 	}
 }
 
+void bounce_back_BC_LBM(float * f0,
+					float * f1, float * f2, float * f3, float * f4,
+					float * f5, float * f6, float * f7, float * f8,
+					int N, int * solid_mask){
+	assert(solid_mask != NULL);
+	
+	float f1_prev, f2_prev, f3_prev, f4_prev, f5_prev, f6_prev, f7_prev, f8_prev;
+
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			if (0 == solid_mask[IX(i, j)]){
+				f1_prev = f1[IX(i, j)];
+				f2_prev = f2[IX(i, j)];
+				f3_prev = f3[IX(i, j)];
+				f4_prev = f4[IX(i, j)];
+				f5_prev = f5[IX(i, j)];
+				f6_prev = f6[IX(i, j)];
+				f7_prev = f7[IX(i, j)];
+				f8_prev = f8[IX(i, j)];
+
+				f1[IX(i, j)] = f3_prev;
+				f2[IX(i, j)] = f4_prev;
+				f3[IX(i, j)] = f1_prev;
+				f4[IX(i, j)] = f2_prev;
+				f5[IX(i, j)] = f7_prev;
+				f6[IX(i, j)] = f8_prev;
+				f7[IX(i, j)] = f5_prev;
+				f8[IX(i, j)] = f6_prev;
+			}
+		}
+	}
+}
+
+void open_boundary_LBM(float * f1, float * f5, float * f8, int N){
+
+}
+
+// Keep adding source.
+// This was set to default by keeping source in vertical direction.
+void init_state_LBM(float * f2, float * f5, float * f6, int N, int src_range, float init_mag_vel, float rho, float dt){
+	
+	float h = 1 / N;
+	float c = h / dt;
+	float c2 = pow(c, 2);
+
+	for (int i = N / 2 - src_range; i < N / 2 + src_range; i++){
+		f2[IX(i, 20)] = rho * 1.f / 9.f * (1.0f + 3.0f * init_mag_vel + 4.5f * pow(init_mag_vel, 2));
+		f5[IX(i, 20)] = rho * 1.f / 36.f * (1.0f + 3.0f * init_mag_vel + 4.5f * pow(init_mag_vel, 2));
+		f6[IX(i, 20)] = rho * 1.f / 36.f * (1.0f + 3.0f * init_mag_vel + 4.5f * pow(init_mag_vel, 2));
+	}
+}
+
 void LBMAdvance(float * f0,
 			    float * f1, float * f2, float * f3, float * f4,
 			    float * f5, float * f6, float * f7, float * f8,
 			    int N, float tau, float * out_u, float * out_v,
 				Particle* particles, int num_particles, float dt){
-	particles_advector(N, out_u, out_v, particles, num_particles, dt);
+	particles_advector(N, out_u, out_v, particles, num_particles, 1.0f);
+	init_state_LBM(f2, f5, f6, N, 5, 0.1f, 0.25f, dt);
 	stream(f1, f2, f3, f4, f5, f6, f7, f8, N);
-	collision(f0, f1, f2, f3, f4, f5, f6, f7, f8, N, tau, out_u, out_v);
+	collision(f0, f1, f2, f3, f4, f5, f6, f7, f8, N, tau, out_u, out_v, dt);
 }
 
 // Poisson Equation Laplace(Psi) = f(x);
