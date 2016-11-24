@@ -9,15 +9,15 @@ add_source(int N, float * x, float * s, float dt){
 void
 set_boundaries(int N, int b, float * x){
 	for (int i = 1; i <= N; i++) {
-		x[IX(0, i)] = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
-		x[IX(N + 1, i)] = b == 1 ? -x[IX(N, i)] : x[IX(N, i)];
-		x[IX(i, 0)] = b == 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
-		x[IX(i, N + 1)] = b == 2 ? -x[IX(i, N)] : x[IX(i, N)];
+		x[IX(0, i)]		= b == 0 ? -x[IX(1, i)] : x[IX(1, i)];
+		x[IX(N + 1, i)] = b == 0 ? -x[IX(N, i)] : x[IX(N, i)];
+		x[IX(i, 0)]		= b == 0 ? -x[IX(i, 1)] : x[IX(i, 1)];
+		x[IX(i, N + 1)] = b == -1 ? -x[IX(i, N)] : x[IX(i, N)];
 	}
-	x[IX(0, 0)] = 0.5f*(x[IX(1, 0)] + x[IX(0, 1)]);
-	x[IX(0, N + 1)] = 0.5f*(x[IX(1, N + 1)] + x[IX(0, N)]);
-	x[IX(N + 1, 0)] = 0.5f*(x[IX(N, 0)] + x[IX(N + 1, 1)]);
-	x[IX(N + 1, N + 1)] = 0.5f*(x[IX(N, N + 1)] + x[IX(N + 1, N)]);
+	x[IX(0, 0)]			= 0.5f * (x[IX(1, 0)]		+	x[IX(0, 1)]);
+	x[IX(0, N + 1)]		= 0.5f * (x[IX(1, N + 1)]	+	x[IX(0, N)]);
+	x[IX(N + 1, 0)]		= 0.5f * (x[IX(N, 0)]		+	x[IX(N + 1, 1)]);
+	x[IX(N + 1, N + 1)] = 0.5f * (x[IX(N, N + 1)]	+	x[IX(N + 1, N)]);
 }
 
 void
@@ -201,6 +201,65 @@ MoveScalarProperties(int N, float * x, float * x0, float * u, float * v, float d
 	SWAP(x0, x); scalar_advector(N, x, x0, u, v, dt);
 }
 
+void SemiLagAdvance(int N,
+	Particle* particles, int num_particles,
+	float * fx, float * fy,
+	float * psi, float * du, float * dv, float * wn, float *dw, float * w_bar, float * w_star,
+	float * u, float * v, float * u0, float * v0,
+	float * t, float * t0,
+	float visc,
+	float dt){
+	//// IVOCK advection
+	zeros(N, wn);
+	zeros(N, w_bar);
+	zeros(N, w_star);
+	zeros(N, dw);
+	zeros(N, psi);
+	zeros(N, du);
+	zeros(N, dv);
+	zeros(N, u0);
+	zeros(N, v0);
+
+	// Gravity
+	int size = (N + 2) * (N + 2);
+	float *g = (float*)malloc(size*sizeof(float));
+	zeros(N, g);
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			g[IX(i, j)] = -9.8;
+		}
+	}
+
+	add_source(N, u, u0, dt);
+	add_source(N, v0, g, dt);
+	add_source(N, v, v0, dt);
+
+	particles_advector(N, u, v, particles, num_particles, dt);
+
+	SWAP(u0, u);
+	SWAP(v0, v);
+	diffuse(N, 0, u, u0, visc, dt);
+	diffuse(N, 0, v, v0, visc, dt);
+	project(N, u, v, u0, v0);
+	zeros(N, u0);
+	zeros(N, v0);
+	SWAP(u0, u);
+	SWAP(v0, v);
+
+	computeCurls_uniform(N, wn, u0, v0);
+	scalar_advector(N, w_bar, wn, u0, v0, dt);
+	vector_advector(N, u, u0, v, v0, u0, v0, dt);
+	computeCurls_uniform(N, w_star, u, v);
+	linear_combine_sub(N, dw, w_bar, w_star);
+	set_boundaries(N, 0, dw);
+	scaler(N, dw, -1.0f);
+	Jacobi_solve(N, 0, psi, dw, 1, 4, 30);
+	find_vector_potential_2D(N, du, dv, psi);
+	//linear_combine_add(N, u, u, du);
+	//linear_combine_add(N, v, v, dv);
+	free(g);
+}
+
 void IVOCKAdvance(int N,
 	Particle* particles, int num_particles,
 	float * fx, float * fy,
@@ -332,7 +391,7 @@ void collision(float * f0,
 	
 	float rho, rho_u, rho_v, _u, _v;
 	float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8;
-	float h = 1 / N;
+	float h = 1.f / N;
 	float c = h / dt;
 	float c2 = pow(c, 2);
 
@@ -341,37 +400,35 @@ void collision(float * f0,
 			  f1[IX(i, j)] + f2[IX(i, j)] + f3[IX(i, j)] + f4[IX(i, j)] +
 			  f5[IX(i, j)] + f6[IX(i, j)] + f7[IX(i, j)] + f8[IX(i, j)];
 
-		rho_u = f1[IX(i, j)] - f3[IX(i, j)] + f5[IX(i, j)] - f6[IX(i, j)] - f7[IX(i, j)] + f8[IX(i, j)];
-		rho_v = f2[IX(i, j)] - f4[IX(i, j)] + f5[IX(i, j)] + f6[IX(i, j)] - f7[IX(i, j)] - f8[IX(i, j)];
+		rho_u = (f1[IX(i, j)] - f3[IX(i, j)] + f5[IX(i, j)] - f6[IX(i, j)] - f7[IX(i, j)] + f8[IX(i, j)]);
+		rho_v = (f2[IX(i, j)] - f4[IX(i, j)] + f5[IX(i, j)] + f6[IX(i, j)] - f7[IX(i, j)] - f8[IX(i, j)]);
 		
-		if (rho != 0.0f){
-			_u = rho_u / rho;
-			_v = rho_v / rho;
+		_u = rho_u / rho;
+		_v = rho_v / rho;
 
-			out_u[IX(i, j)] = _u;
-			out_v[IX(i, j)] = _v;
+		out_u[IX(i, j)] = _u;
+		out_v[IX(i, j)] = _v;
 
-			float coef_vel = 1.5 * (pow(_u, 2) + pow(_v, 2));
-			eq0 = rho * (4.f / 9.f) * (1.f - coef_vel);
-			eq1 = rho * (1.f / 9.f) * (1.f + 3.f * _u + 4.5f * pow(_u, 2) - coef_vel);
-			eq2 = rho * (1.f / 9.f) * (1.f + 3.f * _v + 4.5f * pow(_v, 2) - coef_vel);
-			eq3 = rho * (1.f / 9.f) * (1.f - 3.f * _u + 4.5f * pow(_u, 2) - coef_vel);
-			eq4 = rho * (1.f / 9.f) * (1.f - 3.f * _v + 4.5f * pow(_v, 2) - coef_vel);
-			eq5 = rho * (1.f / 36.f) * (1.f + 3.f * ( _u + _v) + 4.5f * pow( _u + _v, 2) - coef_vel);
-			eq6 = rho * (1.f / 36.f) * (1.f + 3.f * (-_u + _v) + 4.5f * pow(-_u + _v, 2) - coef_vel);
-			eq7 = rho * (1.f / 36.f) * (1.f + 3.f * (-_u - _v) + 4.5f * pow(-_u - _v, 2) - coef_vel);
-			eq8 = rho * (1.f / 36.f) * (1.f + 3.f * ( _u - _v) + 4.5f * pow( _u - _v, 2) - coef_vel);
-			  
-			f0[IX(i, j)] = (1.0f - 1.f / tau) * f0[IX(i, j)] + (1.f / tau) * eq0;
-			f1[IX(i, j)] = (1.0f - 1.f / tau) * f1[IX(i, j)] + (1.f / tau) * eq1;
-			f2[IX(i, j)] = (1.0f - 1.f / tau) * f2[IX(i, j)] + (1.f / tau) * eq2;
-			f3[IX(i, j)] = (1.0f - 1.f / tau) * f3[IX(i, j)] + (1.f / tau) * eq3;
-			f4[IX(i, j)] = (1.0f - 1.f / tau) * f4[IX(i, j)] + (1.f / tau) * eq4;
-			f5[IX(i, j)] = (1.0f - 1.f / tau) * f5[IX(i, j)] + (1.f / tau) * eq5;
-			f6[IX(i, j)] = (1.0f - 1.f / tau) * f6[IX(i, j)] + (1.f / tau) * eq6;
-			f7[IX(i, j)] = (1.0f - 1.f / tau) * f7[IX(i, j)] + (1.f / tau) * eq7;
-			f8[IX(i, j)] = (1.0f - 1.f / tau) * f8[IX(i, j)] + (1.f / tau) * eq8;
-		}
+		float coef_vel = 1.5 * (pow(_u, 2) + pow(_v, 2));
+		eq0 = rho * (4.f / 9.f) * (1.f - coef_vel);
+		eq1 = rho * (1.f / 9.f) * (1.f + (3.f * _u) + (4.5f * pow(_u, 2)) - coef_vel);
+		eq2 = rho * (1.f / 9.f) * (1.f + (3.f * _v) + (4.5f * pow(_v, 2)) - coef_vel);
+		eq3 = rho * (1.f / 9.f) * (1.f - (3.f * _u) + (4.5f * pow(_u, 2)) - coef_vel);
+		eq4 = rho * (1.f / 9.f) * (1.f - (3.f * _v) + (4.5f * pow(_v, 2)) - coef_vel);
+		eq5 = rho * (1.f / 36.f) * (1.f + 3.f * ( _u + _v) + 4.5f * pow( _u + _v, 2) - coef_vel);
+		eq6 = rho * (1.f / 36.f) * (1.f + 3.f * (-_u + _v) + 4.5f * pow(-_u + _v, 2) - coef_vel);
+		eq7 = rho * (1.f / 36.f) * (1.f + 3.f * (-_u - _v) + 4.5f * pow(-_u - _v, 2) - coef_vel);
+		eq8 = rho * (1.f / 36.f) * (1.f + 3.f * ( _u - _v) + 4.5f * pow( _u - _v, 2) - coef_vel);
+		  
+		f0[IX(i, j)] = (1.0f - 1.f / tau) * f0[IX(i, j)] + (1.f / tau) * eq0;
+		f1[IX(i, j)] = (1.0f - 1.f / tau) * f1[IX(i, j)] + (1.f / tau) * eq1;
+		f2[IX(i, j)] = (1.0f - 1.f / tau) * f2[IX(i, j)] + (1.f / tau) * eq2;
+		f3[IX(i, j)] = (1.0f - 1.f / tau) * f3[IX(i, j)] + (1.f / tau) * eq3;
+		f4[IX(i, j)] = (1.0f - 1.f / tau) * f4[IX(i, j)] + (1.f / tau) * eq4;
+		f5[IX(i, j)] = (1.0f - 1.f / tau) * f5[IX(i, j)] + (1.f / tau) * eq5;
+		f6[IX(i, j)] = (1.0f - 1.f / tau) * f6[IX(i, j)] + (1.f / tau) * eq6;
+		f7[IX(i, j)] = (1.0f - 1.f / tau) * f7[IX(i, j)] + (1.f / tau) * eq7;
+		f8[IX(i, j)] = (1.0f - 1.f / tau) * f8[IX(i, j)] + (1.f / tau) * eq8;
 	}
 }
 
@@ -408,22 +465,26 @@ void bounce_back_BC_LBM(float * f0,
 	}
 }
 
-void open_boundary_LBM(float * f1, float * f5, float * f8, int N){
-
+void open_boundary_LBM(float * f0,
+					   float * f1, float * f2, float * f3, float * f4,
+					   float * f5, float * f6, float * f7, float * f8,
+					   int N){
+	//TODO: Process when fluid leave the domain
 }
 
 // Keep adding source.
 // This was set to default by keeping source in vertical direction.
 void init_state_LBM(float * f2, float * f5, float * f6, int N, int src_range, float init_mag_vel, float rho, float dt){
 	
-	float h = 1 / N;
+	float h = 1.f / N;
 	float c = h / dt;
 	float c2 = pow(c, 2);
+	int emit_idx = IX(N / 2, 10);
 
 	for (int i = N / 2 - src_range; i < N / 2 + src_range; i++){
-		f2[IX(i, 20)] = rho * 1.f / 9.f * (1.0f + 3.0f * init_mag_vel + 4.5f * pow(init_mag_vel, 2));
-		f5[IX(i, 20)] = rho * 1.f / 36.f * (1.0f + 3.0f * init_mag_vel + 4.5f * pow(init_mag_vel, 2));
-		f6[IX(i, 20)] = rho * 1.f / 36.f * (1.0f + 3.0f * init_mag_vel + 4.5f * pow(init_mag_vel, 2));
+		f2[emit_idx] = rho * 1.f / 9.f * (1.0f +  3.0f * init_mag_vel + 4.5f * pow(init_mag_vel, 2));
+		f5[emit_idx] = rho * 1.f / 36.f * (1.0f + 3.0f * init_mag_vel + 4.5f * pow(init_mag_vel, 2));
+		f6[emit_idx] = rho * 1.f / 36.f * (1.0f + 3.0f * init_mag_vel + 4.5f * pow(init_mag_vel, 2));
 	}
 }
 
@@ -432,9 +493,9 @@ void LBMAdvance(float * f0,
 			    float * f5, float * f6, float * f7, float * f8,
 			    int N, float tau, float * out_u, float * out_v,
 				Particle* particles, int num_particles, float dt){
-	particles_advector(N, out_u, out_v, particles, num_particles, 1.0f);
-	init_state_LBM(f2, f5, f6, N, 5, 0.1f, 0.25f, dt);
+	//particles_advector(N, out_u, out_v, particles, num_particles, dt);
 	stream(f1, f2, f3, f4, f5, f6, f7, f8, N);
+	init_state_LBM(f4, f7, f8, N, 2, 0.04f, 1.0f, 1.0);
 	collision(f0, f1, f2, f3, f4, f5, f6, f7, f8, N, tau, out_u, out_v, dt);
 }
 

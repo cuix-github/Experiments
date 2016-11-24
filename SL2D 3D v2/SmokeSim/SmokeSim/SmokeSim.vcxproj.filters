@@ -65,9 +65,6 @@
     <ClInclude Include="SourceCode\timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SourceCode\vec.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SourceCode\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -97,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="SourceCode\constants.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceCode\vec.h">
+      <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

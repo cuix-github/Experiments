@@ -33,6 +33,7 @@ void displayVectorField(int row, int col, float* u, float* v){
 
 void computeCurls_uniform(int N, float * w, float * u, float * v)
 {
+	zeros(N, w);
 	float h = 1.0f / N;
 	//for (int i = 1; i <= N; i++)
 	//{
@@ -49,16 +50,16 @@ void computeCurls_uniform(int N, float * w, float * u, float * v)
 	//}
 
 	//// Least Square
-	// for (int i = 2; i <= N - 1; i++)
-	// {
-	// 	for (int j = 2; j <= N - 1; j++)
-	// 	{
-	// 		float coef = 1 / (10 * h);
-	// 		float du = 2 * u[IX(i, j + 2)] + u[IX(i, j + 1)] - u[IX(i, j - 1)] - 2 * u[IX(i, j - 2)];
-	// 		float dv = 2 * v[IX(i + 2, j)] + v[IX(i + 1, j)] - v[IX(i - 1, j)] - 2 * v[IX(i - 2, j)];
-	// 		w[IX(i, j)] = coef * dv - coef * du;
-	// 	}
-	// }
+	//for (int i = 2; i <= N - 1; i++)
+	//{
+	//	for (int j = 2; j <= N - 1; j++)
+	//	{
+	//		float coef = 1 / (10 * h);
+	//		float du = 2 * u[IX(i, j + 2)] + u[IX(i, j + 1)] - u[IX(i, j - 1)] - 2 * u[IX(i, j - 2)];
+	//		float dv = 2 * v[IX(i + 2, j)] + v[IX(i + 1, j)] - v[IX(i - 1, j)] - 2 * v[IX(i - 2, j)];
+	//		w[IX(i, j)] = coef * dv - coef * du;
+	//	}
+	//}
 
 	// Richardson Extrapolation
 	for (int i = 2; i <= N - 1; i++)
@@ -163,6 +164,7 @@ void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps)
 	computeCurls_uniform(N, vort, u, v);
 
 	LOOP_CELLS {
+		if (0.0f == vort[IX(i, j)]) continue;
 		float gradu, gradv, gradlen;
 		gradu = 0.5f * N * (vort[IX(i + 1, j)] - vort[IX(i - 1, j)]);
 		gradv = 0.5f * N * (vort[IX(i, j + 1)] - vort[IX(i, j - 1)]);
@@ -175,7 +177,9 @@ void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps)
 		vorticity.x = vorticity.y = 0.0f;
 		vorticity.z = vort[IX(i, j)];
 		vec3 fconf = vec3(0.0f, 0.0f, 0.0f);
-		fconf = cross(vorticity, dir_vort);
+		fconf.x = -vort[IX(i, j)] * dir_vort.y;
+		fconf.y = vort[IX(i, j)] * dir_vort.x;
+		//fconf = cross(dir_vort, vorticity);
 		fconf.x *= (vort_conf_eps * (1.0f / N));
 		fconf.y *= (vort_conf_eps * (1.0f / N));
 		fconf.z *= (vort_conf_eps * (1.0f / N));
@@ -192,11 +196,13 @@ void computeVortConf(int N, float * u, float * v, float dt, float vort_conf_eps)
 	}
 
 	LOOP_CELLS {
-		u[IX(i, j)] += (fvortu[IX(i, j)] + fvortu[IX(i - 1, j)]) * 0.5f;
-		v[IX(i, j)] += (fvortv[IX(i, j)] + fvortv[IX(i, j - 1)]) * 0.5f;
+		u[IX(i, j)] += fvortu[IX(i, j)];
+		v[IX(i, j)] += fvortv[IX(i, j)];
 	}
 
-	free(vort);
+	if (vort) free(vort);
+	if (fvortu) free(fvortu);
+	if (fvortv) free(fvortv);
 }
 
 void computeLaplace(int N, float * tar, float * src)

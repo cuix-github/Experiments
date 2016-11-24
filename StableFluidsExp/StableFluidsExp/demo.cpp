@@ -14,6 +14,7 @@ static float dt, diff, visc;
 static float force, source;
 static float vort_conf_coef;
 static float temp;
+static float initRho;
 static int dvel;
 
 static float * u, *v, *u_prev, *v_prev;
@@ -71,40 +72,17 @@ static void free_data(void)
 }
 
 void initLBM(void){
-	int totpoints = (N + 2) * (N + 2);
-	float faceq1 = 4.f / 9.f;
-	float faceq2 = 1.f / 9.f;
-	float faceq3 = 1.f / 36.f;
-	float roout = 0.25f;
-	float vxin = 0.1f;
-	int emit_pos_idx = IX(N / 2, 20);
-
-	float h = 1 / N;
-	float c = h / dt;
-	float c2 = pow(c, 2);
-
-	for (int i = 0; i<totpoints; i++) {
-		if (i == emit_pos_idx){
-			//f0[i] = faceq1 * roout * (1.f - 1.5f*vxin*vxin);
-			//f1[i] = faceq2 * roout * (1.f - 1.5f*vxin*vxin);
-			f2[i] = faceq2 * roout * (1.f + 3.f*vxin / c + 4.5f*vxin*vxin / c2 - 1.5f*vxin*vxin / c2);
-			//f3[i] = faceq2 * roout * (1.f - 1.5f*vxin*vxin);
-			//f4[i] = faceq2 * roout *  (1.f - 3.f*vxin + 4.5f*vxin*vxin - 1.5f*vxin*vxin);
-			f5[i] = faceq3 * roout * (1.f + 3.f*vxin / c + 4.5f*vxin*vxin / c2 - 1.5f*vxin*vxin / c2);
-			f6[i] = faceq3 * roout * (1.f + 3.f*vxin / c + 4.5f*vxin*vxin / c2 - 1.5f*vxin*vxin / c2);
-			//f7[i] = faceq3 * roout * (1.f - 3.f*vxin + 4.5f*vxin*vxin - 1.5f*vxin*vxin);
-			//f8[i] = faceq3 * roout * (1.f - 3.f*vxin + 4.5f*vxin*vxin - 1.5f*vxin*vxin);
-		}
-		else{
-			f0[i] = faceq1 * roout * (1.f);
-			f1[i] = faceq2 * roout * (1.f);
-			f2[i] = faceq2 * roout * (1.f);
-			f3[i] = faceq2 * roout * (1.f);
-			f4[i] = faceq2 * roout * (1.f);
-			f5[i] = faceq3 * roout * (1.f);
-			f6[i] = faceq3 * roout * (1.f);
-			f7[i] = faceq3 * roout * (1.f);
-			f8[i] = faceq3 * roout * (1.f);
+	for (int i = 1; i <= N; i++){
+		for (int j = 1; j <= N; j++){
+			f0[IX(i, j)] = 4.f / 9.f * initRho * 1.0f;
+			f1[IX(i, j)] = 1.f / 9.f * initRho * 1.0f;
+			f2[IX(i, j)] = 1.f / 9.f * initRho * 1.0f;
+			f3[IX(i, j)] = 1.f / 9.f * initRho * 1.0f;
+			f4[IX(i, j)] = 1.f / 9.f * initRho * 1.0f;
+			f5[IX(i, j)] = 1.f / 36.f * initRho * 1.0f;
+			f6[IX(i, j)] = 1.f / 36.f * initRho * 1.0f;
+			f7[IX(i, j)] = 1.f / 36.f * initRho * 1.0f;
+			f8[IX(i, j)] = 1.f / 36.f * initRho * 1.0f;
 		}
 	}
 }
@@ -126,10 +104,7 @@ static void clear_data(void)
 	for (int i = 0; i != numParticles; i++){
 		particles[i].x = (N / 2 + VFXEpoch::RandomI(-40, 40)) * world_scale;
 		particles[i].y = (VFXEpoch::RandomI(0, 30)) * world_scale;
-		r = VFXEpoch::RandomF(0.5, 0.7);
-		g = VFXEpoch::RandomF(0.6, 0.8);
-		b = VFXEpoch::RandomF(0.8, 1.0);
-		particles[i].color = vec3(r, g, b);
+		particles[i].color = vec3(0, 0, 0);
 	}
 
 	frame_counter = 0;
@@ -193,10 +168,7 @@ static int allocate_data(void)
 	for (int i = 0; i != numParticles; i++){
 		particles[i].x = (N / 2 + VFXEpoch::RandomI(-40, 40)) * world_scale;
 		particles[i].y = (VFXEpoch::RandomI(0, 30)) * world_scale;
-		r = VFXEpoch::RandomF(0.5, 0.7);
-		g = VFXEpoch::RandomF(0.6, 0.8);
-		b = VFXEpoch::RandomF(0.8, 1.0);
-		particles[i].color = vec3(r, g, b);
+		particles[i].color = vec3(0, 0, 0);
 	}
 
 	return (1);
@@ -208,7 +180,7 @@ static void pre_display(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// Make the pixel looks round.
@@ -242,7 +214,17 @@ static void draw_vector_field(float * u, float * v, float lineWidth, float r, fl
 				y + v[j * (N + 2) + i] * streamline_length / N);
 		}
 	}
+	glEnd();
 
+	glBegin(GL_POINTS);
+	glPointSize(1.0f);
+	for (i = 1; i <= N; i++) {
+		x = (i - 0.5f)*h;
+		for (j = 1; j <= N; j++) {
+			y = (j - 0.5f)*h;
+			glVertex2f(x, y);
+		}
+	}
 	glEnd();
 }
 
@@ -257,7 +239,7 @@ static void draw_particles(float * u, float * v, float pointSize)
 			particles[i].x = (N / 2 + VFXEpoch::RandomI(-40, 40)) * world_scale;
 			particles[i].y = (VFXEpoch::RandomI(0, 30)) * world_scale;
 		}
-		glColor3f(particles[i].color.x, particles[i].color.y, particles[i].color.z);
+		glColor3f(0, 0, 0);
 		glVertex2f(particles[i].x, particles[i].y);
 	}
 	glEnd();
@@ -282,10 +264,10 @@ static void draw_scalar_field(float * field, int r, int g, int b)
 			d10 = dens[IX(i + 1, j)];
 			d11 = dens[IX(i + 1, j + 1)];
 
-			glColor3f(d00, d00, d00); glVertex2f(x, y);
-			glColor3f(d10, d10, d10); glVertex2f(x + h, y);
-			glColor3f(d11, d11, d11); glVertex2f(x + h, y + h);
-			glColor3f(d01, d01, d01); glVertex2f(x, y + h);
+			glColor3f(1 - d00, 1 - d00, 1 - d00); glVertex2f(x, y);
+			glColor3f(1 - d10, 1 - d10, 1 - d10); glVertex2f(x + h, y);
+			glColor3f(1 - d11, 1 - d11, 1 - d11); glVertex2f(x + h, y + h);
+			glColor3f(1 - d01, 1 - d01, 1 - d01); glVertex2f(x, y + h);
 		}
 	}
 
@@ -375,7 +357,7 @@ static void idle_func(void)
 {
 	get_from_UI(dens_prev, u_prev, v_prev);
 	int idxX = N / 2;
-	int idxY = 3;
+	int idxY = 30;
 
 	v_prev[IX(idxX, idxY)] = force;
 	t0[IX(idxX, idxY)] = temp;
@@ -383,24 +365,40 @@ static void idle_func(void)
 	t0[IX(idxX - 1, idxY)] = temp;
 	t0[IX(idxX + 2, idxY)] = temp;
 	t0[IX(idxX - 2, idxY)] = temp;
-	dens_prev[IX(idxX, idxY)] = source;
+	t0[IX(idxX + 3, idxY)] = temp;
+	t0[IX(idxX - 3, idxY)] = temp;
+	t0[IX(idxX + 4, idxY)] = temp;
+	t0[IX(idxX - 4, idxY)] = temp;
+	t0[IX(idxX + 5, idxY)] = temp;
+	t0[IX(idxX - 5, idxY)] = temp;
+	dens_prev[IX(idxX + 1, idxY)] = source;
+	dens_prev[IX(idxX - 1, idxY)] = source;
+	dens_prev[IX(idxX + 2, idxY)] = source;
+	dens_prev[IX(idxX - 2, idxY)] = source;
+	dens_prev[IX(idxX + 3, idxY)] = source;
+	dens_prev[IX(idxX - 3, idxY)] = source;
+	dens_prev[IX(idxX + 4, idxY)] = source;
+	dens_prev[IX(idxX - 4, idxY)] = source;
+	dens_prev[IX(idxX + 5, idxY)] = source;
+	dens_prev[IX(idxX - 5, idxY)] = source;
 
 	if (!pause){
 		if (frame_counter != stop_frame)
 		{
-			//computeBuoyancy(N, v, dens, t, 0.1f, 0.4f, dt);
 			//
-			//MoveScalarProperties(N, t, t0, u, v, diff, dt);
-			MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
 			//
-			//IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
+			IVOCKAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
 			//
-			LBMAdvance(f0, f1, f2, f3, f4, f5, f6, f7, f8, N, 0.51, u, v, particles, numParticles, dt);
+			//SemiLagAdvance(N, particles, numParticles, fx, fy, psi, du, dv, wn, dw, w_bar, w_star, u, v, u_prev, v_prev, t, t0, visc, dt);
+			//LBMAdvance(f0, f1, f2, f3, f4, f5, f6, f7, f8, N, 0.51, u, v, particles, numParticles, dt);
 			//
 			//// TODO: Fix bugs
+			computeBuoyancy(N, v, dens, t, 0.1f, 0.3f, dt);
 			//computeVortConf(N, u, v, dt, vort_conf_coef);
-			//project(N, u, v, u_prev, v_prev);
-			//frame_counter++;
+			project(N, u, v, u_prev, v_prev);
+			MoveScalarProperties(N, t, t0, u, v, diff, dt);
+			MoveScalarProperties(N, dens, dens_prev, u, v, diff, dt);
+			frame_counter++;
 		}
 		else
 		{
@@ -415,24 +413,24 @@ static void display_func(void)
 {
 	if (!pause){
 		pre_display();
-		draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
+		//draw_scalar_field(dens, 1.0f, 1.0f, 1.0f);
 		//draw_scalar_field(t, 1.0f, 1.0f, 1.0f);
-		draw_vector_field(u, v, 1.0, 0.0f, 1.0f, 0.0f);
+		//draw_vector_field(u, v, 1.0, 0.0f, 0.0f, 0.0f);
 		//draw_vector_field(du, dv, 1.0f, 0.0f, 1.0f, 0.0f);
-		//draw_particles(u, v, 1.0f);
+		draw_particles(u, v, 0.01f);
 		post_display();
 	}
 
 	else
 	{
 		// Just for testing.
-		pre_display();
-		glPointSize(10.0f);
-		glColor3f(0.0f, 1.0f, 0.0f);
-		glBegin(GL_POINTS);
-		glVertex2f(0.5f, 0.5f);
-		glEnd();
-		post_display();
+		//pre_display();
+		//glPointSize(10.0f);
+		//glColor3f(0.0f, 1.0f, 0.0f);
+		//glBegin(GL_POINTS);
+		//glVertex2f(0.5f, 0.5f);
+		//glEnd();
+		//post_display();
 	}
 }
 
@@ -457,18 +455,19 @@ static void open_glut_window(void)
 
 int main(int argc, char ** argv)
 {
-	N = 64;
-	dt = 0.1f;
+	N = 192;
+	dt = 0.01f;
 	diff = 0.0f;
 	visc = 0.0f;
 	force = 0.0f;
 	source = 10.0f;
-	temp = 500.0f;
+	temp = 400.0f;
 	stop_frame = -1;
 	numParticles = 10000;
+	initRho = 1.0f;
 	world_scale = 1.0 / N;
-	vort_conf_coef = 0.55f;
-	streamline_length = 50.0f;
+	vort_conf_coef = 0.25f;
+	streamline_length = 8.0f;
 	cout << "Default values of the simualtion: " << endl;
 	cout << "Dim = " << N << " x " << N << endl;
 	cout << "Time step = " << dt << endl;
