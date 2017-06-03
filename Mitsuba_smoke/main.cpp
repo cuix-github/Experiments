@@ -198,7 +198,7 @@ void renderFunc() {
 
 	glutSwapBuffers();
 	if (running) {
-		fsolver->step(0.1f);
+		fsolver->step(0.08f);
 		if(isExport) {
 			if(isCompress)	{ exportDensity(frameCounter); frameCounter++; }
 			else { exportDensity_uncompressed(frameCounter); frameCounter++;}
@@ -405,7 +405,7 @@ void keyboardFunc(unsigned char key, int x, int y) {
 	if (key == ' ')
 		displayMode = (displayMode + 1)%2;
 	if (key == 's')
-		fsolver->step(1.0f);
+		fsolver->step(0.08f);
 	if (key == 'r')
 		running = !running;
 	if (key == 27)
@@ -415,7 +415,7 @@ void keyboardFunc(unsigned char key, int x, int y) {
 }
 
 int main(int argc, char **argv) {
-	int resX = 32, resY = 32, resZ = 32;
+	int resX = 128, resY = 192, resZ = 128;
 	Float size = 0.5f/60 * 5;
 	fsolver = new FluidSolver(resX, resY, resZ, size);
 	glutInit(&argc, argv);

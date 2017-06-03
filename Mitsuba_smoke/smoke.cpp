@@ -175,7 +175,7 @@ void FluidSolver::calcForces() {
 					Float length = N.length();
 					if (length < Epsilon)
 						continue;
-					m_vcForce[pos] = cross(N / length, m_curl[pos]) * (m_dx * 0.55f);
+					m_vcForce[pos] = cross(N / length, m_curl[pos]) * (m_dx * 0.0f);
 				}
 			}
 		}
@@ -256,7 +256,7 @@ void FluidSolver::step(Float dt) {
 	cout << "  + Calculating forces .." << endl;
 	calcForces();
 
-	Float targetTemp = 800, rateDensity = 20.0f;//, rateTemp = 1000.0f;
+	Float targetTemp = 1000, rateDensity = 50.0f;//, rateTemp = 1000.0f;
 /*	int rad = 10;
 	for (int z=-rad; z<=rad; ++z) {
 		for (int x=-rad; x<=rad; ++x) {
@@ -271,16 +271,16 @@ void FluidSolver::step(Float dt) {
 	}
 */
 
-	int rad = 6;
+	int rad = 4;
 	for (int i=-rad; i<=rad; ++i) {
 		for (int j=-rad; j<=rad; ++j) {
-			int x = m_gridX / 2 + i, y = m_gridY - 1, z = m_gridZ / 2 + j;
+			int x = m_gridX * 0.5f + i - 1, y = m_gridY - 1, z = m_gridZ * 0.5f + j;
 			Float tmp = rad*rad - i*i-j*j;
-			if (tmp < 0)
+			if (tmp <= 0)
 			 	continue;
 			m_d0[x + y * m_gridX + z * m_slice].density = dt * rateDensity;
-      m_d0[x + y * m_gridX + z * m_slice].temp = targetTemp;
-      m_F[1][x + y * m_gridX + z * m_velSlice] = 0.0f;
+      		m_d0[x + y * m_gridX + z * m_slice].temp = targetTemp;
+      		m_F[1][x + y * m_gridX + z * m_velSlice] = 0.0f;
 		}
 	}
 
